@@ -21,15 +21,3 @@ func GetAllBillingTags() mcp.Tool {
 		mcp.WithDescription("Get all billing tags"),
 	)
 }
-
-func GetAllLists() mcp.Tool {
-	return mcp.NewTool("getAllLists",
-		mcp.WithDescription("Get all lists"),
-	)
-}
-
-func GetAllConnectors() mcp.Tool {
-	return mcp.NewTool("getAllConnectors",
-		mcp.WithDescription("Get all connectors"),
-	)
-}

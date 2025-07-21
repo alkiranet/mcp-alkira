@@ -31,28 +31,26 @@ func main() {
 	var port string
 
 	var portal string
-	var username string
-	var password string
+	var key string
 
 	flag.StringVar(&port, "port", getEnvOrDefault("SERVER_PORT", "8081"), "Server port")
 	flag.StringVar(&mode, "mode", getEnvOrDefault("SERVER_MODE", "stdio"), "Server mode: 'stdio' or 'sse'")
 
-	flag.StringVar(&portal, "portal", getEnvOrDefault("AK_PORTAL", "terraform.preprod.alkira3.net"), "Alkira Portal URL")
-	flag.StringVar(&username, "username", getEnvOrDefault("AK_USERNAME", "terraform@alkira.com"), "Alkira Portal Username")
-	flag.StringVar(&password, "password", getEnvOrDefault("AK_PASSWORD", "Alkira2023!"), "Alkira Portal Password")
+	flag.StringVar(&portal, "portal", getEnvOrDefault("AK_PORTAL", ""), "Alkira Portal URL")
+	flag.StringVar(&key, "key", getEnvOrDefault("AK_KEY", ""), "Alkira API Key")
 	flag.Parse()
 
 	// Create Alkira Client
-	if portal == "" || username == "" || password == "" {
-		log.Printf("[ERROR] Invalid ENV vars, please specify AK_PORTAL, AK_USERNAME and AK_PASSWORD.")
+	if portal == "" || key == "" {
+		log.Printf("[ERROR] Invalid ENV vars, please specify AK_PORTAL and AK_KEY.")
 		return
 	}
 
 	alkiraClient, err := alkira.NewAlkiraClient(
 		portal,
-		username,
-		password,
 		"",
+		"",
+		key,
 		false,
 		"header",
 	)
@@ -72,8 +70,55 @@ func main() {
 	srv.AddTool(tools.GetAllSegments(), handlers.GetAllSegments(alkiraClient))
 	srv.AddTool(tools.GetAllGroups(), handlers.GetAllGroups(alkiraClient))
 	srv.AddTool(tools.GetAllBillingTags(), handlers.GetAllBillingTags(alkiraClient))
-	srv.AddTool(tools.GetAllLists(), handlers.GetAllLists(alkiraClient))
-	srv.AddTool(tools.GetAllConnectors(), handlers.GetAllConnectors(alkiraClient))
+
+	// Add service tools
+	srv.AddTool(tools.GetAllServiceCheckpoint(), handlers.GetAllServiceCheckpoint(alkiraClient))
+	srv.AddTool(tools.GetAllServiceCiscoFTDv(), handlers.GetAllServiceCiscoFTDv(alkiraClient))
+	srv.AddTool(tools.GetAllServiceF5Lb(), handlers.GetAllServiceF5Lb(alkiraClient))
+	srv.AddTool(tools.GetAllServiceFortinet(), handlers.GetAllServiceFortinet(alkiraClient))
+	srv.AddTool(tools.GetAllServiceInfoblox(), handlers.GetAllServiceInfoblox(alkiraClient))
+	srv.AddTool(tools.GetAllServicePan(), handlers.GetAllServicePan(alkiraClient))
+	srv.AddTool(tools.GetAllServiceZscaler(), handlers.GetAllServiceZscaler(alkiraClient))
+
+	// Add connector tools
+	srv.AddTool(tools.GetAllConnectorArubaEdge(), handlers.GetAllConnectorArubaEdge(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAwsDirectConnect(), handlers.GetAllConnectorAwsDirectConnect(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAwsTgw(), handlers.GetAllConnectorAwsTgw(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAwsVpc(), handlers.GetAllConnectorAwsVpc(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAzureExpressRoute(), handlers.GetAllConnectorAzureExpressRoute(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAzureVnet(), handlers.GetAllConnectorAzureVnet(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorCiscoSdwan(), handlers.GetAllConnectorCiscoSdwan(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorFortinetSdwan(), handlers.GetAllConnectorFortinetSdwan(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorGcpInterconnect(), handlers.GetAllConnectorGcpInterconnect(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorGcpVpc(), handlers.GetAllConnectorGcpVpc(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorInternet(), handlers.GetAllConnectorInternet(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorIPSec(), handlers.GetAllConnectorIPSec(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorAdvIPSec(), handlers.GetAllConnectorAdvIPSec(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorIPSecTunnelProfile(), handlers.GetAllConnectorIPSecTunnelProfile(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorOciVcn(), handlers.GetAllConnectorOciVcn(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorRemoteAccessTemplate(), handlers.GetAllConnectorRemoteAccessTemplate(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorVersaSdwan(), handlers.GetAllConnectorVersaSdwan(alkiraClient))
+	srv.AddTool(tools.GetAllConnectorVmwareSdwan(), handlers.GetAllConnectorVmwareSdwan(alkiraClient))
+
+	// Add policy tools
+	srv.AddTool(tools.GetAllNatPolicy(), handlers.GetAllNatPolicy(alkiraClient))
+	srv.AddTool(tools.GetAllNatRule(), handlers.GetAllNatRule(alkiraClient))
+	srv.AddTool(tools.GetAllRoutePolicy(), handlers.GetAllRoutePolicy(alkiraClient))
+	srv.AddTool(tools.GetAllTrafficPolicy(), handlers.GetAllTrafficPolicy(alkiraClient))
+	srv.AddTool(tools.GetAllTrafficPolicyRule(), handlers.GetAllTrafficPolicyRule(alkiraClient))
+	srv.AddTool(tools.GetAllPolicyRuleList(), handlers.GetAllPolicyRuleList(alkiraClient))
+	srv.AddTool(tools.GetAllPolicyPrefixList(), handlers.GetAllPolicyPrefixList(alkiraClient))
+	srv.AddTool(tools.GetAllPolicyFqdnList(), handlers.GetAllPolicyFqdnList(alkiraClient))
+
+	// Add list tools
+	srv.AddTool(tools.GetAllListAsPath(), handlers.GetAllListAsPath(alkiraClient))
+	srv.AddTool(tools.GetAllListCommunity(), handlers.GetAllListCommunity(alkiraClient))
+	srv.AddTool(tools.GetAllListExtendedCommunity(), handlers.GetAllListExtendedCommunity(alkiraClient))
+	srv.AddTool(tools.GetAllDnsServerList(), handlers.GetAllDnsServerList(alkiraClient))
+	srv.AddTool(tools.GetAllGlobalCidrList(), handlers.GetAllGlobalCidrList(alkiraClient))
+	srv.AddTool(tools.GetAllUdrList(), handlers.GetAllUdrList(alkiraClient))
+	srv.AddTool(tools.GetAllPolicyPrefixListIndividual(), handlers.GetAllPolicyPrefixListIndividual(alkiraClient))
+	srv.AddTool(tools.GetAllPolicyFqdnListIndividual(), handlers.GetAllPolicyFqdnListIndividual(alkiraClient))
 
 	// Start server based on mode
 	switch mode {
