@@ -30,7 +30,33 @@ The following targets are also supported:
 HOW TO USE
 ---
 
-## CLAUDE CODE
+The MCP server needs a tenant Portal URL and API KEY to operate. Fore
+each, you could configure one MCP server for it.
+
+The API Key for user could be generated from the portal by following
+`Settings` -> `User Management`. There should be a KEY button on each
+user.
+
+The detailed configuration for some common tools are listed below:
+
+### Claude Desktop
+
+```json
+{
+  "mcpServers": {
+    "mcp-alkira-test": {
+      "command": "mcp-alkira",
+      "args": [],
+      "env": {
+        "PORTAL_URL": "http://localhost:3000",
+        "GRAFANA_API_KEY": "<your service account token>"
+      }
+    }
+  }
+}
+```
+
+### CLAUDE CODE
 
 This is pure command line tool, so the configuration is all done
 through configuration json files. Currently, the CLI is still in its
@@ -49,41 +75,40 @@ which still needs manual tweak of JSON files to me.
 * Directly editing configuration file, you will need to add this block
   to `mcpServers` block in `~/.claude.json`:
 
-```
+```json
 {
 	"command": "PATH-TO-YOUR-MCP-REPO/bin/mcp-alkira",
-	"args": [],
-	"env": {
-		"AK_PORTAL": "xxx",
-		"AK_KEY": "xxx"
-	}
+    "args": [
+      "--portal",
+      "test.portal.alkira.com",
+      "--key",
+      "xxxxxxxxxxxxxxxxxxxxxx"
+    ],
+	"env": {}
 }
 ```
 
-E.g. mine looks like something like this:
+E.g. my configuration block on my Mac is like this:
 
-```
+```json
 "mcpServers": {
   "mcp-alkira": {
-    "command": "/Users/spwang/Workspace/alkira/ak-infra/mcp-alkira/bin/mcp-alkira",
-    "args": [],
+    "command": "/Users/spwang/mcp-alkira/bin/mcp-alkira",
+    "args": [
+      "--portal",
+      "test.portal.alkira.com",
+      "--key",
+      "xxxxxxxxxxxxxxxxxxxxxx"
+    ],
     "env": {}
 },
 ```
 
 Once you launch `claude`, check MCP status to make sure that it's up:
 
-```
-╰─$ claude                                                                                                                                                        127 ╭|──╭────────────────────────────────────────────────────────────╮
-│ ✻ Welcome to Claude Code!                                  │
-│                                                            │
-│   /help for help, /status for your current setup           │
-│                                                            │
-│   cwd: ~/                                                  │
-╰────────────────────────────────────────────────────────────╯
+```bash
+╰─$ claude
 
- ※ Tip: Want Claude to remember something? Hit # to add preferences, tools, and instructions to Claude's memory
-╭────────────────────────────────────────────────────────────╮
 │ Manage MCP servers                                         │
 │                                                            │
 │ ❯ 1. mcp-alkira  ✔ connected · Enter to view details       │
@@ -147,3 +172,14 @@ The MCP server provides the following tools for interacting with Alkira:
 | **Lists** | `getAllUdrList` | Get all User Defined Route (UDR) lists |
 | **Lists** | `getAllPolicyPrefixListIndividual` | Get all Policy Prefix lists individually |
 | **Lists** | `getAllPolicyFqdnListIndividual` | Get all Policy FQDN lists individually |
+| **Internet Applications** | `getAllInternetApplication` | Get all Internet Applications |
+| **Monitoring** | `getAlerts` | Get all alerts with optional filters (status, type, priority) |
+| **Monitoring** | `getAuditLogs` | Get all audit logs with optional filters (status, type) |
+| **Monitoring** | `getJobs` | Get all jobs with optional filters (status, type) |
+| **Monitoring** | `getAllHealth` | Get health status of all resources |
+| **Monitoring** | `getHealthOfConnector` | Get health status of a connector by ID |
+| **Monitoring** | `getHealthOfConnectorInstance` | Get health status of a connector instance by ID |
+| **Monitoring** | `getHealthOfService` | Get health status of a service by ID |
+| **Monitoring** | `getHealthOfServiceInstance` | Get health status of a service instance by ID |
+| **Segment Resources** | `getAllSegmentResources` | Get all segment resources |
+| **Segment Resources** | `getAllSegmentResourceShares` | Get all segment resource shares |
