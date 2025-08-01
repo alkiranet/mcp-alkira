@@ -8,8 +8,8 @@ agent. It's based on the open source MCP framework
 [mcp-go](https://github.com/mark3labs/mcp-go).
 
 > [!CAUTION]
-> NOTE: This project is only for experimental right now and not ready
-> for production use.
+> This project is only for experimental right now and not
+> ready for production use.
 
 
 ## BUILD
@@ -46,17 +46,19 @@ The detailed configuration for some common tools are listed below:
   "mcpServers": {
     "mcp-alkira-test": {
       "command": "mcp-alkira",
-      "args": [],
-      "env": {
-        "PORTAL_URL": "http://localhost:3000",
-        "GRAFANA_API_KEY": "<your service account token>"
-      }
+      "args": [
+        "--portal",
+        "YOUR PORTAL URL",
+        "--key",
+        "YOUR KEY"
+      ],
+      "env": {}
     }
   }
 }
 ```
 
-### CLAUDE CODE
+### Claude Code
 
 This is pure command line tool, so the configuration is all done
 through configuration json files. Currently, the CLI is still in its
@@ -80,9 +82,9 @@ which still needs manual tweak of JSON files to me.
 	"command": "PATH-TO-YOUR-MCP-REPO/bin/mcp-alkira",
     "args": [
       "--portal",
-      "test.portal.alkira.com",
+      "YOUR PORTAL URL",
       "--key",
-      "xxxxxxxxxxxxxxxxxxxxxx"
+      "YOUR API KEY"
     ],
 	"env": {}
 }
@@ -93,12 +95,12 @@ E.g. my configuration block on my Mac is like this:
 ```json
 "mcpServers": {
   "mcp-alkira": {
-    "command": "/Users/spwang/mcp-alkira/bin/mcp-alkira",
+    "command": "/Users/test/mcp/mcp-alkira",
     "args": [
       "--portal",
-      "test.portal.alkira.com",
+      "YOUR PORTAL URL",
       "--key",
-      "xxxxxxxxxxxxxxxxxxxxxx"
+      "OUR API KEY"
     ],
     "env": {}
 },
@@ -123,6 +125,10 @@ That's it.
 
 AVAILABLE TOOLS
 ---
+
+> [!NOTE]
+> The easiest way to get a list of possible tools is simply asking AI
+> agent. It should always give you a list of all available tools.
 
 The MCP server provides the following tools for interacting with Alkira:
 
