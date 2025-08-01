@@ -25,7 +25,7 @@ const defaultProvTimeout time.Duration = 240 * time.Minute
 
 // Default Retry
 const defaultRetryInterval time.Duration = 5 * time.Second
-const defaultRetryTimeout time.Duration = 60 * time.Second
+const defaultRetryTimeout time.Duration = 10 * time.Second
 
 type AlkiraClient struct {
 	Client          *retryablehttp.Client
@@ -97,13 +97,26 @@ func NewAlkiraClientWithAuthHeader(url string, username string, password string,
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient.Transport = tr
 	retryClient.RetryMax = 5
+	retryClient.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+		// Respect server-specified Retry-After header
+		if resp != nil && resp.StatusCode == 429 {
+			if retryAfter := resp.Header.Get("Retry-After"); retryAfter != "" {
+				if seconds, err := strconv.Atoi(retryAfter); err == nil {
+					logf("DEBUG", "Retry-After: %v\n", seconds)
+					return time.Duration(seconds) * time.Second
+				}
+			}
+		}
+		return retryablehttp.LinearJitterBackoff(min, max, attemptNum, resp)
+	}
 	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
-
 		shouldRetry, e := retryablehttp.DefaultRetryPolicy(ctx, resp, err)
 
-		if !shouldRetry {
-			if resp.StatusCode == 500 {
-				return true, fmt.Errorf("%s", resp.Status)
+		// Always retry on 429 and 500 status codes
+		if resp != nil {
+			switch resp.StatusCode {
+			case 429, 500:
+				return true, fmt.Errorf("retryable status code: %d", resp.StatusCode)
 			}
 		}
 		return shouldRetry, e
@@ -177,14 +190,29 @@ func NewAlkiraClientInternal(url string, username string, password string, secre
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 5
 	retryClient.HTTPClient.Transport = tr
+	retryClient.Backoff = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+		// Respect server-specified Retry-After header
+		if resp != nil && resp.StatusCode == 429 {
+			if retryAfter := resp.Header.Get("Retry-After"); retryAfter != "" {
+				if seconds, err := strconv.Atoi(retryAfter); err == nil {
+					logf("DEBUG", "Retry-After: %v\n", seconds)
+					return time.Duration(seconds) * time.Second
+				}
+			}
+		} else {
+			return time.Duration(defaultRetryTimeout)
+		}
+		return retryablehttp.LinearJitterBackoff(min, max, attemptNum, resp)
+	}
 
 	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
 		shouldRetry, e := retryablehttp.DefaultRetryPolicy(ctx, resp, err)
 
-		// In addition, retry on 409 as well due to DELETE
-		if !shouldRetry && resp != nil {
-			if resp.StatusCode == 409 {
-				return true, fmt.Errorf("%s", resp.Status)
+		// Retry on 409 and 429 status codes
+		if resp != nil {
+			switch resp.StatusCode {
+			case 409, 429:
+				return true, fmt.Errorf("retryable status code: %d", resp.StatusCode)
 			}
 		}
 		return shouldRetry, e

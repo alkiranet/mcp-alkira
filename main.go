@@ -68,6 +68,8 @@ func main() {
 
 	// Add tools
 	srv.AddTool(tools.GetAllSegments(), handlers.GetAllSegments(alkiraClient))
+	srv.AddTool(tools.GetAllSegmentResources(), handlers.GetAllSegmentResources(alkiraClient))
+	srv.AddTool(tools.GetAllSegmentResourceShares(), handlers.GetAllSegmentResourceShares(alkiraClient))
 	srv.AddTool(tools.GetAllGroups(), handlers.GetAllGroups(alkiraClient))
 	srv.AddTool(tools.GetAllBillingTags(), handlers.GetAllBillingTags(alkiraClient))
 
@@ -92,6 +94,7 @@ func main() {
 	srv.AddTool(tools.GetAllConnectorGcpInterconnect(), handlers.GetAllConnectorGcpInterconnect(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorGcpVpc(), handlers.GetAllConnectorGcpVpc(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorInternet(), handlers.GetAllConnectorInternet(alkiraClient))
+	srv.AddTool(tools.GetAllInternetApplication(), handlers.GetAllInternetApplication(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorIPSec(), handlers.GetAllConnectorIPSec(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorAdvIPSec(), handlers.GetAllConnectorAdvIPSec(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorIPSecTunnelProfile(), handlers.GetAllConnectorIPSecTunnelProfile(alkiraClient))
@@ -119,6 +122,12 @@ func main() {
 	srv.AddTool(tools.GetAllUdrList(), handlers.GetAllUdrList(alkiraClient))
 	srv.AddTool(tools.GetAllPolicyPrefixListIndividual(), handlers.GetAllPolicyPrefixListIndividual(alkiraClient))
 	srv.AddTool(tools.GetAllPolicyFqdnListIndividual(), handlers.GetAllPolicyFqdnListIndividual(alkiraClient))
+
+	// Add monitoring tools
+	srv.AddTool(tools.GetAlerts(), handlers.GetAlerts(alkiraClient))
+	srv.AddTool(tools.GetAuditLogs(), handlers.GetAuditLogs(alkiraClient))
+	srv.AddTool(tools.GetJobs(), handlers.GetJobs(alkiraClient))
+	srv.AddTool(tools.GetAllHealth(), handlers.GetAllHealth(alkiraClient))
 
 	// Start server based on mode
 	switch mode {

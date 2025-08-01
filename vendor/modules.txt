@@ -1,4 +1,4 @@
-# github.com/alkiranet/alkira-client-go v1.55.2
+# github.com/alkiranet/alkira-client-go v1.56.0
 ## explicit; go 1.20
 github.com/alkiranet/alkira-client-go/alkira
 # github.com/go-logr/logr v1.2.0
