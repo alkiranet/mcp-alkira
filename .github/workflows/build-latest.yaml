@@ -56,7 +56,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "[darwin-arm64](downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-amd64.tar.gz)\n[darwin-arm64](downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-arm64.tar.gz)\n[linux-amd64](downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-amd64.tar.gz)\n[linux-arm64](downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-arm64.tar.gz)\n[windows-amd64](downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-windows-amd64.zip)\n"
+                    "text": "* <downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-amd64.tar.gz|darwin-amd64>\n* <downffloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-arm64.tar.gz|darwin-arm64>\n* <downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-amd64.tar.gz|linux-amd64>\n* <downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-arm64.tar.gz|linux-arm64>\n* <downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-windows-amd64.zip|win-amd64>\n"
                   }
                 }
               ]
