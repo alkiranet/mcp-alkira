@@ -69,7 +69,7 @@ There are multiple ways to integrate MCP:
 * Using command:
 
 ```
-$ claude mcp add mcp-alkira
+$ claude mcp add mcp-alkira <path_to_mcp-alkira-bin>
 ```
 
 which still needs manual tweak of JSON files to me.
