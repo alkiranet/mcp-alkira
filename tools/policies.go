@@ -13,6 +13,15 @@ func GetAllNatPolicy() mcp.Tool {
 func GetAllNatRule() mcp.Tool {
 	return mcp.NewTool("getAllNatRule",
 		mcp.WithDescription("Get all NAT policy rules"),
+		mcp.WithString("limit",
+			mcp.Description("Maximum number of items to return (optional)"),
+		),
+		mcp.WithString("offset",
+			mcp.Description("Number of items to skip (optional)"),
+		),
+		mcp.WithString("page",
+			mcp.Description("Page number (1-indexed, alternative to offset) (optional)"),
+		),
 	)
 }
 
@@ -31,6 +40,15 @@ func GetAllTrafficPolicy() mcp.Tool {
 func GetAllTrafficPolicyRule() mcp.Tool {
 	return mcp.NewTool("getAllTrafficPolicyRule",
 		mcp.WithDescription("Get all traffic policy rules"),
+		mcp.WithString("limit",
+			mcp.Description("Maximum number of items to return (optional)"),
+		),
+		mcp.WithString("offset",
+			mcp.Description("Number of items to skip (optional)"),
+		),
+		mcp.WithString("page",
+			mcp.Description("Page number (1-indexed, alternative to offset) (optional)"),
+		),
 	)
 }
 

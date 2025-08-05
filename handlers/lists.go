@@ -1,160 +1,37 @@
 package handlers
 
 import (
-	"context"
-
 	"github.com/alkiranet/alkira-client-go/alkira"
-	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllListAsPath(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+var GetAllListAsPath = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewListAsPath(client)
+})
 
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+var GetAllListCommunity = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewListCommunity(client)
+})
 
-		// INIT
-		api := alkira.NewListAsPath(client)
+var GetAllListExtendedCommunity = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewListExtendedCommunity(client)
+})
 
-		// Get resources
-		lists, err := api.GetAll()
+var GetAllDnsServerList = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewDnsServerList(client)
+})
 
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
+var GetAllGlobalCidrList = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewGlobalCidrList(client)
+})
 
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
+var GetAllUdrList = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewUdrList(client)
+})
 
-func GetAllListCommunity(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+var GetAllPolicyPrefixListIndividual = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewPolicyPrefixList(client)
+})
 
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewListCommunity(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllListExtendedCommunity(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewListExtendedCommunity(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllDnsServerList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewDnsServerList(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllGlobalCidrList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewGlobalCidrList(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllUdrList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewUdrList(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllPolicyPrefixListIndividual(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewPolicyPrefixList(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
-
-func GetAllPolicyFqdnListIndividual(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewPolicyFqdnList(client)
-
-		// Get resources
-		lists, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(lists), nil
-	}
-}
+var GetAllPolicyFqdnListIndividual = CreateGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+	return alkira.NewPolicyFqdnList(client)
+})

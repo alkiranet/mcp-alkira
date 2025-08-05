@@ -7,344 +7,42 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllConnectorArubaEdge(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type ConnectorAPI interface {
+	GetAll() (string, error)
+}
 
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorArubaEdge(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
+func createConnectorHandler[T ConnectorAPI](newConnectorFunc func(*alkira.AlkiraClient) T) func(*alkira.AlkiraClient) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	return func(client *alkira.AlkiraClient) func(context.Context, mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			api := newConnectorFunc(client)
+			connectors, err := api.GetAll()
+			if err != nil {
+				return mcp.NewToolResultError(err.Error()), nil
+			}
+			return mcp.NewToolResultText(connectors), nil
 		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
 	}
 }
 
-func GetAllConnectorAwsDirectConnect(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAwsDirectConnect(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAwsTgw(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAwsTgw(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAwsVpc(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAwsVpc(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAzureExpressRoute(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAzureExpressRoute(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAzureVnet(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAzureVnet(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorCiscoSdwan(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorCiscoSdwan(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorFortinetSdwan(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorFortinetSdwan(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorGcpInterconnect(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorGcpInterconnect(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorGcpVpc(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorGcpVpc(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorInternet(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorInternet(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorIPSec(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorIPSec(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAdvIPSec(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorAdvIPSec(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorIPSecTunnelProfile(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorIPSecTunnelProfile(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorOciVcn(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorOciVcn(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorRemoteAccessTemplate(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorRemoteAccessTemplate(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorVersaSdwan(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorVersaSdwan(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorVmwareSdwan(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := alkira.NewConnectorVmwareSdwan(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
+var (
+	GetAllConnectorArubaEdge               = createConnectorHandler(alkira.NewConnectorArubaEdge)
+	GetAllConnectorAwsDirectConnect        = createConnectorHandler(alkira.NewConnectorAwsDirectConnect)
+	GetAllConnectorAwsTgw                  = createConnectorHandler(alkira.NewConnectorAwsTgw)
+	GetAllConnectorAwsVpc                  = createConnectorHandler(alkira.NewConnectorAwsVpc)
+	GetAllConnectorAzureExpressRoute       = createConnectorHandler(alkira.NewConnectorAzureExpressRoute)
+	GetAllConnectorAzureVnet               = createConnectorHandler(alkira.NewConnectorAzureVnet)
+	GetAllConnectorCiscoSdwan              = createConnectorHandler(alkira.NewConnectorCiscoSdwan)
+	GetAllConnectorFortinetSdwan           = createConnectorHandler(alkira.NewConnectorFortinetSdwan)
+	GetAllConnectorGcpInterconnect         = createConnectorHandler(alkira.NewConnectorGcpInterconnect)
+	GetAllConnectorGcpVpc                  = createConnectorHandler(alkira.NewConnectorGcpVpc)
+	GetAllConnectorInternet                = createConnectorHandler(alkira.NewConnectorInternet)
+	GetAllConnectorIPSec                   = createConnectorHandler(alkira.NewConnectorIPSec)
+	GetAllConnectorAdvIPSec                = createConnectorHandler(alkira.NewConnectorAdvIPSec)
+	GetAllConnectorIPSecTunnelProfile      = createConnectorHandler(alkira.NewConnectorIPSecTunnelProfile)
+	GetAllConnectorOciVcn                  = createConnectorHandler(alkira.NewConnectorOciVcn)
+	GetAllConnectorRemoteAccessTemplate    = CreatePaginatedGetAllHandler(func(client *alkira.AlkiraClient) GetAllAPI {
+		return alkira.NewConnectorRemoteAccessTemplate(client)
+	})
+	GetAllConnectorVersaSdwan              = createConnectorHandler(alkira.NewConnectorVersaSdwan)
+	GetAllConnectorVmwareSdwan             = createConnectorHandler(alkira.NewConnectorVmwareSdwan)
+)

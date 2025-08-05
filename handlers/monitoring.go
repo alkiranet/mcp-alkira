@@ -1,207 +1,37 @@
 package handlers
 
 import (
-	"context"
-
 	"github.com/alkiranet/alkira-client-go/alkira"
-	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAlerts(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+var GetAlerts = CreateHandlerWithOptionalParams(func(client *alkira.AlkiraClient, params map[string]string) (string, error) {
+	return client.GetAlerts(params["status"], params["type"], params["priority"])
+}, "status", "type", "priority")
 
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+var GetAuditLogs = CreateHandlerWithOptionalParams(func(client *alkira.AlkiraClient, params map[string]string) (string, error) {
+	return client.GetAuditLogs(params["status"], params["type"])
+}, "status", "type")
 
-		s, err := request.RequireString("status")
-        if err != nil {
-			s = ""
-        }
+var GetJobs = CreateHandlerWithOptionalParams(func(client *alkira.AlkiraClient, params map[string]string) (string, error) {
+	return client.GetJobs(params["status"], params["type"])
+}, "status", "type")
 
-		t, err := request.RequireString("type")
-        if err != nil {
-			t = ""
-        }
+var GetAllHealth = CreateSimpleHandler(func(client *alkira.AlkiraClient) (string, error) {
+	return client.GetHealthAll()
+})
 
-		p, err := request.RequireString("priority")
-        if err != nil {
-			p = ""
-        }
+var GetHealthOfConnector = CreateHandlerWithRequiredParams(func(client *alkira.AlkiraClient, params ...string) (string, error) {
+	return client.GetHealthOfConnector(params[0])
+}, "id")
 
-		// Get resources
-		alerts, err := client.GetAlerts(s, t, p)
+var GetHealthOfConnectorInstance = CreateHandlerWithRequiredParams(func(client *alkira.AlkiraClient, params ...string) (string, error) {
+	return client.GetHealthOfConnectorInstance(params[0], params[1])
+}, "id", "instanceId")
 
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
+var GetHealthOfService = CreateHandlerWithRequiredParams(func(client *alkira.AlkiraClient, params ...string) (string, error) {
+	return client.GetHealthOfService(params[0])
+}, "id")
 
-		// Return response
-		return mcp.NewToolResultText(alerts), nil
-	}
-}
-
-func GetAuditLogs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		s, err := request.RequireString("status")
-        if err != nil {
-			s = ""
-        }
-
-		t, err := request.RequireString("type")
-        if err != nil {
-			t = ""
-        }
-
-		// Get resources
-		auditLogs, err := client.GetAuditLogs(s, t)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(auditLogs), nil
-	}
-}
-
-func GetJobs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		s, err := request.RequireString("status")
-        if err != nil {
-			s = ""
-        }
-
-		t, err := request.RequireString("type")
-        if err != nil {
-			t = ""
-        }
-
-		// Get resources
-		jobs, err := client.GetJobs(s, t)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(jobs), nil
-	}
-}
-
-func GetAllHealth(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// Get resources
-		health, err := client.GetHealthAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
-
-func GetHealthOfConnector(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		id, err := request.RequireString("id")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		// Get resources
-		health, err := client.GetHealthOfConnector(id)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
-
-func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		id, err := request.RequireString("id")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		instanceId, err := request.RequireString("instanceId")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		// Get resources
-		health, err := client.GetHealthOfConnectorInstance(id, instanceId)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
-
-func GetHealthOfService(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		id, err := request.RequireString("id")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		// Get resources
-		health, err := client.GetHealthOfService(id)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
-
-func GetHealthOfServiceInstance(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		id, err := request.RequireString("id")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		instanceId, err := request.RequireString("instanceId")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		// Get resources
-		health, err := client.GetHealthOfServiceInstance(id, instanceId)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
+var GetHealthOfServiceInstance = CreateHandlerWithRequiredParams(func(client *alkira.AlkiraClient, params ...string) (string, error) {
+	return client.GetHealthOfServiceInstance(params[0], params[1])
+}, "id", "instanceId")

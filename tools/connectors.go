@@ -97,6 +97,15 @@ func GetAllConnectorOciVcn() mcp.Tool {
 func GetAllConnectorRemoteAccessTemplate() mcp.Tool {
 	return mcp.NewTool("getAllConnectorRemoteAccessTemplate",
 		mcp.WithDescription("Get all Remote Access Template connectors"),
+		mcp.WithString("limit",
+			mcp.Description("Maximum number of items to return (optional)"),
+		),
+		mcp.WithString("offset",
+			mcp.Description("Number of items to skip (optional)"),
+		),
+		mcp.WithString("page",
+			mcp.Description("Page number (1-indexed, alternative to offset) (optional)"),
+		),
 	)
 }
 
