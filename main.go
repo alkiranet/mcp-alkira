@@ -72,6 +72,7 @@ func main() {
 	srv.AddTool(tools.GetAllSegmentResourceShares(), handlers.GetAllSegmentResourceShares(alkiraClient))
 	srv.AddTool(tools.GetAllGroups(), handlers.GetAllGroups(alkiraClient))
 	srv.AddTool(tools.GetAllBillingTags(), handlers.GetAllBillingTags(alkiraClient))
+	srv.AddTool(tools.GetAllCxps(), handlers.GetAllCxps(alkiraClient))
 
 	// Add service tools
 	srv.AddTool(tools.GetAllServiceCheckpoint(), handlers.GetAllServiceCheckpoint(alkiraClient))

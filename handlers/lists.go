@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllListAsPath(client *alkira.AlkiraClient) func(ctx context.Context, req
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve AS Path lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllListCommunity(client *alkira.AlkiraClient) func(ctx context.Context, 
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Community lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,7 +56,7 @@ func GetAllListExtendedCommunity(client *alkira.AlkiraClient) func(ctx context.C
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Extended Community lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -76,7 +75,7 @@ func GetAllDnsServerList(client *alkira.AlkiraClient) func(ctx context.Context, 
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve DNS Server lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -95,7 +94,7 @@ func GetAllGlobalCidrList(client *alkira.AlkiraClient) func(ctx context.Context,
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Global CIDR lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -114,7 +113,7 @@ func GetAllUdrList(client *alkira.AlkiraClient) func(ctx context.Context, reques
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve UDR lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -133,7 +132,7 @@ func GetAllPolicyPrefixListIndividual(client *alkira.AlkiraClient) func(ctx cont
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Policy Prefix lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -152,7 +151,7 @@ func GetAllPolicyFqdnListIndividual(client *alkira.AlkiraClient) func(ctx contex
 		lists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Policy FQDN lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

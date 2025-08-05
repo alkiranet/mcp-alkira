@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -31,7 +30,7 @@ func GetAlerts(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 		alerts, err := client.GetAlerts(s, t, p)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve alerts")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,7 +56,7 @@ func GetAuditLogs(client *alkira.AlkiraClient) func(ctx context.Context, request
 		auditLogs, err := client.GetAuditLogs(s, t)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve audit logs")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -83,7 +82,7 @@ func GetJobs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.
 		jobs, err := client.GetJobs(s, t)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve jobs")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -99,7 +98,7 @@ func GetAllHealth(client *alkira.AlkiraClient) func(ctx context.Context, request
 		health, err := client.GetHealthAll()
 
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), fmt.Errorf("Failed to retrieve health status")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -121,7 +120,7 @@ func GetHealthOfConnector(client *alkira.AlkiraClient) func(ctx context.Context,
 		health, err := client.GetHealthOfConnector(id)
 
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), fmt.Errorf("Failed to retrieve health status")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -149,7 +148,7 @@ func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.
 		health, err := client.GetHealthOfConnectorInstance(id, instanceId)
 
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), fmt.Errorf("Failed to retrieve health status")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -171,7 +170,7 @@ func GetHealthOfService(client *alkira.AlkiraClient) func(ctx context.Context, r
 		health, err := client.GetHealthOfService(id)
 
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), fmt.Errorf("Failed to retrieve health status")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -199,7 +198,7 @@ func GetHealthOfServiceInstance(client *alkira.AlkiraClient) func(ctx context.Co
 		health, err := client.GetHealthOfServiceInstance(id, instanceId)
 
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), fmt.Errorf("Failed to retrieve health status")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

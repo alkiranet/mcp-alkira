@@ -21,3 +21,12 @@ func GetAllBillingTags() mcp.Tool {
 		mcp.WithDescription("Get all billing tags"),
 	)
 }
+
+func GetAllCxps() mcp.Tool {
+	return mcp.NewTool("getAllCxps",
+		mcp.WithDescription("Get all available CXP (Cloud Exchange Point). " +
+			"Each CXP is unqiuly defined by cloud provider (provider) and " +
+			"could provider region (providerRegion)."),
+	)
+}
+

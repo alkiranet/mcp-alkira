@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllServiceCheckpoint(client *alkira.AlkiraClient) func(ctx context.Conte
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve checkpoint services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllServiceCiscoFTDv(client *alkira.AlkiraClient) func(ctx context.Contex
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Cisco FTDv services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,7 +56,7 @@ func GetAllServiceF5Lb(client *alkira.AlkiraClient) func(ctx context.Context, re
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve F5 Load Balancer services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -76,7 +75,7 @@ func GetAllServiceFortinet(client *alkira.AlkiraClient) func(ctx context.Context
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Fortinet services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -95,7 +94,7 @@ func GetAllServiceInfoblox(client *alkira.AlkiraClient) func(ctx context.Context
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Infoblox services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -114,7 +113,7 @@ func GetAllServicePan(client *alkira.AlkiraClient) func(ctx context.Context, req
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Palo Alto Networks services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -133,7 +132,7 @@ func GetAllServiceZscaler(client *alkira.AlkiraClient) func(ctx context.Context,
 		services, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Zscaler services")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

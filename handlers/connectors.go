@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllConnectorArubaEdge(client *alkira.AlkiraClient) func(ctx context.Cont
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Aruba Edge Connect connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllConnectorAwsDirectConnect(client *alkira.AlkiraClient) func(ctx conte
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve AWS Direct Connect connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,7 +56,7 @@ func GetAllConnectorAwsTgw(client *alkira.AlkiraClient) func(ctx context.Context
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve AWS Transit Gateway connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -76,7 +75,7 @@ func GetAllConnectorAwsVpc(client *alkira.AlkiraClient) func(ctx context.Context
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve AWS VPC connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -95,7 +94,7 @@ func GetAllConnectorAzureExpressRoute(client *alkira.AlkiraClient) func(ctx cont
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Azure ExpressRoute connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -114,7 +113,7 @@ func GetAllConnectorAzureVnet(client *alkira.AlkiraClient) func(ctx context.Cont
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Azure Virtual Network connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -133,7 +132,7 @@ func GetAllConnectorCiscoSdwan(client *alkira.AlkiraClient) func(ctx context.Con
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Cisco SD-WAN connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -152,7 +151,7 @@ func GetAllConnectorFortinetSdwan(client *alkira.AlkiraClient) func(ctx context.
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Fortinet SD-WAN connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -171,7 +170,7 @@ func GetAllConnectorGcpInterconnect(client *alkira.AlkiraClient) func(ctx contex
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve GCP Interconnect connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -190,7 +189,7 @@ func GetAllConnectorGcpVpc(client *alkira.AlkiraClient) func(ctx context.Context
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve GCP VPC connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -209,7 +208,7 @@ func GetAllConnectorInternet(client *alkira.AlkiraClient) func(ctx context.Conte
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Internet Exit connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -228,7 +227,7 @@ func GetAllConnectorIPSec(client *alkira.AlkiraClient) func(ctx context.Context,
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve IPSec connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -247,7 +246,7 @@ func GetAllConnectorAdvIPSec(client *alkira.AlkiraClient) func(ctx context.Conte
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Advanced IPSec connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -266,7 +265,7 @@ func GetAllConnectorIPSecTunnelProfile(client *alkira.AlkiraClient) func(ctx con
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve IPSec Tunnel Profile connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -285,7 +284,7 @@ func GetAllConnectorOciVcn(client *alkira.AlkiraClient) func(ctx context.Context
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Oracle Cloud VCN connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -304,7 +303,7 @@ func GetAllConnectorRemoteAccessTemplate(client *alkira.AlkiraClient) func(ctx c
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Remote Access Template connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -323,7 +322,7 @@ func GetAllConnectorVersaSdwan(client *alkira.AlkiraClient) func(ctx context.Con
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Versa SD-WAN connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -342,7 +341,7 @@ func GetAllConnectorVmwareSdwan(client *alkira.AlkiraClient) func(ctx context.Co
 		connectors, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve VMware SD-WAN connectors")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

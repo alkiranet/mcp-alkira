@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllInternetApplication(client *alkira.AlkiraClient) func(ctx context.Con
 		applications, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve Internet Applications")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

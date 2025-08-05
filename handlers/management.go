@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllSegments(client *alkira.AlkiraClient) func(ctx context.Context, reque
 		segments, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve segments")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllGroups(client *alkira.AlkiraClient) func(ctx context.Context, request
 		groups, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve groups")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,10 +56,29 @@ func GetAllBillingTags(client *alkira.AlkiraClient) func(ctx context.Context, re
 		billingTags, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve billingTags")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
 		return mcp.NewToolResultText(billingTags), nil
+	}
+}
+
+func GetAllCxps(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := alkira.NewInventoryCXP(client)
+
+		// Get resources
+		cxps, err := api.GetAll()
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(cxps), nil
 	}
 }

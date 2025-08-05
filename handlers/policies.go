@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllNatPolicy(client *alkira.AlkiraClient) func(ctx context.Context, requ
 		policies, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve NAT policies")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllNatRule(client *alkira.AlkiraClient) func(ctx context.Context, reques
 		rules, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve NAT policy rules")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -57,7 +56,7 @@ func GetAllRoutePolicy(client *alkira.AlkiraClient) func(ctx context.Context, re
 		policies, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve route policies")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -76,7 +75,7 @@ func GetAllTrafficPolicy(client *alkira.AlkiraClient) func(ctx context.Context, 
 		policies, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve traffic policies")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -95,7 +94,7 @@ func GetAllTrafficPolicyRule(client *alkira.AlkiraClient) func(ctx context.Conte
 		rules, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve traffic policy rules")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -114,7 +113,7 @@ func GetAllPolicyRuleList(client *alkira.AlkiraClient) func(ctx context.Context,
 		ruleLists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve policy rule lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -133,7 +132,7 @@ func GetAllPolicyPrefixList(client *alkira.AlkiraClient) func(ctx context.Contex
 		prefixLists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve policy prefix lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -152,7 +151,7 @@ func GetAllPolicyFqdnList(client *alkira.AlkiraClient) func(ctx context.Context,
 		fqdnLists, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve policy FQDN lists")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response

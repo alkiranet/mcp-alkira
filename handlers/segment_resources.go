@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -19,7 +18,7 @@ func GetAllSegmentResources(client *alkira.AlkiraClient) func(ctx context.Contex
 		segmentResources, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve segment resources")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
@@ -38,7 +37,7 @@ func GetAllSegmentResourceShares(client *alkira.AlkiraClient) func(ctx context.C
 		segmentResourceShares, err := api.GetAll()
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve segment resource shares")
+			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
