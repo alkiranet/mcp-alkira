@@ -162,6 +162,8 @@ The MCP server provides the following tools for interacting with Alkira:
 | **Connectors** | `getAllConnectorRemoteAccessTemplate` | Get all Remote Access Template connectors |
 | **Connectors** | `getAllConnectorVersaSdwan` | Get all Versa SD-WAN connectors |
 | **Connectors** | `getAllConnectorVmwareSdwan` | Get all VMware SD-WAN (VeloCloud) connectors |
+| **Routes** | `getRoutes` | Get routes for a tenant network with optional filtering (by segment, connector, route type, etc.) |
+| **Routes** | `getRouteCount` | Get route counts for a tenant network with optional filtering |
 | **Policies** | `getAllNatPolicy` | Get all NAT policies |
 | **Policies** | `getAllNatRule` | Get all NAT policy rules |
 | **Policies** | `getAllRoutePolicy` | Get all route policies |
