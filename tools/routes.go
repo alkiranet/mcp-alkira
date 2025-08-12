@@ -87,7 +87,7 @@ func GetAllRoutes() mcp.Tool {
 		mcp.WithString("tenantNetworkId", mcp.Required(), mcp.Description("The tenant network ID")),
 		mcp.WithString("type", mcp.Required(), mcp.Description("Route type: 'received', 'advertised', or 'overlap' (required)")),
 		mcp.WithNumber("batchSize", mcp.Description("Routes per batch (default: 50, max: 100)")),
-		mcp.WithBoolean("showProgress", mcp.Description("Show pagination progress (default: false)")),
+		// showProgress parameter removed for consistency with other tools
 		mcp.WithString("outputFormat", mcp.Description("Output format: json, summary, count (default: json)")),
 		// Filtering options
 		mcp.WithString("segmentName", mcp.Description("Filter by segment name")),

@@ -189,7 +189,7 @@ type PaginationHelper struct {
 	BatchSize      int                `json:"batchSize"`
 	TotalBatches   int                `json:"totalBatches"`
 	ProcessedRoutes int               `json:"processedRoutes"`
-	ShowProgress   bool               `json:"showProgress"`
+	// ShowProgress removed to match other handler patterns
 	Routes         []RouteUIResult    `json:"routes,omitempty"`
 	Summary        *RouteSummaryResponse `json:"summary,omitempty"`
 }
@@ -639,14 +639,14 @@ func (r *RoutesClientHandler) filterByRouteStatus(routes []RouteUIResult, status
 	switch strings.ToLower(status) {
 	case "active":
 		for _, route := range routes {
-			hasActivesConnector := false
+			hasActiveConnector := false
 			for _, connector := range route.Connectors {
 				if !connector.RouteSuppressed {
-					hasActivesConnector = true
+					hasActiveConnector = true
 					break
 				}
 			}
-			if hasActivesConnector {
+			if hasActiveConnector {
 				filtered = append(filtered, route)
 			}
 		}
@@ -951,7 +951,7 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 		// Extract parameters
 		routeType := request.GetString("type", "received")
 		batchSize := request.GetInt("batchSize", 50)
-		showProgress := request.GetBool("showProgress", false)
+		// showProgress parameter removed for consistency
 		outputFormat := request.GetString("outputFormat", "json")
 		segmentName := request.GetString("segmentName", "")
 		connectorType := request.GetString("connectorType", "")
@@ -965,7 +965,7 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 		api := NewRoutesClientHandler(client)
 
 		// Get all routes with pagination
-		allRoutes, err := api.getAllRoutesWithPaginationAndFiltering(api, tenantNetworkID, routeType, batchSize, showProgress, segmentName, connectorType, cxp)
+		allRoutes, err := api.getAllRoutesWithPaginationAndFiltering(api, tenantNetworkID, routeType, batchSize, segmentName, connectorType, cxp)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -1096,7 +1096,7 @@ func (r *RoutesClientHandler) getAllRoutesWithPagination(api *RoutesClientHandle
 	return allRoutes, nil
 }
 
-func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *RoutesClientHandler, tenantNetworkID, routeType string, batchSize int, showProgress bool, segmentName, connectorType, cxp string) ([]RouteUIResult, error) {
+func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *RoutesClientHandler, tenantNetworkID, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]RouteUIResult, error) {
 	var allRoutes []RouteUIResult
 	offset := 0
 
@@ -1117,9 +1117,7 @@ func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *Routes
 
 		allRoutes = append(allRoutes, response.Data...)
 
-		if showProgress {
-			fmt.Printf("Fetched %d routes (batch size: %d, total so far: %d)\n", len(response.Data), batchSize, len(allRoutes))
-		}
+		// Note: Progress tracking removed to match other handler patterns
 
 		if len(response.Data) < batchSize {
 			break
