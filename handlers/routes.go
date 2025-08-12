@@ -189,7 +189,6 @@ type PaginationHelper struct {
 	BatchSize      int                `json:"batchSize"`
 	TotalBatches   int                `json:"totalBatches"`
 	ProcessedRoutes int               `json:"processedRoutes"`
-	// ShowProgress removed to match other handler patterns
 	Routes         []RouteUIResult    `json:"routes,omitempty"`
 	Summary        *RouteSummaryResponse `json:"summary,omitempty"`
 }
@@ -951,7 +950,6 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 		// Extract parameters
 		routeType := request.GetString("type", "received")
 		batchSize := request.GetInt("batchSize", 50)
-		// showProgress parameter removed for consistency
 		outputFormat := request.GetString("outputFormat", "json")
 		segmentName := request.GetString("segmentName", "")
 		connectorType := request.GetString("connectorType", "")
@@ -1117,7 +1115,6 @@ func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *Routes
 
 		allRoutes = append(allRoutes, response.Data...)
 
-		// Note: Progress tracking removed to match other handler patterns
 
 		if len(response.Data) < batchSize {
 			break
