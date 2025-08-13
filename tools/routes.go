@@ -94,15 +94,4 @@ func GetAllRoutes() mcp.Tool {
 	)
 }
 
-// GetRoutesByConnectorType provides optimized filtering by connector type
-func GetRoutesByConnectorType() mcp.Tool {
-	return mcp.NewTool("getRoutesByConnectorType",
-		mcp.WithDescription("Get all routes for specific connector types with optimized filtering"),
-		mcp.WithString("tenantNetworkId", mcp.Required(), mcp.Description("The tenant network ID")),
-		mcp.WithString("type", mcp.Required(), mcp.Description("Route type: 'received', 'advertised', or 'overlap' (required)")),
-		mcp.WithString("connectorType", mcp.Required(), mcp.Description("Connector type: SAAS, REMOTE_ACCESS, AWS_VPC, GCP_VPC, AZURE_VNET, INB_INT, DIRECT_CONNECT, IP_SEC, ADV_IP_SEC, OCI_VCN")),
-		mcp.WithBoolean("includePrefixSummary", mcp.Description("Include prefix range analysis (default: false)")),
-		mcp.WithString("outputFormat", mcp.Description("Output format: json, table, summary (default: json)")),
-		mcp.WithString("segmentName", mcp.Description("Filter by specific segment")),
-	)
-}
+// Note: GetRoutesByConnectorType functionality merged into getRoutes with connectorTypes parameter

@@ -110,7 +110,7 @@ func main() {
 	// Enhanced routes tools
 	srv.AddTool(tools.GetRouteSummary(), handlers.GetRouteSummary(alkiraClient))
 	srv.AddTool(tools.GetAllRoutes(), handlers.GetAllRoutes(alkiraClient))
-	srv.AddTool(tools.GetRoutesByConnectorType(), handlers.GetRoutesByConnectorType(alkiraClient))
+	// GetRoutesByConnectorType functionality merged into getRoutes with connectorTypes parameter
 
 	// Add policy tools
 	srv.AddTool(tools.GetAllNatPolicy(), handlers.GetAllNatPolicy(alkiraClient))

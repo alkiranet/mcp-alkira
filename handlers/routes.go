@@ -106,17 +106,33 @@ func getRoutesEnhanced(client *alkira.AlkiraClient, params EnhancedRouteQueryPar
 
 func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// Validate required parameters
+		_, err := request.RequireString("tenantNetworkId")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		routeType := request.GetString("type", "received")
+		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
+			return mcp.NewToolResultError("type must be 'received', 'advertised', or 'overlap'"), nil
+		}
+
+		// Auto-optimize limit for better performance
+		limit := request.GetInt("limit", 0)
+		if limit == 0 || limit > 1000 {
+			limit = 100 // Optimal default
+		}
 
 		// Build enhanced query parameters from request
 		params := EnhancedRouteQueryParams{
 			RouteQueryParams: alkira.RouteQueryParams{
-				Type:                 request.GetString("type", "received"), // Default to 'received' if not specified
+				Type:                 routeType,
 				SegmentName:          request.GetString("segmentName", ""),
 				SegmentNames:         request.GetString("segmentNames", ""),
 				CXP:                  request.GetString("cxp", ""),
 				ConnectorID:          request.GetString("connectorId", ""),
 				Offset:               request.GetInt("offset", 0),
-				Limit:                request.GetInt("limit", 0),
+				Limit:                limit,
 				Search:               request.GetString("search", ""),
 				PrefixType:           request.GetString("prefixType", ""),
 				RouteType:            request.GetString("routeType", ""),
@@ -143,7 +159,14 @@ func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 		// Get routes with enhanced filtering
 		routes, err := getRoutesEnhanced(client, params)
 		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
+			// Provide helpful error messages for common issues
+			if strings.Contains(err.Error(), "404") {
+				return mcp.NewToolResultError("Tenant network not found. Verify tenantNetworkId is correct"), nil
+			}
+			if strings.Contains(err.Error(), "segment") && routeType == "advertised" {
+				return mcp.NewToolResultError("For advertised routes, specify either segmentName or cxp parameter"), nil
+			}
+			return mcp.NewToolResultError("Route query failed: " + err.Error()), nil
 		}
 
 		// Return response as JSON
@@ -157,10 +180,20 @@ func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 
 func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// Validate required parameters
+		_, err := request.RequireString("tenantNetworkId")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		routeType := request.GetString("type", "received")
+		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
+			return mcp.NewToolResultError("type must be 'received', 'advertised', or 'overlap'"), nil
+		}
 
 		// Build query parameters from request
 		params := alkira.RouteCountQueryParams{
-			Type:                 request.GetString("type", "received"), // Default to 'received' if not specified
+			Type:                 routeType,
 			SegmentName:          request.GetString("segmentName", ""),
 			SegmentNames:         request.GetString("segmentNames", ""),
 			CXP:                  request.GetString("cxp", ""),
@@ -566,7 +599,7 @@ func GetRouteSummary(client *alkira.AlkiraClient) func(ctx context.Context, requ
 func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract tenant network ID (required)
-		tenantNetworkID, err := request.RequireString("tenantNetworkId")
+		_, err := request.RequireString("tenantNetworkId")
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -584,7 +617,7 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 		}
 
 		// Get all routes with pagination
-		allRoutes, err := getAllRoutesWithPaginationAndFiltering(client, tenantNetworkID, routeType, batchSize, segmentName, connectorType, cxp)
+		allRoutes, err := getAllRoutesWithPaginationAndFiltering(client, routeType, batchSize, segmentName, connectorType, cxp)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -620,62 +653,7 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-// GetRoutesByConnectorType handler
-func GetRoutesByConnectorType(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		// Extract parameters
-		connectorType, err := request.RequireString("connectorType")
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		routeType := request.GetString("type", "received")
-		includePrefixSummary := request.GetBool("includePrefixSummary", false)
-		outputFormat := request.GetString("outputFormat", "json")
-		segmentName := request.GetString("segmentName", "")
-
-		// Build enhanced parameters
-		params := EnhancedRouteQueryParams{
-			RouteQueryParams: alkira.RouteQueryParams{
-				Type:        routeType,
-				SegmentName: segmentName,
-				Limit:       1000,
-			},
-			OutputFormat:   outputFormat,
-			ConnectorTypes: connectorType,
-		}
-
-		// Get filtered routes using enhanced function
-		result, err := getRoutesEnhanced(client, params)
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Add prefix summary if requested
-		if includePrefixSummary {
-			if routes, ok := result.(*alkira.RoutesUIResponse); ok {
-				summary := generateRouteSummary(routes.Data, "connectorType", false, true)
-				enhancedResult := map[string]interface{}{
-					"routes":  routes,
-					"summary": summary,
-				}
-				resultJSON, err := json.Marshal(enhancedResult)
-				if err != nil {
-					return mcp.NewToolResultError("Failed to marshal enhanced result: " + err.Error()), nil
-				}
-				return mcp.NewToolResultText(string(resultJSON)), nil
-			}
-		}
-
-		// Return result
-		resultJSON, err := json.Marshal(result)
-		if err != nil {
-			return mcp.NewToolResultError("Failed to marshal result: " + err.Error()), nil
-		}
-
-		return mcp.NewToolResultText(string(resultJSON)), nil
-	}
-}
+// GetRoutesByConnectorType functionality merged into getRoutes with connectorTypes parameter
 
 // Helper functions for pagination
 // getAllRoutesWithPaginationOptimized uses smarter pagination with reasonable limits
@@ -714,7 +692,7 @@ func getAllRoutesWithPaginationOptimized(client *alkira.AlkiraClient, routeType 
 	return allRoutes, nil
 }
 
-func getAllRoutesWithPaginationAndFiltering(client *alkira.AlkiraClient, tenantNetworkID, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]alkira.RouteUIResult, error) {
+func getAllRoutesWithPaginationAndFiltering(client *alkira.AlkiraClient, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]alkira.RouteUIResult, error) {
 	var allRoutes []alkira.RouteUIResult
 	offset := 0
 	maxRoutes := 10000 // Safety limit
