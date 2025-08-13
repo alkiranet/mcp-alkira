@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/alkiranet/alkira-client-go/alkira"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -106,27 +107,6 @@ func GetAllHealth(client *alkira.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-func GetHealthOfConnector(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		id, err := request.RequireString("id")
-
-        if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-        }
-
-		// Get resources
-		health, err := client.GetHealthOfConnector(id)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
 
 func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -144,8 +124,19 @@ func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.
 			return mcp.NewToolResultError(err.Error()), nil
         }
 
-		// Get resources
-		health, err := client.GetHealthOfConnectorInstance(id, instanceId)
+		// Convert string IDs to integers as required by API
+		connectorIdInt, err := strconv.Atoi(id)
+		if err != nil {
+			return mcp.NewToolResultError("Invalid connector ID: " + err.Error()), nil
+		}
+
+		instanceIdInt, err := strconv.Atoi(instanceId)
+		if err != nil {
+			return mcp.NewToolResultError("Invalid instance ID: " + err.Error()), nil
+		}
+
+		// Get resources using the renamed method
+		health, err := client.GetHealthConnectorInstance(connectorIdInt, instanceIdInt)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -166,8 +157,14 @@ func GetHealthOfService(client *alkira.AlkiraClient) func(ctx context.Context, r
 			return mcp.NewToolResultError(err.Error()), nil
         }
 
+		// Convert string ID to integer as required by API
+		serviceIdInt, err := strconv.Atoi(id)
+		if err != nil {
+			return mcp.NewToolResultError("Invalid service ID: " + err.Error()), nil
+		}
+
 		// Get resources
-		health, err := client.GetHealthOfService(id)
+		health, err := client.GetHealthOfService(serviceIdInt)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -194,8 +191,19 @@ func GetHealthOfServiceInstance(client *alkira.AlkiraClient) func(ctx context.Co
 			return mcp.NewToolResultError(err.Error()), nil
         }
 
+		// Convert string IDs to integers as required by API
+		serviceIdInt, err := strconv.Atoi(id)
+		if err != nil {
+			return mcp.NewToolResultError("Invalid service ID: " + err.Error()), nil
+		}
+
+		instanceIdInt, err := strconv.Atoi(instanceId)
+		if err != nil {
+			return mcp.NewToolResultError("Invalid instance ID: " + err.Error()), nil
+		}
+
 		// Get resources
-		health, err := client.GetHealthOfServiceInstance(id, instanceId)
+		health, err := client.GetHealthOfServiceInstance(serviceIdInt, instanceIdInt)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

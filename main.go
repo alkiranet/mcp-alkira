@@ -104,6 +104,14 @@ func main() {
 	srv.AddTool(tools.GetAllConnectorVersaSdwan(), handlers.GetAllConnectorVersaSdwan(alkiraClient))
 	srv.AddTool(tools.GetAllConnectorVmwareSdwan(), handlers.GetAllConnectorVmwareSdwan(alkiraClient))
 
+	// Add routes tools
+	srv.AddTool(tools.GetRoutes(), handlers.GetRoutes(alkiraClient))
+	srv.AddTool(tools.GetRouteCount(), handlers.GetRouteCount(alkiraClient))
+	// Enhanced routes tools
+	srv.AddTool(tools.GetRouteSummary(), handlers.GetRouteSummary(alkiraClient))
+	srv.AddTool(tools.GetAllRoutes(), handlers.GetAllRoutes(alkiraClient))
+	// GetRoutesByConnectorType functionality merged into getRoutes with connectorTypes parameter
+
 	// Add policy tools
 	srv.AddTool(tools.GetAllNatPolicy(), handlers.GetAllNatPolicy(alkiraClient))
 	srv.AddTool(tools.GetAllNatRule(), handlers.GetAllNatRule(alkiraClient))
