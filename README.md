@@ -164,6 +164,8 @@ The MCP server provides the following tools for interacting with Alkira:
 | **Connectors** | `getAllConnectorVmwareSdwan` | Get all VMware SD-WAN (VeloCloud) connectors |
 | **Routes** | `getRoutes` | Get routes for a tenant network with optional filtering (by segment, connector, route type, etc.) |
 | **Routes** | `getRouteCount` | Get route counts for a tenant network with optional filtering |
+| **Routes** | `getRouteSummary` | Get aggregated route analytics grouped by connector type, segment, or CXP |
+| **Routes** | `getAllRoutes` | Get ALL routes with automatic pagination (handles large result sets efficiently) |
 | **Policies** | `getAllNatPolicy` | Get all NAT policies |
 | **Policies** | `getAllNatRule` | Get all NAT policy rules |
 | **Policies** | `getAllRoutePolicy` | Get all route policies |
@@ -191,3 +193,66 @@ The MCP server provides the following tools for interacting with Alkira:
 | **Monitoring** | `getHealthOfServiceInstance` | Get health status of a service instance by ID |
 | **Segment Resources** | `getAllSegmentResources` | Get all segment resources |
 | **Segment Resources** | `getAllSegmentResourceShares` | Get all segment resource shares |
+
+
+ROUTES TOOLS
+---
+
+The Routes tools provide comprehensive access to Alkira's routing information with advanced filtering and analytics capabilities.
+
+### Core Route Tools
+
+**`getRoutes`** - Retrieve detailed route information with flexible filtering
+- Get received routes (learned by Alkira) or advertised routes (sent to connectors)
+- Filter by segments, connectors, route types, or search terms
+- Support for multiple output formats (JSON, table, CSV, summary)
+- Optimized pagination with smart defaults
+
+**`getRouteCount`** - Get route counts matching criteria
+- More efficient than getRoutes for count-only queries
+- Useful for checking route table sizes before pagination
+- Supports all the same filtering options as getRoutes
+
+**`getRouteSummary`** - Aggregated route analytics and insights
+- Group routes by connector type, segment, or CXP (Cloud Exchange Point)
+- Route distribution analysis and connector utilization metrics
+- Optional detailed breakdowns and IP prefix analysis
+
+**`getAllRoutes`** - Complete route retrieval with automatic pagination
+- Handles large result sets efficiently with safety limits
+- Automatic pagination with optimal batch sizes
+- Built-in filtering for segments, connector types, and CXPs
+
+### Common Usage Examples
+
+```bash
+# Get received routes for a specific segment
+getRoutes tenantNetworkId="48" type="received" segmentName="Corporate"
+
+# Find all AWS VPC routes
+getRoutes tenantNetworkId="48" type="received" connectorTypes="AWS_VPC" limit=100
+
+# Search for routes containing specific terms
+getRoutes tenantNetworkId="48" type="received" search="customer" 
+
+# Get route count by connector type
+getRouteSummary tenantNetworkId="48" type="received" groupBy="connectorType"
+
+# Find active routes (non-suppressed)
+getRoutes tenantNetworkId="48" type="received" routeStatus="active"
+
+# Export routes to CSV format
+getRoutes tenantNetworkId="48" type="received" outputFormat="csv" limit=1000
+```
+
+### Key Filtering Options
+
+- **`type`**: `received` (learned by Alkira) | `advertised` (sent to connectors) | `overlap` (conflicting routes)
+- **`segmentName`**: Filter by network segment (e.g., 'Corporate', 'DMZ')  
+- **`connectorTypes`**: AWS_VPC, AZURE_VNET, GCP_VPC, IP_SEC, etc.
+- **`routeStatus`**: `active`, `suppressed`, `overlap`
+- **`search`**: Search across all fields for specific terms
+- **`prefixType`**: `LOCAL` (segment-only) | `SHARED` (cross-segment)
+- **`outputFormat`**: `json`, `table`, `csv`, `summary`
+
+For advertised routes, specify either `segmentName` or `cxp` parameter for optimal performance.
