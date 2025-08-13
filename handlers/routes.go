@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -16,455 +15,133 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-// Route query parameters for filtering routes
-type RouteQueryParams struct {
-	Type                 string `json:"type,omitempty"`                 // required: received, advertised, overlap
-	SegmentName          string `json:"segmentName,omitempty"`          // segment name filter
-	SegmentNames         string `json:"segmentNames,omitempty"`         // multiple segment names (comma-separated)
-	CXP                  string `json:"cxp,omitempty"`                  // Cloud Exchange Point filter
-	ConnectorID          string `json:"connectorId,omitempty"`          // connector ID filter
-	Offset               int    `json:"offset,omitempty"`               // pagination offset
-	Limit                int    `json:"limit,omitempty"`                // pagination limit
-	Search               string `json:"search,omitempty"`               // search filter
-	PrefixType           string `json:"prefixType,omitempty"`           // prefix type filter
-	RouteType            string `json:"routeType,omitempty"`            // route type filter
-	SegmentID            string `json:"segmentId,omitempty"`            // segment ID filter
-	OverlapType          string `json:"overlapType,omitempty"`          // overlap type filter
-	SourceCXP            string `json:"sourceCXP,omitempty"`            // source CXP filter
-	EntityInstance       string `json:"entityInstance,omitempty"`       // entity instance filter
-	EntityType           string `json:"entityType,omitempty"`           // entity type filter
-	Group                string `json:"group,omitempty"`                // group filter
-	SegmentResourceShare string `json:"segmentResourceShare,omitempty"` // segment resource share filter
-	RouteRecvType        string `json:"routeRecvType,omitempty"`        // route receive type filter
-	Prefix               string `json:"prefix,omitempty"`               // prefix filter
-	LPMPrefix            string `json:"lpmPrefix,omitempty"`            // LPM prefix filter
-}
-
-// Route count query parameters
-type RouteCountQueryParams struct {
-	Type                 string `json:"type,omitempty"`                 // route type filter
-	SegmentName          string `json:"segmentName,omitempty"`          // segment name filter
-	SegmentNames         string `json:"segmentNames,omitempty"`         // multiple segment names (comma-separated)
-	CXP                  string `json:"cxp,omitempty"`                  // Cloud Exchange Point filter
-	ConnectorID          string `json:"connectorId,omitempty"`          // connector ID filter
-	SegmentID            string `json:"segmentId,omitempty"`            // segment ID filter
-	RouteRecvType        string `json:"routeRecvType,omitempty"`        // route receive type filter
-	OverlapType          string `json:"overlapType,omitempty"`          // overlap type filter
-	SourceCXP            string `json:"sourceCXP,omitempty"`            // source CXP filter
-	EntityInstance       string `json:"entityInstance,omitempty"`       // entity instance filter
-	EntityType           string `json:"entityType,omitempty"`           // entity type filter
-	Group                string `json:"group,omitempty"`                // group filter
-	SegmentResourceShare string `json:"segmentResourceShare,omitempty"` // segment resource share filter
-	Search               string `json:"search,omitempty"`               // search filter
-	Prefix               string `json:"prefix,omitempty"`               // prefix filter
-	LPMPrefix            string `json:"lpmPrefix,omitempty"`            // LPM prefix filter
-	PrefixType           string `json:"prefixType,omitempty"`           // prefix type filter
-}
-
-// Route UI connector represents a connector in a route
-type RouteUIConnector struct {
-	Connector struct {
-		ConnectorName         string `json:"connectorName"`
-		ConnectorInstanceName string `json:"connectorInstanceName"`
-		ConnectorType         string `json:"connectorType"`
-		ConnectorID           int    `json:"connectorId"`
-		ConnectorTag          string `json:"connectorTag"`
-		ConnectorCXPID        string `json:"connectorCxpId"`
-		ConnectorCXPName      string `json:"connectorCxpName"`
-		ConnectorRouteCXP     string `json:"connectorRouteCxp"`
-		ConnectorGroup        string `json:"connectorGroup"`
-	} `json:"connector"`
-	PrefixType          string      `json:"prefixType"`
-	ConnRouteType       string      `json:"connRouteType"`
-	ConnOriginalPrefix  string      `json:"connOriginalPrefix"`
-	ResourceShareName   string      `json:"resourceShareName"`
-	RouteSuppressed     bool        `json:"routeSuppressed"`
-	OverlappingEntities interface{} `json:"overlappingEntities"`
-}
-
-// Route UI result represents a single route result
-type RouteUIResult struct {
-	TenantNetworkID        int                `json:"tenantNetworkId"`
-	Prefix                 string             `json:"prefix"`
-	SegmentName            string             `json:"segmentName"`
-	VrfName                string             `json:"vrfName"`
-	CxpName                string             `json:"cxpName"`
-	RouteType              string             `json:"routeType"`
-	OriginalPrefix         string             `json:"originalPrefix"`
-	NatMetadata            interface{}        `json:"natMetadata"`
-	OverlapCxps            []string           `json:"overlapCxps"`
-	OverlapInvalidateNodes interface{}        `json:"overlapInvalidateNodes"`
-	OverlappedRSMetadata   interface{}        `json:"overlappedRsMetadata"`
-	CXPToOverlapEntities   interface{}        `json:"cxpToOverlapEntities"`
-	OverlapEntityToCXPs    interface{}        `json:"overlapEntityToCXPs"`
-	Connectors             []RouteUIConnector `json:"connectors"`
-	SegShareOverlapping    interface{}        `json:"segShareOverlapping"`
-}
-
-// Pagination data for route responses
-type PaginationData struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
-	Hits   int `json:"hits"`
-}
-
-// Routes UI response
-type RoutesUIResponse struct {
-	Data                 []RouteUIResult `json:"data"`
-	Pagination           PaginationData  `json:"pagination"`
-	LatestRouteTimeStamp int             `json:"latestRouteTimestamp"`
-}
-
-// Route count response
-type RouteCountResponse struct {
-	Count int `json:"count"`
-}
-
-// Route count UI result
-type RouteCountUIResult struct {
-	SegmentName string `json:"segment"`
-	CxpName     string `json:"cxp"`
-	Count       int    `json:"count"`
-}
-
 // Route summary structures for enhanced analysis
 type RouteSummaryByConnectorType struct {
-	ConnectorType  string                    `json:"connectorType"`
-	Count          int                       `json:"count"`
-	UniqueConnectors int                     `json:"uniqueConnectors"`
-	Segments       []string                  `json:"segments"`
-	CXPs           []string                  `json:"cxps"`
-	PrefixRanges   map[string]int           `json:"prefixRanges,omitempty"`
-	Details        []RouteConnectorDetail   `json:"details,omitempty"`
+	ConnectorType    string                 `json:"connectorType"`
+	Count            int                    `json:"count"`
+	UniqueConnectors int                    `json:"uniqueConnectors"`
+	Segments         []string               `json:"segments"`
+	CXPs             []string               `json:"cxps"`
+	PrefixRanges     map[string]int         `json:"prefixRanges,omitempty"`
+	Details          []RouteConnectorDetail `json:"details,omitempty"`
 }
 
 type RouteConnectorDetail struct {
-	ConnectorName   string   `json:"connectorName"`
-	ConnectorID     int      `json:"connectorId"`
-	SegmentName     string   `json:"segmentName"`
-	CXP             string   `json:"cxp"`
-	Prefixes        []string `json:"prefixes"`
-	RouteCount      int      `json:"routeCount"`
+	ConnectorName string   `json:"connectorName"`
+	ConnectorID   int      `json:"connectorId"`
+	SegmentName   string   `json:"segmentName"`
+	CXP           string   `json:"cxp"`
+	Prefixes      []string `json:"prefixes"`
+	RouteCount    int      `json:"routeCount"`
 }
 
 type RouteSummaryResponse struct {
-	TotalRoutes        int                          `json:"totalRoutes"`
-	GroupBy            string                       `json:"groupBy"`
-	GeneratedAt        time.Time                    `json:"generatedAt"`
-	SummaryByType      []RouteSummaryByConnectorType `json:"summaryByType,omitempty"`
-	SummaryBySegment   map[string]int               `json:"summaryBySegment,omitempty"`
-	SummaryByCXP       map[string]int               `json:"summaryByCXP,omitempty"`
-	PrefixAnalysis     *PrefixAnalysis              `json:"prefixAnalysis,omitempty"`
+	TotalRoutes      int                           `json:"totalRoutes"`
+	GroupBy          string                        `json:"groupBy"`
+	GeneratedAt      time.Time                     `json:"generatedAt"`
+	SummaryByType    []RouteSummaryByConnectorType `json:"summaryByType,omitempty"`
+	SummaryBySegment map[string]int                `json:"summaryBySegment,omitempty"`
+	SummaryByCXP     map[string]int                `json:"summaryByCXP,omitempty"`
+	PrefixAnalysis   *PrefixAnalysis               `json:"prefixAnalysis,omitempty"`
 }
 
 type PrefixAnalysis struct {
-	TotalPrefixes     int            `json:"totalPrefixes"`
-	DefaultRoutes     int            `json:"defaultRoutes"`
-	HostRoutes        int            `json:"hostRoutes"`
-	PrivateRanges     map[string]int `json:"privateRanges"`
-	PublicRanges      int            `json:"publicRanges"`
-	TranslatedRoutes  int            `json:"translatedRoutes"`
-	SharedRoutes      int            `json:"sharedRoutes"`
+	TotalPrefixes    int            `json:"totalPrefixes"`
+	DefaultRoutes    int            `json:"defaultRoutes"`
+	HostRoutes       int            `json:"hostRoutes"`
+	PrivateRanges    map[string]int `json:"privateRanges"`
+	PublicRanges     int            `json:"publicRanges"`
+	TranslatedRoutes int            `json:"translatedRoutes"`
+	SharedRoutes     int            `json:"sharedRoutes"`
 }
 
 // Enhanced query parameters
 type EnhancedRouteQueryParams struct {
-	RouteQueryParams
-	OutputFormat           string `json:"outputFormat,omitempty"`
-	PrefixRange            string `json:"prefixRange,omitempty"`
-	ConnectorTypes         string `json:"connectorTypes,omitempty"`
-	IncludeSharedRoutes    bool   `json:"includeSharedRoutes"`
-	IncludeTranslatedRoutes bool  `json:"includeTranslatedRoutes"`
-	RouteStatus            string `json:"routeStatus,omitempty"`
-}
-
-// Routes API client for handlers
-type RoutesClientHandler struct {
-	Client *alkira.AlkiraClient
+	alkira.RouteQueryParams
+	OutputFormat            string `json:"outputFormat,omitempty"`
+	PrefixRange             string `json:"prefixRange,omitempty"`
+	ConnectorTypes          string `json:"connectorTypes,omitempty"`
+	IncludeSharedRoutes     bool   `json:"includeSharedRoutes"`
+	IncludeTranslatedRoutes bool   `json:"includeTranslatedRoutes"`
+	RouteStatus             string `json:"routeStatus,omitempty"`
 }
 
 // Pagination helper for large result sets
 type PaginationHelper struct {
-	TotalRoutes    int                `json:"totalRoutes"`
-	BatchSize      int                `json:"batchSize"`
-	TotalBatches   int                `json:"totalBatches"`
-	ProcessedRoutes int               `json:"processedRoutes"`
-	Routes         []RouteUIResult    `json:"routes,omitempty"`
-	Summary        *RouteSummaryResponse `json:"summary,omitempty"`
+	TotalRoutes     int                    `json:"totalRoutes"`
+	BatchSize       int                    `json:"batchSize"`
+	TotalBatches    int                    `json:"totalBatches"`
+	ProcessedRoutes int                    `json:"processedRoutes"`
+	Routes          []alkira.RouteUIResult `json:"routes,omitempty"`
+	Summary         *RouteSummaryResponse  `json:"summary,omitempty"`
 }
 
-// NewRoutesClientHandler creates a new Routes client for handlers
-func NewRoutesClientHandler(client *alkira.AlkiraClient) *RoutesClientHandler {
-	return &RoutesClientHandler{
-		Client: client,
-	}
-}
+// getRoutesEnhanced retrieves routes with enhanced filtering and output formatting
+func getRoutesEnhanced(client *alkira.AlkiraClient, params EnhancedRouteQueryParams) (interface{}, error) {
+	// Push as many filters as possible to the API level
+	optimizedParams := optimizeRouteQueryParams(params)
 
-// GetRoutesEnhanced retrieves routes with enhanced filtering and output formatting
-func (r *RoutesClientHandler) GetRoutesEnhanced(tenantNetworkID string, params EnhancedRouteQueryParams) (interface{}, error) {
-	// First get the basic routes
-	routes, err := r.GetRoutes(tenantNetworkID, params.RouteQueryParams)
+	// Get routes with API-level filtering
+	routes, err := client.GetRoutes(optimizedParams)
 	if err != nil {
 		return nil, err
 	}
 
-	// Apply enhanced filtering
-	filteredRoutes := r.applyEnhancedFiltering(routes.Data, params)
+	// Apply only the remaining client-side filtering that can't be done by API
+	filteredRoutes := applyRemainingFiltering(routes.Data, params)
 	routes.Data = filteredRoutes
 
 	// Format output based on outputFormat parameter
 	switch strings.ToLower(params.OutputFormat) {
 	case "summary":
-		return r.generateRouteSummary(routes.Data, "connectorType", false, false), nil
+		return generateRouteSummary(routes.Data, "connectorType", false, false), nil
 	case "table":
-		return r.formatAsTable(routes.Data), nil
+		return formatAsTable(routes.Data), nil
 	case "csv":
-		return r.formatAsCSV(routes.Data), nil
+		return formatAsCSV(routes.Data), nil
 	default:
 		return routes, nil
 	}
 }
 
-// GetRoutes retrieves routes for a tenant network with optional filtering
-func (r *RoutesClientHandler) GetRoutes(tenantNetworkID string, params RouteQueryParams) (*RoutesUIResponse, error) {
-	// Construct the URI
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/routes", r.Client.URI, tenantNetworkID)
-
-	// Build query parameters
-	queryParams := url.Values{}
-	if params.Type != "" {
-		queryParams.Set("type", params.Type)
-	}
-	if params.SegmentName != "" {
-		queryParams.Set("segmentName", params.SegmentName)
-	}
-	if params.SegmentNames != "" {
-		queryParams.Set("segmentNames", params.SegmentNames)
-	}
-	if params.CXP != "" {
-		queryParams.Set("cxp", params.CXP)
-	}
-	if params.ConnectorID != "" {
-		queryParams.Set("connectorId", params.ConnectorID)
-	}
-	if params.Offset > 0 {
-		queryParams.Set("offset", strconv.Itoa(params.Offset))
-	}
-	if params.Limit > 0 {
-		queryParams.Set("limit", strconv.Itoa(params.Limit))
-	}
-	if params.Search != "" {
-		queryParams.Set("search", params.Search)
-	}
-	if params.PrefixType != "" {
-		queryParams.Set("prefixType", params.PrefixType)
-	}
-	if params.RouteType != "" {
-		queryParams.Set("routeType", params.RouteType)
-	}
-	if params.SegmentID != "" {
-		queryParams.Set("segmentId", params.SegmentID)
-	}
-	if params.OverlapType != "" {
-		queryParams.Set("overlapType", params.OverlapType)
-	}
-	if params.SourceCXP != "" {
-		queryParams.Set("sourceCXP", params.SourceCXP)
-	}
-	if params.EntityInstance != "" {
-		queryParams.Set("entityInstance", params.EntityInstance)
-	}
-	if params.EntityType != "" {
-		queryParams.Set("entityType", params.EntityType)
-	}
-	if params.Group != "" {
-		queryParams.Set("group", params.Group)
-	}
-	if params.SegmentResourceShare != "" {
-		queryParams.Set("segmentResourceShare", params.SegmentResourceShare)
-	}
-	if params.RouteRecvType != "" {
-		queryParams.Set("routeRecvType", params.RouteRecvType)
-	}
-	if params.Prefix != "" {
-		queryParams.Set("prefix", params.Prefix)
-	}
-	if params.LPMPrefix != "" {
-		queryParams.Set("lpmPrefix", params.LPMPrefix)
-	}
-
-	// Add query parameters to URI if any exist
-	if len(queryParams) > 0 {
-		uri += "?" + queryParams.Encode()
-	}
-
-	// Create a temporary API to use the get method
-	tempAPI := &alkira.AlkiraAPI[RoutesUIResponse]{
-		Client: r.Client,
-		Uri:    uri,
-	}
-
-	// Validate required parameters
-	if params.Type == "" {
-		return nil, fmt.Errorf("type parameter is required (must be 'received', 'advertised', or 'overlap')")
-	}
-	if params.Type == "advertised" && params.SegmentName == "" && params.CXP == "" {
-		return nil, fmt.Errorf("advertised routes require either segmentName or cxp parameter")
-	}
-
-	// Make the request
-	data, err := tempAPI.GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get routes: %v", err)
-	}
-
-	// Parse the response
-	var result RoutesUIResponse
-	err = json.Unmarshal([]byte(data), &result)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal routes response: %v", err)
-	}
-
-	return &result, nil
-}
-
-// GetRouteCount retrieves route count for a tenant network with optional filtering
-func (r *RoutesClientHandler) GetRouteCount(tenantNetworkID string, params RouteCountQueryParams) (*RouteCountResponse, error) {
-	// Construct the URI
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/route-count", r.Client.URI, tenantNetworkID)
-
-	// Build query parameters
-	queryParams := url.Values{}
-	if params.Type != "" {
-		queryParams.Set("type", params.Type)
-	}
-	if params.SegmentName != "" {
-		queryParams.Set("segmentName", params.SegmentName)
-	}
-	if params.SegmentNames != "" {
-		queryParams.Set("segmentNames", params.SegmentNames)
-	}
-	if params.CXP != "" {
-		queryParams.Set("cxp", params.CXP)
-	}
-	if params.ConnectorID != "" {
-		queryParams.Set("connectorId", params.ConnectorID)
-	}
-	if params.SegmentID != "" {
-		queryParams.Set("segmentId", params.SegmentID)
-	}
-	if params.RouteRecvType != "" {
-		queryParams.Set("routeRecvType", params.RouteRecvType)
-	}
-	if params.OverlapType != "" {
-		queryParams.Set("overlapType", params.OverlapType)
-	}
-	if params.SourceCXP != "" {
-		queryParams.Set("sourceCXP", params.SourceCXP)
-	}
-	if params.EntityInstance != "" {
-		queryParams.Set("entityInstance", params.EntityInstance)
-	}
-	if params.EntityType != "" {
-		queryParams.Set("entityType", params.EntityType)
-	}
-	if params.Group != "" {
-		queryParams.Set("group", params.Group)
-	}
-	if params.SegmentResourceShare != "" {
-		queryParams.Set("segmentResourceShare", params.SegmentResourceShare)
-	}
-	if params.Search != "" {
-		queryParams.Set("search", params.Search)
-	}
-	if params.Prefix != "" {
-		queryParams.Set("prefix", params.Prefix)
-	}
-	if params.LPMPrefix != "" {
-		queryParams.Set("lpmPrefix", params.LPMPrefix)
-	}
-	if params.PrefixType != "" {
-		queryParams.Set("prefixType", params.PrefixType)
-	}
-
-	// Add query parameters to URI if any exist
-	if len(queryParams) > 0 {
-		uri += "?" + queryParams.Encode()
-	}
-
-	// Create a temporary API to use the get method
-	tempAPI := &alkira.AlkiraAPI[RouteCountResponse]{
-		Client: r.Client,
-		Uri:    uri,
-	}
-
-	// Validate required parameters
-	if params.Type == "" {
-		return nil, fmt.Errorf("type parameter is required (must be 'received', 'advertised', or 'overlap')")
-	}
-
-	// Make the request
-	data, err := tempAPI.GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get route count: %v", err)
-	}
-
-	// Parse the response
-	var result RouteCountResponse
-	err = json.Unmarshal([]byte(data), &result)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal route count response: %v", err)
-	}
-
-	return &result, nil
-}
-
 func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		// Extract tenant network ID (required)
-		tenantNetworkID, err := request.RequireString("tenantNetworkId")
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Initialize routes client
-		api := NewRoutesClientHandler(client)
 
 		// Build enhanced query parameters from request
 		params := EnhancedRouteQueryParams{
-			RouteQueryParams: RouteQueryParams{
+			RouteQueryParams: alkira.RouteQueryParams{
 				Type:                 request.GetString("type", "received"), // Default to 'received' if not specified
-			SegmentName:          request.GetString("segmentName", ""),
-			SegmentNames:         request.GetString("segmentNames", ""),
-			CXP:                  request.GetString("cxp", ""),
-			ConnectorID:          request.GetString("connectorId", ""),
-			Offset:               request.GetInt("offset", 0),
-			Limit:                request.GetInt("limit", 0),
-			Search:               request.GetString("search", ""),
-			PrefixType:           request.GetString("prefixType", ""),
-			RouteType:            request.GetString("routeType", ""),
-			SegmentID:            request.GetString("segmentId", ""),
-			OverlapType:          request.GetString("overlapType", ""),
-			SourceCXP:            request.GetString("sourceCXP", ""),
-			EntityInstance:       request.GetString("entityInstance", ""),
-			EntityType:           request.GetString("entityType", ""),
-			Group:                request.GetString("group", ""),
-			SegmentResourceShare: request.GetString("segmentResourceShare", ""),
-			RouteRecvType:        request.GetString("routeRecvType", ""),
-			Prefix:               request.GetString("prefix", ""),
+				SegmentName:          request.GetString("segmentName", ""),
+				SegmentNames:         request.GetString("segmentNames", ""),
+				CXP:                  request.GetString("cxp", ""),
+				ConnectorID:          request.GetString("connectorId", ""),
+				Offset:               request.GetInt("offset", 0),
+				Limit:                request.GetInt("limit", 0),
+				Search:               request.GetString("search", ""),
+				PrefixType:           request.GetString("prefixType", ""),
+				RouteType:            request.GetString("routeType", ""),
+				SegmentID:            request.GetString("segmentId", ""),
+				OverlapType:          request.GetString("overlapType", ""),
+				SourceCXP:            request.GetString("sourceCXP", ""),
+				EntityInstance:       request.GetString("entityInstance", ""),
+				EntityType:           request.GetString("entityType", ""),
+				Group:                request.GetString("group", ""),
+				SegmentResourceShare: request.GetString("segmentResourceShare", ""),
+				RouteRecvType:        request.GetString("routeRecvType", ""),
+				Prefix:               request.GetString("prefix", ""),
 				LPMPrefix:            request.GetString("lpmPrefix", ""),
 			},
 			// Enhanced parameters
-			OutputFormat:           request.GetString("outputFormat", "json"),
-			PrefixRange:            request.GetString("prefixRange", ""),
-			ConnectorTypes:         request.GetString("connectorTypes", ""),
-			IncludeSharedRoutes:    request.GetBool("includeSharedRoutes", true),
+			OutputFormat:            request.GetString("outputFormat", "json"),
+			PrefixRange:             request.GetString("prefixRange", ""),
+			ConnectorTypes:          request.GetString("connectorTypes", ""),
+			IncludeSharedRoutes:     request.GetBool("includeSharedRoutes", true),
 			IncludeTranslatedRoutes: request.GetBool("includeTranslatedRoutes", true),
-			RouteStatus:            request.GetString("routeStatus", ""),
+			RouteStatus:             request.GetString("routeStatus", ""),
 		}
 
 		// Get routes with enhanced filtering
-		routes, err := api.GetRoutesEnhanced(tenantNetworkID, params)
+		routes, err := getRoutesEnhanced(client, params)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -480,17 +157,9 @@ func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 
 func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		// Extract tenant network ID (required)
-		tenantNetworkID, err := request.RequireString("tenantNetworkId")
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Initialize routes client
-		api := NewRoutesClientHandler(client)
 
 		// Build query parameters from request
-		params := RouteCountQueryParams{
+		params := alkira.RouteCountQueryParams{
 			Type:                 request.GetString("type", "received"), // Default to 'received' if not specified
 			SegmentName:          request.GetString("segmentName", ""),
 			SegmentNames:         request.GetString("segmentNames", ""),
@@ -510,8 +179,8 @@ func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, reques
 			PrefixType:           request.GetString("prefixType", ""),
 		}
 
-		// Get route count
-		routeCount, err := api.GetRouteCount(tenantNetworkID, params)
+		// Get route count using alkira client directly
+		routeCount, err := client.GetRouteCount(params)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -525,41 +194,67 @@ func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, reques
 	}
 }
 
-// Enhanced filtering methods
-func (r *RoutesClientHandler) applyEnhancedFiltering(routes []RouteUIResult, params EnhancedRouteQueryParams) []RouteUIResult {
+// optimizeRouteQueryParams pushes as many filters as possible to the API level
+func optimizeRouteQueryParams(params EnhancedRouteQueryParams) alkira.RouteQueryParams {
+	optimized := params.RouteQueryParams
+
+	// Push connector type filtering to API using EntityType
+	if params.ConnectorTypes != "" {
+		// Take the first connector type for API filtering
+		connectorTypes := strings.Split(params.ConnectorTypes, ",")
+		if len(connectorTypes) > 0 {
+			optimized.EntityType = strings.TrimSpace(connectorTypes[0])
+		}
+	}
+
+	// Push shared route filtering to API using PrefixType
+	if !params.IncludeSharedRoutes {
+		optimized.PrefixType = "LOCAL"
+	}
+
+	// Push translated route filtering to API using RouteType
+	if !params.IncludeTranslatedRoutes {
+		optimized.RouteType = "ORIGINAL"
+	}
+
+	// Push route status filtering to API using RouteRecvType
+	if params.RouteStatus != "" {
+		switch strings.ToLower(params.RouteStatus) {
+		case "suppressed":
+			optimized.RouteRecvType = "HIGH_CHURN"
+		case "overlap":
+			optimized.RouteRecvType = "OVERLAP"
+		case "active":
+			optimized.RouteRecvType = "ORIGINAL"
+		}
+	}
+
+	return optimized
+}
+
+// applyRemainingFiltering applies only the filtering that cannot be done by the API
+func applyRemainingFiltering(routes []alkira.RouteUIResult, params EnhancedRouteQueryParams) []alkira.RouteUIResult {
 	filtered := routes
 
-	// Filter by connector types
+	// Handle multiple connector types (API can only handle one)
 	if params.ConnectorTypes != "" {
 		connectorTypes := strings.Split(params.ConnectorTypes, ",")
-		filtered = r.filterByConnectorTypes(filtered, connectorTypes)
+		if len(connectorTypes) > 1 {
+			// API already filtered by first type, now filter by the remaining types
+			filtered = filterByConnectorTypes(filtered, connectorTypes)
+		}
 	}
 
-	// Filter by prefix range
+	// Filter by prefix range (custom logic that API doesn't support)
 	if params.PrefixRange != "" {
-		filtered = r.filterByPrefixRange(filtered, params.PrefixRange)
-	}
-
-	// Filter shared routes
-	if !params.IncludeSharedRoutes {
-		filtered = r.filterOutSharedRoutes(filtered)
-	}
-
-	// Filter translated routes
-	if !params.IncludeTranslatedRoutes {
-		filtered = r.filterOutTranslatedRoutes(filtered)
-	}
-
-	// Filter by route status
-	if params.RouteStatus != "" {
-		filtered = r.filterByRouteStatus(filtered, params.RouteStatus)
+		filtered = filterByPrefixRange(filtered, params.PrefixRange)
 	}
 
 	return filtered
 }
 
-func (r *RoutesClientHandler) filterByConnectorTypes(routes []RouteUIResult, connectorTypes []string) []RouteUIResult {
-	var filtered []RouteUIResult
+func filterByConnectorTypes(routes []alkira.RouteUIResult, connectorTypes []string) []alkira.RouteUIResult {
+	var filtered []alkira.RouteUIResult
 	for _, route := range routes {
 		for _, connector := range route.Connectors {
 			for _, targetType := range connectorTypes {
@@ -569,27 +264,27 @@ func (r *RoutesClientHandler) filterByConnectorTypes(routes []RouteUIResult, con
 				}
 			}
 		}
-		nextRoute:
+	nextRoute:
 	}
 	return filtered
 }
 
-func (r *RoutesClientHandler) filterByPrefixRange(routes []RouteUIResult, prefixRange string) []RouteUIResult {
+func filterByPrefixRange(routes []alkira.RouteUIResult, prefixRange string) []alkira.RouteUIResult {
 	_, targetNet, err := net.ParseCIDR(prefixRange)
 	if err != nil {
 		return routes // Invalid CIDR, return all
 	}
 
-	var filtered []RouteUIResult
+	var filtered []alkira.RouteUIResult
 	for _, route := range routes {
-		if r.prefixInRange(route.Prefix, targetNet) {
+		if prefixInRange(route.Prefix, targetNet) {
 			filtered = append(filtered, route)
 		}
 	}
 	return filtered
 }
 
-func (r *RoutesClientHandler) prefixInRange(prefix string, targetNet *net.IPNet) bool {
+func prefixInRange(prefix string, targetNet *net.IPNet) bool {
 	if prefix == "0.0.0.0/0" {
 		return false // Skip default routes
 	}
@@ -606,76 +301,8 @@ func (r *RoutesClientHandler) prefixInRange(prefix string, targetNet *net.IPNet)
 	return targetNet.Contains(ip)
 }
 
-func (r *RoutesClientHandler) filterOutSharedRoutes(routes []RouteUIResult) []RouteUIResult {
-	var filtered []RouteUIResult
-	for _, route := range routes {
-		hasSharedConnector := false
-		for _, connector := range route.Connectors {
-			if connector.PrefixType == "SHARED" || connector.ResourceShareName != "" {
-				hasSharedConnector = true
-				break
-			}
-		}
-		if !hasSharedConnector {
-			filtered = append(filtered, route)
-		}
-	}
-	return filtered
-}
-
-func (r *RoutesClientHandler) filterOutTranslatedRoutes(routes []RouteUIResult) []RouteUIResult {
-	var filtered []RouteUIResult
-	for _, route := range routes {
-		if route.RouteType != "TRANSLATED" {
-			filtered = append(filtered, route)
-		}
-	}
-	return filtered
-}
-
-func (r *RoutesClientHandler) filterByRouteStatus(routes []RouteUIResult, status string) []RouteUIResult {
-	var filtered []RouteUIResult
-	switch strings.ToLower(status) {
-	case "active":
-		for _, route := range routes {
-			hasActiveConnector := false
-			for _, connector := range route.Connectors {
-				if !connector.RouteSuppressed {
-					hasActiveConnector = true
-					break
-				}
-			}
-			if hasActiveConnector {
-				filtered = append(filtered, route)
-			}
-		}
-	case "suppressed":
-		for _, route := range routes {
-			hasSuppressedConnector := false
-			for _, connector := range route.Connectors {
-				if connector.RouteSuppressed {
-					hasSuppressedConnector = true
-					break
-				}
-			}
-			if hasSuppressedConnector {
-				filtered = append(filtered, route)
-			}
-		}
-	case "overlap":
-		for _, route := range routes {
-			if strings.Contains(strings.ToUpper(route.RouteType), "OVERLAP") {
-				filtered = append(filtered, route)
-			}
-		}
-	default:
-		filtered = routes
-	}
-	return filtered
-}
-
 // Output formatting methods
-func (r *RoutesClientHandler) formatAsTable(routes []RouteUIResult) string {
+func formatAsTable(routes []alkira.RouteUIResult) string {
 	if len(routes) == 0 {
 		return "No routes found."
 	}
@@ -699,7 +326,7 @@ func (r *RoutesClientHandler) formatAsTable(routes []RouteUIResult) string {
 	return result.String()
 }
 
-func (r *RoutesClientHandler) formatAsCSV(routes []RouteUIResult) string {
+func formatAsCSV(routes []alkira.RouteUIResult) string {
 	var result strings.Builder
 	w := csv.NewWriter(&result)
 
@@ -728,7 +355,7 @@ func (r *RoutesClientHandler) formatAsCSV(routes []RouteUIResult) string {
 }
 
 // Route summary generation
-func (r *RoutesClientHandler) generateRouteSummary(routes []RouteUIResult, groupBy string, includeDetails bool, includePrefixAnalysis bool) *RouteSummaryResponse {
+func generateRouteSummary(routes []alkira.RouteUIResult, groupBy string, includeDetails bool, includePrefixAnalysis bool) *RouteSummaryResponse {
 	summary := &RouteSummaryResponse{
 		TotalRoutes: len(routes),
 		GroupBy:     groupBy,
@@ -737,21 +364,21 @@ func (r *RoutesClientHandler) generateRouteSummary(routes []RouteUIResult, group
 
 	switch groupBy {
 	case "connectorType":
-		summary.SummaryByType = r.summarizeByConnectorType(routes, includeDetails)
+		summary.SummaryByType = summarizeByConnectorType(routes, includeDetails)
 	case "segment":
-		summary.SummaryBySegment = r.summarizeBySegment(routes)
+		summary.SummaryBySegment = summarizeBySegment(routes)
 	case "cxp":
-		summary.SummaryByCXP = r.summarizeByCXP(routes)
+		summary.SummaryByCXP = summarizeByCXP(routes)
 	}
 
 	if includePrefixAnalysis {
-		summary.PrefixAnalysis = r.analyzePrefixes(routes)
+		summary.PrefixAnalysis = analyzePrefixes(routes)
 	}
 
 	return summary
 }
 
-func (r *RoutesClientHandler) summarizeByConnectorType(routes []RouteUIResult, includeDetails bool) []RouteSummaryByConnectorType {
+func summarizeByConnectorType(routes []alkira.RouteUIResult, includeDetails bool) []RouteSummaryByConnectorType {
 	typeMap := make(map[string]*RouteSummaryByConnectorType)
 	connectorMap := make(map[string]map[string]bool) // connectorType -> connectorName -> exists
 
@@ -774,12 +401,12 @@ func (r *RoutesClientHandler) summarizeByConnectorType(routes []RouteUIResult, i
 			connectorMap[connType][connector.Connector.ConnectorName] = true
 
 			// Track segments
-			if !r.contains(typeMap[connType].Segments, route.SegmentName) {
+			if !contains(typeMap[connType].Segments, route.SegmentName) {
 				typeMap[connType].Segments = append(typeMap[connType].Segments, route.SegmentName)
 			}
 
 			// Track CXPs
-			if !r.contains(typeMap[connType].CXPs, connector.Connector.ConnectorCXPName) {
+			if !contains(typeMap[connType].CXPs, connector.Connector.ConnectorCXPName) {
 				typeMap[connType].CXPs = append(typeMap[connType].CXPs, connector.Connector.ConnectorCXPName)
 			}
 
@@ -819,7 +446,7 @@ func (r *RoutesClientHandler) summarizeByConnectorType(routes []RouteUIResult, i
 	return result
 }
 
-func (r *RoutesClientHandler) summarizeBySegment(routes []RouteUIResult) map[string]int {
+func summarizeBySegment(routes []alkira.RouteUIResult) map[string]int {
 	segmentCount := make(map[string]int)
 	for _, route := range routes {
 		segmentCount[route.SegmentName]++
@@ -827,7 +454,7 @@ func (r *RoutesClientHandler) summarizeBySegment(routes []RouteUIResult) map[str
 	return segmentCount
 }
 
-func (r *RoutesClientHandler) summarizeByCXP(routes []RouteUIResult) map[string]int {
+func summarizeByCXP(routes []alkira.RouteUIResult) map[string]int {
 	cxpCount := make(map[string]int)
 	for _, route := range routes {
 		for _, connector := range route.Connectors {
@@ -837,7 +464,7 @@ func (r *RoutesClientHandler) summarizeByCXP(routes []RouteUIResult) map[string]
 	return cxpCount
 }
 
-func (r *RoutesClientHandler) analyzePrefixes(routes []RouteUIResult) *PrefixAnalysis {
+func analyzePrefixes(routes []alkira.RouteUIResult) *PrefixAnalysis {
 	analysis := &PrefixAnalysis{
 		PrivateRanges: make(map[string]int),
 	}
@@ -893,7 +520,7 @@ func (r *RoutesClientHandler) analyzePrefixes(routes []RouteUIResult) *PrefixAna
 	return analysis
 }
 
-func (r *RoutesClientHandler) contains(slice []string, item string) bool {
+func contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
 			return true
@@ -906,7 +533,7 @@ func (r *RoutesClientHandler) contains(slice []string, item string) bool {
 func GetRouteSummary(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract tenant network ID (required)
-		tenantNetworkID, err := request.RequireString("tenantNetworkId")
+		_, err := request.RequireString("tenantNetworkId")
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -917,17 +544,14 @@ func GetRouteSummary(client *alkira.AlkiraClient) func(ctx context.Context, requ
 		includeDetails := request.GetBool("includeDetails", false)
 		includePrefixAnalysis := request.GetBool("includePrefixAnalysis", false)
 
-		// Initialize routes client
-		api := NewRoutesClientHandler(client)
-
-		// Get all routes
-		allRoutes, err := api.getAllRoutesWithPagination(api, tenantNetworkID, routeType)
+		// Get routes with efficient API-level filtering (avoid fetching ALL routes)
+		allRoutes, err := getAllRoutesWithPaginationOptimized(client, routeType)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Generate summary
-		summary := api.generateRouteSummary(allRoutes, groupBy, includeDetails, includePrefixAnalysis)
+		summary := generateRouteSummary(allRoutes, groupBy, includeDetails, includePrefixAnalysis)
 
 		summaryJSON, err := json.Marshal(summary)
 		if err != nil {
@@ -959,11 +583,8 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 			batchSize = 100
 		}
 
-		// Initialize routes client
-		api := NewRoutesClientHandler(client)
-
 		// Get all routes with pagination
-		allRoutes, err := api.getAllRoutesWithPaginationAndFiltering(api, tenantNetworkID, routeType, batchSize, segmentName, connectorType, cxp)
+		allRoutes, err := getAllRoutesWithPaginationAndFiltering(client, tenantNetworkID, routeType, batchSize, segmentName, connectorType, cxp)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
@@ -971,7 +592,7 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 		// Format output
 		switch strings.ToLower(outputFormat) {
 		case "summary":
-			summary := api.generateRouteSummary(allRoutes, "connectorType", false, true)
+			summary := generateRouteSummary(allRoutes, "connectorType", false, true)
 			summaryJSON, err := json.Marshal(summary)
 			if err != nil {
 				return mcp.NewToolResultError("Failed to marshal summary: " + err.Error()), nil
@@ -982,9 +603,9 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 			countJSON, _ := json.Marshal(count)
 			return mcp.NewToolResultText(string(countJSON)), nil
 		default:
-			result := RoutesUIResponse{
+			result := alkira.RoutesUIResponse{
 				Data: allRoutes,
-				Pagination: PaginationData{
+				Pagination: alkira.PaginationData{
 					Offset: 0,
 					Limit:  len(allRoutes),
 					Hits:   len(allRoutes),
@@ -1003,11 +624,6 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 func GetRoutesByConnectorType(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract parameters
-		tenantNetworkID, err := request.RequireString("tenantNetworkId")
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
 		connectorType, err := request.RequireString("connectorType")
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -1018,12 +634,9 @@ func GetRoutesByConnectorType(client *alkira.AlkiraClient) func(ctx context.Cont
 		outputFormat := request.GetString("outputFormat", "json")
 		segmentName := request.GetString("segmentName", "")
 
-		// Initialize routes client
-		api := NewRoutesClientHandler(client)
-
 		// Build enhanced parameters
 		params := EnhancedRouteQueryParams{
-			RouteQueryParams: RouteQueryParams{
+			RouteQueryParams: alkira.RouteQueryParams{
 				Type:        routeType,
 				SegmentName: segmentName,
 				Limit:       1000,
@@ -1032,18 +645,18 @@ func GetRoutesByConnectorType(client *alkira.AlkiraClient) func(ctx context.Cont
 			ConnectorTypes: connectorType,
 		}
 
-		// Get filtered routes
-		result, err := api.GetRoutesEnhanced(tenantNetworkID, params)
+		// Get filtered routes using enhanced function
+		result, err := getRoutesEnhanced(client, params)
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Add prefix summary if requested
 		if includePrefixSummary {
-			if routes, ok := result.(*RoutesUIResponse); ok {
-				summary := api.generateRouteSummary(routes.Data, "connectorType", false, true)
+			if routes, ok := result.(*alkira.RoutesUIResponse); ok {
+				summary := generateRouteSummary(routes.Data, "connectorType", false, true)
 				enhancedResult := map[string]interface{}{
-					"routes": routes,
+					"routes":  routes,
 					"summary": summary,
 				}
 				resultJSON, err := json.Marshal(enhancedResult)
@@ -1065,24 +678,31 @@ func GetRoutesByConnectorType(client *alkira.AlkiraClient) func(ctx context.Cont
 }
 
 // Helper functions for pagination
-func (r *RoutesClientHandler) getAllRoutesWithPagination(api *RoutesClientHandler, tenantNetworkID, routeType string) ([]RouteUIResult, error) {
-	var allRoutes []RouteUIResult
+// getAllRoutesWithPaginationOptimized uses smarter pagination with reasonable limits
+func getAllRoutesWithPaginationOptimized(client *alkira.AlkiraClient, routeType string) ([]alkira.RouteUIResult, error) {
+	var allRoutes []alkira.RouteUIResult
 	offset := 0
-	limit := 50
+	limit := 100       // Use optimal batch size
+	maxRoutes := 10000 // Reasonable safety limit to prevent memory issues
 
 	for {
-		params := RouteQueryParams{
+		params := alkira.RouteQueryParams{
 			Type:   routeType,
 			Offset: offset,
 			Limit:  limit,
 		}
 
-		response, err := api.GetRoutes(tenantNetworkID, params)
+		response, err := client.GetRoutes(params)
 		if err != nil {
 			return nil, err
 		}
 
 		allRoutes = append(allRoutes, response.Data...)
+
+		// Safety check to prevent infinite loops and memory issues
+		if len(allRoutes) >= maxRoutes {
+			break
+		}
 
 		if len(response.Data) < limit {
 			break
@@ -1094,12 +714,13 @@ func (r *RoutesClientHandler) getAllRoutesWithPagination(api *RoutesClientHandle
 	return allRoutes, nil
 }
 
-func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *RoutesClientHandler, tenantNetworkID, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]RouteUIResult, error) {
-	var allRoutes []RouteUIResult
+func getAllRoutesWithPaginationAndFiltering(client *alkira.AlkiraClient, tenantNetworkID, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]alkira.RouteUIResult, error) {
+	var allRoutes []alkira.RouteUIResult
 	offset := 0
+	maxRoutes := 10000 // Safety limit
 
 	for {
-		params := RouteQueryParams{
+		params := alkira.RouteQueryParams{
 			Type:        routeType,
 			Offset:      offset,
 			Limit:       batchSize,
@@ -1108,13 +729,17 @@ func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *Routes
 			CXP:         cxp,
 		}
 
-		response, err := api.GetRoutes(tenantNetworkID, params)
+		response, err := client.GetRoutes(params)
 		if err != nil {
 			return nil, err
 		}
 
 		allRoutes = append(allRoutes, response.Data...)
 
+		// Safety check to prevent memory issues
+		if len(allRoutes) >= maxRoutes {
+			break
+		}
 
 		if len(response.Data) < batchSize {
 			break
@@ -1125,4 +750,3 @@ func (r *RoutesClientHandler) getAllRoutesWithPaginationAndFiltering(api *Routes
 
 	return allRoutes, nil
 }
-
