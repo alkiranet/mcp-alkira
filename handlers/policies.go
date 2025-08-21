@@ -3,16 +3,16 @@ package handlers
 import (
 	"context"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllNatPolicy(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllNatPolicy(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewNatPolicy(client)
+		api := ak.NewNatPolicy(client)
 
 		// Get resources
 		policies, err := api.GetAll()
@@ -26,12 +26,12 @@ func GetAllNatPolicy(client *alkira.AlkiraClient) func(ctx context.Context, requ
 	}
 }
 
-func GetAllNatRule(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllNatRule(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewNatRule(client)
+		api := ak.NewNatRule(client)
 
 		// Get resources
 		rules, err := api.GetAll()
@@ -45,12 +45,12 @@ func GetAllNatRule(client *alkira.AlkiraClient) func(ctx context.Context, reques
 	}
 }
 
-func GetAllRoutePolicy(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllRoutePolicy(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewRoutePolicy(client)
+		api := ak.NewRoutePolicy(client)
 
 		// Get resources
 		policies, err := api.GetAll()
@@ -64,12 +64,12 @@ func GetAllRoutePolicy(client *alkira.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func GetAllTrafficPolicy(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllTrafficPolicy(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewTrafficPolicy(client)
+		api := ak.NewTrafficPolicy(client)
 
 		// Get resources
 		policies, err := api.GetAll()
@@ -83,12 +83,12 @@ func GetAllTrafficPolicy(client *alkira.AlkiraClient) func(ctx context.Context, 
 	}
 }
 
-func GetAllTrafficPolicyRule(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllTrafficPolicyRule(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewTrafficPolicyRule(client)
+		api := ak.NewTrafficPolicyRule(client)
 
 		// Get resources
 		rules, err := api.GetAll()
@@ -102,12 +102,12 @@ func GetAllTrafficPolicyRule(client *alkira.AlkiraClient) func(ctx context.Conte
 	}
 }
 
-func GetAllPolicyRuleList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllPolicyRuleList(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewPolicyRuleList(client)
+		api := ak.NewPolicyRuleList(client)
 
 		// Get resources
 		ruleLists, err := api.GetAll()
@@ -121,12 +121,12 @@ func GetAllPolicyRuleList(client *alkira.AlkiraClient) func(ctx context.Context,
 	}
 }
 
-func GetAllPolicyPrefixList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllPolicyPrefixList(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewPolicyPrefixList(client)
+		api := ak.NewPolicyPrefixList(client)
 
 		// Get resources
 		prefixLists, err := api.GetAll()
@@ -140,12 +140,12 @@ func GetAllPolicyPrefixList(client *alkira.AlkiraClient) func(ctx context.Contex
 	}
 }
 
-func GetAllPolicyFqdnList(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllPolicyFqdnList(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewPolicyFqdnList(client)
+		api := ak.NewPolicyFqdnList(client)
 
 		// Get resources
 		fqdnLists, err := api.GetAll()

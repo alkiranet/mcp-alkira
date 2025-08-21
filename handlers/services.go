@@ -3,16 +3,16 @@ package handlers
 import (
 	"context"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllServiceCheckpoint(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceCheckpoint(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceCheckpoint(client)
+		api := ak.NewServiceCheckpoint(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -26,12 +26,12 @@ func GetAllServiceCheckpoint(client *alkira.AlkiraClient) func(ctx context.Conte
 	}
 }
 
-func GetAllServiceCiscoFTDv(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceCiscoFTDv(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceCiscoFTDv(client)
+		api := ak.NewServiceCiscoFTDv(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -45,12 +45,12 @@ func GetAllServiceCiscoFTDv(client *alkira.AlkiraClient) func(ctx context.Contex
 	}
 }
 
-func GetAllServiceF5Lb(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceF5Lb(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceF5Lb(client)
+		api := ak.NewServiceF5Lb(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -64,12 +64,12 @@ func GetAllServiceF5Lb(client *alkira.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func GetAllServiceFortinet(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceFortinet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceFortinet(client)
+		api := ak.NewServiceFortinet(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -83,12 +83,12 @@ func GetAllServiceFortinet(client *alkira.AlkiraClient) func(ctx context.Context
 	}
 }
 
-func GetAllServiceInfoblox(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceInfoblox(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceInfoblox(client)
+		api := ak.NewServiceInfoblox(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -102,12 +102,12 @@ func GetAllServiceInfoblox(client *alkira.AlkiraClient) func(ctx context.Context
 	}
 }
 
-func GetAllServicePan(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServicePan(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServicePan(client)
+		api := ak.NewServicePan(client)
 
 		// Get resources
 		services, err := api.GetAll()
@@ -121,12 +121,12 @@ func GetAllServicePan(client *alkira.AlkiraClient) func(ctx context.Context, req
 	}
 }
 
-func GetAllServiceZscaler(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllServiceZscaler(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewServiceZscaler(client)
+		api := ak.NewServiceZscaler(client)
 
 		// Get resources
 		services, err := api.GetAll()

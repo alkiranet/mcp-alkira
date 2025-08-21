@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAlerts(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAlerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -38,7 +38,7 @@ func GetAlerts(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 	}
 }
 
-func GetAuditLogs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -64,7 +64,7 @@ func GetAuditLogs(client *alkira.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-func GetJobs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetJobs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -90,7 +90,7 @@ func GetJobs(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.
 	}
 }
 
-func GetAllHealth(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllHealth(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -106,7 +106,7 @@ func GetAllHealth(client *alkira.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-func GetHealthOfConnector(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetHealthOfConnector(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -128,7 +128,7 @@ func GetHealthOfConnector(client *alkira.AlkiraClient) func(ctx context.Context,
 	}
 }
 
-func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetHealthOfConnectorInstance(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -156,7 +156,7 @@ func GetHealthOfConnectorInstance(client *alkira.AlkiraClient) func(ctx context.
 	}
 }
 
-func GetHealthOfService(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetHealthOfService(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -178,7 +178,7 @@ func GetHealthOfService(client *alkira.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func GetHealthOfServiceInstance(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetHealthOfServiceInstance(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -203,5 +203,53 @@ func GetHealthOfServiceInstance(client *alkira.AlkiraClient) func(ctx context.Co
 
 		// Return response
 		return mcp.NewToolResultText(health), nil
+	}
+}
+
+func GetResourceUsages(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		resourceCategory, err := request.RequireString("category")
+        if err != nil {
+			resourceCategory = ""
+        }
+
+		resourceType, err := request.RequireString("type")
+        if err != nil {
+			resourceType = ""
+        }
+
+		resourceScope, err := request.RequireString("scope")
+        if err != nil {
+			resourceScope = ""
+        }
+
+		// Get resources
+		data, err := client.GetResourceUsages(
+			resourceCategory, resourceType, resourceScope)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func GetResourceLimits(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// Get resources
+		data, err := client.GetResourceLimits()
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
 	}
 }

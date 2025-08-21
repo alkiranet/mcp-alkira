@@ -106,3 +106,23 @@ func GetHealthOfServiceInstance() mcp.Tool {
     )
 }
 
+func GetResourceUsages() mcp.Tool {
+	return mcp.NewTool("getResourceUsages",
+		mcp.WithDescription("Get resource usages with optional filter 'category' or 'type', or 'scope'"),
+        mcp.WithString("category",
+            mcp.Description("Resource category"),
+        ),
+		mcp.WithString("type",
+            mcp.Description("Resource type"),
+        ),
+		mcp.WithString("scope",
+            mcp.Description("Resource scope"),
+        ),
+    )
+}
+
+func GetResourceLimits() mcp.Tool {
+	return mcp.NewTool("getResourceLimits",
+		mcp.WithDescription("Get limits of all resources"),
+    )
+}

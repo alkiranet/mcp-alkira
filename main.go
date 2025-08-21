@@ -9,7 +9,7 @@ import (
 	"github.com/alkiranet/mcp-alkira/handlers"
 	"github.com/alkiranet/mcp-alkira/tools"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 
-	alkiraClient, err := alkira.NewAlkiraClient(
+	alkiraClient, err := ak.NewAlkiraClient(
 		portal,
 		"",
 		"",
@@ -117,10 +117,8 @@ func main() {
 	// Add routes tools
 	srv.AddTool(tools.GetRoutes(), handlers.GetRoutes(alkiraClient))
 	srv.AddTool(tools.GetRouteCount(), handlers.GetRouteCount(alkiraClient))
-	// Enhanced routes tools
 	srv.AddTool(tools.GetRouteSummary(), handlers.GetRouteSummary(alkiraClient))
 	srv.AddTool(tools.GetAllRoutes(), handlers.GetAllRoutes(alkiraClient))
-	// GetRoutesByConnectorType functionality merged into getRoutes with connectorTypes parameter
 
 	// Add policy tools
 	srv.AddTool(tools.GetAllNatPolicy(), handlers.GetAllNatPolicy(alkiraClient))
@@ -147,6 +145,8 @@ func main() {
 	srv.AddTool(tools.GetAuditLogs(), handlers.GetAuditLogs(alkiraClient))
 	srv.AddTool(tools.GetJobs(), handlers.GetJobs(alkiraClient))
 	srv.AddTool(tools.GetAllHealth(), handlers.GetAllHealth(alkiraClient))
+	srv.AddTool(tools.GetResourceUsages(), handlers.GetResourceUsages(alkiraClient))
+	srv.AddTool(tools.GetResourceLimits(), handlers.GetResourceLimits(alkiraClient))
 
 	// Start server based on mode
 	switch mode {

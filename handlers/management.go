@@ -3,16 +3,16 @@ package handlers
 import (
 	"context"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllSegments(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllSegments(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewSegment(client)
+		api := ak.NewSegment(client)
 
 		// Get resources
 		segments, err := api.GetAll()
@@ -26,12 +26,12 @@ func GetAllSegments(client *alkira.AlkiraClient) func(ctx context.Context, reque
 	}
 }
 
-func GetAllGroups(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllGroups(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewGroup(client)
+		api := ak.NewGroup(client)
 
 		// Get resources
 		groups, err := api.GetAll()
@@ -45,12 +45,12 @@ func GetAllGroups(client *alkira.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-func GetAllBillingTags(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllBillingTags(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewBillingTag(client)
+		api := ak.NewBillingTag(client)
 
 		// Get resources
 		billingTags, err := api.GetAll()
@@ -64,12 +64,12 @@ func GetAllBillingTags(client *alkira.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func GetAllCxps(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllCxps(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := alkira.NewInventoryCXP(client)
+		api := ak.NewInventoryCXP(client)
 
 		// Get resources
 		cxps, err := api.GetAll()

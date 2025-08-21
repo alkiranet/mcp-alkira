@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alkiranet/alkira-client-go/alkira"
+	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -57,7 +57,7 @@ type PrefixAnalysis struct {
 
 // Enhanced query parameters
 type EnhancedRouteQueryParams struct {
-	alkira.RouteQueryParams
+	ak.RouteQueryParams
 	OutputFormat            string `json:"outputFormat,omitempty"`
 	PrefixRange             string `json:"prefixRange,omitempty"`
 	ConnectorTypes          string `json:"connectorTypes,omitempty"`
@@ -72,12 +72,12 @@ type PaginationHelper struct {
 	BatchSize       int                    `json:"batchSize"`
 	TotalBatches    int                    `json:"totalBatches"`
 	ProcessedRoutes int                    `json:"processedRoutes"`
-	Routes          []alkira.RouteUIResult `json:"routes,omitempty"`
+	Routes          []ak.RouteUIResult `json:"routes,omitempty"`
 	Summary         *RouteSummaryResponse  `json:"summary,omitempty"`
 }
 
 // getRoutesEnhanced retrieves routes with enhanced filtering and output formatting
-func getRoutesEnhanced(client *alkira.AlkiraClient, params EnhancedRouteQueryParams) (interface{}, error) {
+func getRoutesEnhanced(client *ak.AlkiraClient, params EnhancedRouteQueryParams) (interface{}, error) {
 	// Push as many filters as possible to the API level
 	optimizedParams := optimizeRouteQueryParams(params)
 
@@ -104,7 +104,7 @@ func getRoutesEnhanced(client *alkira.AlkiraClient, params EnhancedRouteQueryPar
 	}
 }
 
-func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetRoutes(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		routeType := request.GetString("type", "received")
 		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
@@ -119,7 +119,7 @@ func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 
 		// Build enhanced query parameters from request
 		params := EnhancedRouteQueryParams{
-			RouteQueryParams: alkira.RouteQueryParams{
+			RouteQueryParams: ak.RouteQueryParams{
 				Type:                 routeType,
 				SegmentName:          request.GetString("segmentName", ""),
 				SegmentNames:         request.GetString("segmentNames", ""),
@@ -172,7 +172,7 @@ func GetRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mc
 	}
 }
 
-func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetRouteCount(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		routeType := request.GetString("type", "received")
 		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
@@ -180,7 +180,7 @@ func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, reques
 		}
 
 		// Build query parameters from request
-		params := alkira.RouteCountQueryParams{
+		params := ak.RouteCountQueryParams{
 			Type:                 routeType,
 			SegmentName:          request.GetString("segmentName", ""),
 			SegmentNames:         request.GetString("segmentNames", ""),
@@ -216,7 +216,7 @@ func GetRouteCount(client *alkira.AlkiraClient) func(ctx context.Context, reques
 }
 
 // optimizeRouteQueryParams pushes as many filters as possible to the API level
-func optimizeRouteQueryParams(params EnhancedRouteQueryParams) alkira.RouteQueryParams {
+func optimizeRouteQueryParams(params EnhancedRouteQueryParams) ak.RouteQueryParams {
 	optimized := params.RouteQueryParams
 
 	// Push connector type filtering to API using EntityType
@@ -254,7 +254,7 @@ func optimizeRouteQueryParams(params EnhancedRouteQueryParams) alkira.RouteQuery
 }
 
 // applyRemainingFiltering applies only the filtering that cannot be done by the API
-func applyRemainingFiltering(routes []alkira.RouteUIResult, params EnhancedRouteQueryParams) []alkira.RouteUIResult {
+func applyRemainingFiltering(routes []ak.RouteUIResult, params EnhancedRouteQueryParams) []ak.RouteUIResult {
 	filtered := routes
 
 	// Handle multiple connector types (API can only handle one)
@@ -274,8 +274,8 @@ func applyRemainingFiltering(routes []alkira.RouteUIResult, params EnhancedRoute
 	return filtered
 }
 
-func filterByConnectorTypes(routes []alkira.RouteUIResult, connectorTypes []string) []alkira.RouteUIResult {
-	var filtered []alkira.RouteUIResult
+func filterByConnectorTypes(routes []ak.RouteUIResult, connectorTypes []string) []ak.RouteUIResult {
+	var filtered []ak.RouteUIResult
 	for _, route := range routes {
 		for _, connector := range route.Connectors {
 			for _, targetType := range connectorTypes {
@@ -290,13 +290,13 @@ func filterByConnectorTypes(routes []alkira.RouteUIResult, connectorTypes []stri
 	return filtered
 }
 
-func filterByPrefixRange(routes []alkira.RouteUIResult, prefixRange string) []alkira.RouteUIResult {
+func filterByPrefixRange(routes []ak.RouteUIResult, prefixRange string) []ak.RouteUIResult {
 	_, targetNet, err := net.ParseCIDR(prefixRange)
 	if err != nil {
 		return routes // Invalid CIDR, return all
 	}
 
-	var filtered []alkira.RouteUIResult
+	var filtered []ak.RouteUIResult
 	for _, route := range routes {
 		if prefixInRange(route.Prefix, targetNet) {
 			filtered = append(filtered, route)
@@ -323,7 +323,7 @@ func prefixInRange(prefix string, targetNet *net.IPNet) bool {
 }
 
 // Output formatting methods
-func formatAsTable(routes []alkira.RouteUIResult) string {
+func formatAsTable(routes []ak.RouteUIResult) string {
 	if len(routes) == 0 {
 		return "No routes found."
 	}
@@ -347,7 +347,7 @@ func formatAsTable(routes []alkira.RouteUIResult) string {
 	return result.String()
 }
 
-func formatAsCSV(routes []alkira.RouteUIResult) string {
+func formatAsCSV(routes []ak.RouteUIResult) string {
 	var result strings.Builder
 	w := csv.NewWriter(&result)
 
@@ -376,7 +376,7 @@ func formatAsCSV(routes []alkira.RouteUIResult) string {
 }
 
 // Route summary generation
-func generateRouteSummary(routes []alkira.RouteUIResult, groupBy string, includeDetails bool, includePrefixAnalysis bool) *RouteSummaryResponse {
+func generateRouteSummary(routes []ak.RouteUIResult, groupBy string, includeDetails bool, includePrefixAnalysis bool) *RouteSummaryResponse {
 	summary := &RouteSummaryResponse{
 		TotalRoutes: len(routes),
 		GroupBy:     groupBy,
@@ -399,7 +399,7 @@ func generateRouteSummary(routes []alkira.RouteUIResult, groupBy string, include
 	return summary
 }
 
-func summarizeByConnectorType(routes []alkira.RouteUIResult, includeDetails bool) []RouteSummaryByConnectorType {
+func summarizeByConnectorType(routes []ak.RouteUIResult, includeDetails bool) []RouteSummaryByConnectorType {
 	typeMap := make(map[string]*RouteSummaryByConnectorType)
 	connectorMap := make(map[string]map[string]bool) // connectorType -> connectorName -> exists
 
@@ -467,7 +467,7 @@ func summarizeByConnectorType(routes []alkira.RouteUIResult, includeDetails bool
 	return result
 }
 
-func summarizeBySegment(routes []alkira.RouteUIResult) map[string]int {
+func summarizeBySegment(routes []ak.RouteUIResult) map[string]int {
 	segmentCount := make(map[string]int)
 	for _, route := range routes {
 		segmentCount[route.SegmentName]++
@@ -475,7 +475,7 @@ func summarizeBySegment(routes []alkira.RouteUIResult) map[string]int {
 	return segmentCount
 }
 
-func summarizeByCXP(routes []alkira.RouteUIResult) map[string]int {
+func summarizeByCXP(routes []ak.RouteUIResult) map[string]int {
 	cxpCount := make(map[string]int)
 	for _, route := range routes {
 		for _, connector := range route.Connectors {
@@ -485,7 +485,7 @@ func summarizeByCXP(routes []alkira.RouteUIResult) map[string]int {
 	return cxpCount
 }
 
-func analyzePrefixes(routes []alkira.RouteUIResult) *PrefixAnalysis {
+func analyzePrefixes(routes []ak.RouteUIResult) *PrefixAnalysis {
 	analysis := &PrefixAnalysis{
 		PrivateRanges: make(map[string]int),
 	}
@@ -551,7 +551,7 @@ func contains(slice []string, item string) bool {
 }
 
 // GetRouteSummary handler
-func GetRouteSummary(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetRouteSummary(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract parameters
 		routeType := request.GetString("type", "received")
@@ -578,7 +578,7 @@ func GetRouteSummary(client *alkira.AlkiraClient) func(ctx context.Context, requ
 }
 
 // GetAllRoutes handler with automatic pagination
-func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetAllRoutes(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract parameters
 		routeType := request.GetString("type", "received")
@@ -612,9 +612,9 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 			countJSON, _ := json.Marshal(count)
 			return mcp.NewToolResultText(string(countJSON)), nil
 		default:
-			result := alkira.RoutesUIResponse{
+			result := ak.RoutesUIResponse{
 				Data: allRoutes,
-				Pagination: alkira.PaginationData{
+				Pagination: ak.PaginationData{
 					Offset: 0,
 					Limit:  len(allRoutes),
 					Hits:   len(allRoutes),
@@ -633,14 +633,14 @@ func GetAllRoutes(client *alkira.AlkiraClient) func(ctx context.Context, request
 
 // Helper functions for pagination
 // getAllRoutesWithPaginationOptimized uses smarter pagination with reasonable limits
-func getAllRoutesWithPaginationOptimized(client *alkira.AlkiraClient, routeType string) ([]alkira.RouteUIResult, error) {
-	var allRoutes []alkira.RouteUIResult
+func getAllRoutesWithPaginationOptimized(client *ak.AlkiraClient, routeType string) ([]ak.RouteUIResult, error) {
+	var allRoutes []ak.RouteUIResult
 	offset := 0
 	limit := 100       // Use optimal batch size
 	maxRoutes := 10000 // Reasonable safety limit to prevent memory issues
 
 	for {
-		params := alkira.RouteQueryParams{
+		params := ak.RouteQueryParams{
 			Type:   routeType,
 			Offset: offset,
 			Limit:  limit,
@@ -668,13 +668,13 @@ func getAllRoutesWithPaginationOptimized(client *alkira.AlkiraClient, routeType 
 	return allRoutes, nil
 }
 
-func getAllRoutesWithPaginationAndFiltering(client *alkira.AlkiraClient, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]alkira.RouteUIResult, error) {
-	var allRoutes []alkira.RouteUIResult
+func getAllRoutesWithPaginationAndFiltering(client *ak.AlkiraClient, routeType string, batchSize int, segmentName, connectorType, cxp string) ([]ak.RouteUIResult, error) {
+	var allRoutes []ak.RouteUIResult
 	offset := 0
 	maxRoutes := 10000 // Safety limit
 
 	for {
-		params := alkira.RouteQueryParams{
+		params := ak.RouteQueryParams{
 			Type:        routeType,
 			Offset:      offset,
 			Limit:       batchSize,
