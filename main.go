@@ -14,6 +14,16 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// logf a simple log wrapper to log based on ENV var
+func logf(level string, message string, v ...interface{}) {
+	logLevel := os.Getenv("MCP_LOG")
+
+	if logLevel == level {
+		format := fmt.Sprintf("[%s] %s", level, message)
+		log.Printf(format, v...)
+	}
+}
+
 // getEnvOrDefault returns the value of the environment variable or the default value if not set
 func getEnvOrDefault(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
@@ -42,7 +52,7 @@ func main() {
 
 	// Create Alkira Client
 	if portal == "" || key == "" {
-		log.Printf("[ERROR] Invalid ENV vars, please specify AK_PORTAL and AK_KEY.")
+		logf("ERROR", "Invalid ENV vars, please specify AK_PORTAL and AK_KEY.")
 		return
 	}
 
@@ -56,7 +66,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Printf("[ERROR] failed to initialize alkira client, please check your credential and portal URI.")
+		logf("ERROR", "failed to initialize alkira client, please check your credential and portal URI.")
 		return
 	}
 
@@ -141,23 +151,23 @@ func main() {
 	// Start server based on mode
 	switch mode {
 	case "stdio":
-		fmt.Println("Starting server in stdio mode...")
+		logf("INFO", "Starting server in stdio mode...")
 		if err := server.ServeStdio(srv); err != nil {
-			fmt.Printf("Failed to start stdio server: %v\n", err)
+			logf("INFO", "Failed to start stdio server: %v\n", err)
 			return
 		}
 	case "sse":
-		fmt.Printf("Starting server in SSE mode on port %s...\n", port)
+		logf("INFO", "Starting server in SSE mode on port %s...\n", port)
 		sse := server.NewSSEServer(srv)
 		if err := sse.Start(":" + port); err != nil {
-			fmt.Printf("Failed to start SSE server: %v\n", err)
+			logf("ERROR", "Failed to start SSE server: %v\n", err)
 			return
 		}
-		fmt.Printf("SSE server started on port %s\n", port)
+		logf("INFO", "SSE server started on port %s\n", port)
 	default:
-		fmt.Printf("Unknown server mode: %s. Use 'stdio' or 'sse'.\n", mode)
+		logf("ERROR", "Unknown server mode: %s. Use 'stdio' or 'sse'.\n", mode)
 		return
 	}
 
-	fmt.Println("👋 Server stopped")
+	logf("INFO", "👋 Server stopped")
 }
