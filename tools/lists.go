@@ -4,50 +4,56 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllListAsPath() mcp.Tool {
-	return mcp.NewTool("getAllListAsPath",
-		mcp.WithDescription("Get all AS Path lists for BGP routing"),
+func GetAsPathLists() mcp.Tool {
+	return mcp.NewTool("getAsPathLists",
+		mcp.WithDescription("Get all AS Path lists for BGP routing."),
 	)
 }
 
-func GetAllListCommunity() mcp.Tool {
-	return mcp.NewTool("getAllListCommunity",
-		mcp.WithDescription("Get all BGP Community lists"),
+func GetCommunityLists() mcp.Tool {
+	return mcp.NewTool("getCommunityLists",
+		mcp.WithDescription("Get all BGP Community lists."),
 	)
 }
 
-func GetAllListExtendedCommunity() mcp.Tool {
-	return mcp.NewTool("getAllListExtendedCommunity",
-		mcp.WithDescription("Get all BGP Extended Community lists"),
+func GetExtendedCommunityLists() mcp.Tool {
+	return mcp.NewTool("getExtendedCommunityLists",
+		mcp.WithDescription("Get all BGP Extended Community lists."),
 	)
 }
 
-func GetAllDnsServerList() mcp.Tool {
-	return mcp.NewTool("getAllDnsServerList",
-		mcp.WithDescription("Get all DNS Server lists"),
+func GetDnsServerLists() mcp.Tool {
+	return mcp.NewTool("getDnsServerLists",
+		mcp.WithDescription("Get all DNS Server lists."),
 	)
 }
 
-func GetAllGlobalCidrList() mcp.Tool {
-	return mcp.NewTool("getAllGlobalCidrList",
-		mcp.WithDescription("Get all Global CIDR lists"),
+func GetGlobalCidrLists() mcp.Tool {
+	return mcp.NewTool("getGlobalCidrLists",
+		mcp.WithDescription("Get all Global CIDR lists."),
 	)
 }
 
-func GetAllUdrList() mcp.Tool {
-	return mcp.NewTool("getAllUdrList",
-		mcp.WithDescription("Get all User Defined Route (UDR) lists"),
+func GetUdrLists() mcp.Tool {
+	return mcp.NewTool("getUdrLists",
+		mcp.WithDescription("Get all User Defined Route (UDR) lists."),
 	)
 }
 
-func GetAllPolicyPrefixListIndividual() mcp.Tool {
-	return mcp.NewTool("getAllPolicyPrefixListIndividual",
-		mcp.WithDescription("Get all Policy Prefix lists individually"),
+func GetPolicyRuleLists() mcp.Tool {
+	return mcp.NewTool("getPolicyRuleList",
+		mcp.WithDescription("Get all Policy Rule lists."),
 	)
 }
 
-func GetAllPolicyFqdnListIndividual() mcp.Tool {
-	return mcp.NewTool("getAllPolicyFqdnListIndividual",
-		mcp.WithDescription("Get all Policy FQDN lists individually"),
+func GetPolicyPrefixLists() mcp.Tool {
+	return mcp.NewTool("getPolicyPrefixList",
+		mcp.WithDescription("Get all Policy Prefix lists."),
+	)
+}
+
+func GetPolicyFqdnLists() mcp.Tool {
+	return mcp.NewTool("getPolicyFqdnList",
+		mcp.WithDescription("Get all Policy FQDN lists."),
 	)
 }

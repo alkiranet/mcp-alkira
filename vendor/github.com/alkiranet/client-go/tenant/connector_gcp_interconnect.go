@@ -44,8 +44,8 @@ type ConnectorGcpInterconnectCustomerGateway struct {
 	TunnelCount int    `json:"tunnelCount"`
 }
 
-func NewConnectorGcpInterconnect(ac *AlkiraClient) *AlkiraAPI[ConnectorGcpInterconnect] {
+func NewConnectorGcpInterconnect(ac *AlkiraClient) *AlkiraApi[ConnectorGcpInterconnect] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/gcp-interconnect-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorGcpInterconnect]{ac, uri, true}
+	api := &AlkiraApi[ConnectorGcpInterconnect]{ac, uri}
 	return api
 }

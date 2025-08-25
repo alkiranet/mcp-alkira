@@ -57,7 +57,7 @@ func (ac *AlkiraClient) GetAuditLogs(auditStatus string, auditType string) (stri
 
 	// GET
 	uri.RawQuery = q.Encode()
-	data, _, err := ac.get(uri.String())
+	data, err := ac.Get(uri.String())
 
 	return string(data), err
 }

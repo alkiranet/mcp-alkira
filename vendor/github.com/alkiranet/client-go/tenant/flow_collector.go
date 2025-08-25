@@ -24,8 +24,8 @@ type FlowCollector struct {
 }
 
 // NewFlowCollector new flow collector
-func NewFlowCollector(ac *AlkiraClient) *AlkiraAPI[FlowCollector] {
+func NewFlowCollector(ac *AlkiraClient) *AlkiraApi[FlowCollector] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/flow-collectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[FlowCollector]{ac, uri, true}
+	api := &AlkiraApi[FlowCollector]{ac, uri}
 	return api
 }

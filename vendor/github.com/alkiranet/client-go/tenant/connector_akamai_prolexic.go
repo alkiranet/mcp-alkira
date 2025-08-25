@@ -40,8 +40,8 @@ type ConnectorAkamaiProlexicTunnelIp struct {
 	AkamaiOverlayTunnelIp  string `json:"akamaiOverlayTunnelIp"`
 }
 
-func NewConnectorAkamaiProlexic(ac *AlkiraClient) *AlkiraAPI[ConnectorAkamaiProlexic] {
+func NewConnectorAkamaiProlexic(ac *AlkiraClient) *AlkiraApi[ConnectorAkamaiProlexic] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/akamai-prolexic-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorAkamaiProlexic]{ac, uri, true}
+	api := &AlkiraApi[ConnectorAkamaiProlexic]{ac, uri}
 	return api
 }

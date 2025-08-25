@@ -24,9 +24,9 @@ type Byoip struct {
 }
 
 // NewByoip new BYOIP
-func NewByoip(ac *AlkiraClient) *AlkiraAPI[Byoip] {
+func NewByoip(ac *AlkiraClient) *AlkiraApi[Byoip] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/byoips", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[Byoip]{ac, uri, true}
+	api := &AlkiraApi[Byoip]{ac, uri}
 
 	return api
 }

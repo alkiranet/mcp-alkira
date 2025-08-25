@@ -41,8 +41,8 @@ type ConnectorFortinetSdwan struct {
 }
 
 // NewConnectorFortinetSdwan new connector-fortinet-sdwan
-func NewConnectorFortinetSdwan(ac *AlkiraClient) *AlkiraAPI[ConnectorFortinetSdwan] {
+func NewConnectorFortinetSdwan(ac *AlkiraClient) *AlkiraApi[ConnectorFortinetSdwan] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/ftnt-sdwan-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorFortinetSdwan]{ac, uri, true}
+	api := &AlkiraApi[ConnectorFortinetSdwan]{ac, uri}
 	return api
 }

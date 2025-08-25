@@ -71,8 +71,8 @@ type ServicePanInstance struct {
 }
 
 // NewServicePan new service pan
-func NewServicePan(ac *AlkiraClient) *AlkiraAPI[ServicePan] {
+func NewServicePan(ac *AlkiraClient) *AlkiraApi[ServicePan] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/panfwservices", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ServicePan]{ac, uri, true}
+	api := &AlkiraApi[ServicePan]{ac, uri}
 	return api
 }

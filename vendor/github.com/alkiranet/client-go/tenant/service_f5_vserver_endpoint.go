@@ -18,9 +18,9 @@ type F5vServerEndpoint struct {
 	PortRanges           []string    `json:"portRanges"`
 }
 
-func NewF5vServerEndpoint(ac *AlkiraClient) *AlkiraAPI[F5vServerEndpoint] {
+func NewF5vServerEndpoint(ac *AlkiraClient) *AlkiraApi[F5vServerEndpoint] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/f5-vserver-endpoints", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[F5vServerEndpoint]{ac, uri, true}
+	api := &AlkiraApi[F5vServerEndpoint]{ac, uri}
 	return api
 
 }

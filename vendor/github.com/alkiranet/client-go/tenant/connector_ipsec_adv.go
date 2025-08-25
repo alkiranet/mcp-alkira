@@ -105,9 +105,21 @@ type ConnectorAdvIPSec struct {
 	Description           string                           `json:"description,omitempty"`
 }
 
+type ConnectorAdvIPSecSummary struct {
+	Id   json.Number `json:"id,omitempty"`
+	Name string      `json:"name"`
+}
+
 // NewConnectorAdvIPSec initialize a new connector
-func NewConnectorAdvIPSec(ac *AlkiraClient) *AlkiraAPI[ConnectorAdvIPSec] {
+func NewConnectorAdvIPSec(ac *AlkiraClient) *AlkiraApi[ConnectorAdvIPSec] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/adv-ipsec-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorAdvIPSec]{ac, uri, true}
+	api := &AlkiraApi[ConnectorAdvIPSec]{ac, uri}
+	return api
+}
+
+// NewConnectorAdvIPSecSummary initialize a new connector
+func NewConnectorAdvIPSecSummary(ac *AlkiraClient) *AlkiraApi[ConnectorAdvIPSecSummary] {
+	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/adv-ipsec-connectors", ac.URI, ac.TenantNetworkId)
+	api := &AlkiraApi[ConnectorAdvIPSecSummary]{ac, uri}
 	return api
 }

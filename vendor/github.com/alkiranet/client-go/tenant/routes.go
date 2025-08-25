@@ -190,7 +190,7 @@ func (ac *AlkiraClient) GetRoutes(params RouteQueryParams) (*RoutesUIResponse, e
 	}
 
 	// Make the request
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get routes: %v", err)
 	}
@@ -272,7 +272,7 @@ func (ac *AlkiraClient) GetRouteCount(params RouteCountQueryParams) (*RouteCount
 	}
 
 	// Make the request
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get route count: %v", err)
 	}

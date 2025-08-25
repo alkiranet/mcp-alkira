@@ -56,8 +56,8 @@ type CheckpointManagementServer struct {
 }
 
 // NewServiceCheckpoint new service checkpoint
-func NewServiceCheckpoint(ac *AlkiraClient) *AlkiraAPI[ServiceCheckpoint] {
+func NewServiceCheckpoint(ac *AlkiraClient) *AlkiraApi[ServiceCheckpoint] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/chkp-fw-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ServiceCheckpoint]{ac, uri, true}
+	api := &AlkiraApi[ServiceCheckpoint]{ac, uri}
 	return api
 }

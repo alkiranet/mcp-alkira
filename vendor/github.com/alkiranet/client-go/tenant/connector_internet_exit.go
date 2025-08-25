@@ -34,8 +34,8 @@ type ConnectorInternet struct {
 	EgressIpTypes       []string             `json:"egressIPTypes"`
 }
 
-func NewConnectorInternet(ac *AlkiraClient) *AlkiraAPI[ConnectorInternet] {
+func NewConnectorInternet(ac *AlkiraClient) *AlkiraApi[ConnectorInternet] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/internetconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorInternet]{ac, uri, true}
+	api := &AlkiraApi[ConnectorInternet]{ac, uri}
 	return api
 }

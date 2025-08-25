@@ -43,8 +43,8 @@ type InternetApplication struct {
 }
 
 // NewInternetApplication new internet application
-func NewInternetApplication(ac *AlkiraClient) *AlkiraAPI[InternetApplication] {
+func NewInternetApplication(ac *AlkiraClient) *AlkiraApi[InternetApplication] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/internet-applications", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[InternetApplication]{ac, uri, true}
+	api := &AlkiraApi[InternetApplication]{ac, uri}
 	return api
 }

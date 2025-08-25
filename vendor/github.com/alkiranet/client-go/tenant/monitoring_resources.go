@@ -7,7 +7,13 @@ import (
 	"net/url"
 )
 
-// GetResourceUsage get alerts with optional query parameters
+// GetResourceUsage get resource usages of the tenant
+//
+// Optional query parameters could be added to filter responses.
+//
+// resourceCategory resource category
+// resourceType resource type
+// resourceScope resource scope
 func (ac *AlkiraClient) GetResourceUsages(resourceCategory string, resourceType string, resourceScope string) (string, error) {
 
 	baseUri := fmt.Sprintf("%s/api/resourceusage", ac.URI)
@@ -35,15 +41,14 @@ func (ac *AlkiraClient) GetResourceUsages(resourceCategory string, resourceType 
 
 	// GET
 	uri.RawQuery = q.Encode()
-	data, _, err := ac.get(uri.String())
+	data, err := ac.Get(uri.String())
 
 	return string(data), err
 }
 
-
-// GetResourceUsage get alerts with optional query parameters
+// GetResourceLimits get resource limits of the tenant
 func (ac *AlkiraClient) GetResourceLimits() (string, error) {
 	uri := fmt.Sprintf("%s/api/resourcelimits", ac.URI)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 	return string(data), err
 }

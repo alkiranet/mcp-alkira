@@ -44,8 +44,8 @@ type ConnectorVersaSdwan struct {
 }
 
 // NewConnectorVersaSdwan new connector
-func NewConnectorVersaSdwan(ac *AlkiraClient) *AlkiraAPI[ConnectorVersaSdwan] {
+func NewConnectorVersaSdwan(ac *AlkiraClient) *AlkiraApi[ConnectorVersaSdwan] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/versa-sdwan-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorVersaSdwan]{ac, uri, true}
+	api := &AlkiraApi[ConnectorVersaSdwan]{ac, uri}
 	return api
 }

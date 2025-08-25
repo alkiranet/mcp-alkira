@@ -9,7 +9,7 @@ import (
 // GetHealthAll get all resources health status
 func (ac *AlkiraClient) GetHealthAll() (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/health", ac.URI, ac.TenantNetworkId)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	return string(data), err
 }
@@ -22,7 +22,7 @@ func (ac *AlkiraClient) GetHealthOfConnector(connectorId string) (string, error)
 	}
 
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s", ac.URI, ac.TenantNetworkId, connectorId)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	return string(data), err
 }
@@ -36,7 +36,7 @@ func (ac *AlkiraClient) GetHealthOfConnectorInstance(connectorId string, instanc
 	}
 
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s/instance/%s", ac.URI, ac.TenantNetworkId, connectorId, instanceId)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	return string(data), err
 }
@@ -49,7 +49,7 @@ func (ac *AlkiraClient) GetHealthOfService(serviceId string) (string, error) {
 	}
 
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s", ac.URI, ac.TenantNetworkId, serviceId)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	return string(data), err
 }
@@ -63,7 +63,7 @@ func (ac *AlkiraClient) GetHealthOfServiceInstance(serviceId string, instanceId 
 	}
 
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s/instance/%s", ac.URI, ac.TenantNetworkId, serviceId, instanceId)
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	return string(data), err
 }

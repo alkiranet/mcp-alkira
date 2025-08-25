@@ -16,8 +16,8 @@ type InventoryCXP struct {
 	Geolocation       map[string]float64 `json:"geolocation"`
 }
 
-func NewInventoryCXP(ac *AlkiraClient) *AlkiraAPI[InventoryCXP] {
+func NewInventoryCXP(ac *AlkiraClient) *AlkiraApi[InventoryCXP] {
 	uri := fmt.Sprintf("%s/inventory/cxps", ac.URI)
-	api := &AlkiraAPI[InventoryCXP]{ac, uri, false}
+	api := &AlkiraApi[InventoryCXP]{ac, uri}
 	return api
 }

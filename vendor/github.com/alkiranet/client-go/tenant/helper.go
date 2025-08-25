@@ -27,7 +27,7 @@ type OuterZoneToGroups struct {
 
 // logf a simple log wrapper to log based on ENV var
 func logf(level string, message string, v ...interface{}) {
-	logLevel := os.Getenv("TF_LOG")
+	logLevel := os.Getenv("AK_LOG")
 
 	if logLevel == level {
 		format := fmt.Sprintf("[%s] %s", level, message)

@@ -47,8 +47,8 @@ type ServiceCiscoFTDv struct {
 }
 
 // NewServiceCiscoFTDv new service cisco FTDv
-func NewServiceCiscoFTDv(ac *AlkiraClient) *AlkiraAPI[ServiceCiscoFTDv] {
+func NewServiceCiscoFTDv(ac *AlkiraClient) *AlkiraApi[ServiceCiscoFTDv] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/cisco-ftdv-fw-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ServiceCiscoFTDv]{ac, uri, true}
+	api := &AlkiraApi[ServiceCiscoFTDv]{ac, uri}
 	return api
 }

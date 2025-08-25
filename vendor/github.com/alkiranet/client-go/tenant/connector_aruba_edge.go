@@ -48,8 +48,8 @@ type ArubaEdgeInstanceConfig struct {
 }
 
 // NewConnectorArubaEdge initalize a new connector
-func NewConnectorArubaEdge(ac *AlkiraClient) *AlkiraAPI[ConnectorArubaEdge] {
+func NewConnectorArubaEdge(ac *AlkiraClient) *AlkiraApi[ConnectorArubaEdge] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/aruba-edge-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorArubaEdge]{ac, uri, true}
+	api := &AlkiraApi[ConnectorArubaEdge]{ac, uri}
 	return api
 }

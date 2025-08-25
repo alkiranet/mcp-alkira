@@ -53,8 +53,8 @@ type ConnectorOciVcn struct {
 }
 
 // NewConnectorOciVcn new connector-oci-vcn
-func NewConnectorOciVcn(ac *AlkiraClient) *AlkiraAPI[ConnectorOciVcn] {
+func NewConnectorOciVcn(ac *AlkiraClient) *AlkiraApi[ConnectorOciVcn] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/oci-vcn-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorOciVcn]{ac, uri, true}
+	api := &AlkiraApi[ConnectorOciVcn]{ac, uri}
 	return api
 }

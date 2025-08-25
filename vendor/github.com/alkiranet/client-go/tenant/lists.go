@@ -16,20 +16,20 @@ type List struct {
 	Values      []string    `json:"values"`
 }
 
-func NewListAsPath(ac *AlkiraClient) *AlkiraAPI[List] {
+func NewListAsPath(ac *AlkiraClient) *AlkiraApi[List] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/as-path-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[List]{ac, uri, true}
+	api := &AlkiraApi[List]{ac, uri}
 	return api
 }
 
-func NewListCommunity(ac *AlkiraClient) *AlkiraAPI[List] {
+func NewListCommunity(ac *AlkiraClient) *AlkiraApi[List] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/community-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[List]{ac, uri, true}
+	api := &AlkiraApi[List]{ac, uri}
 	return api
 }
 
-func NewListExtendedCommunity(ac *AlkiraClient) *AlkiraAPI[List] {
+func NewListExtendedCommunity(ac *AlkiraClient) *AlkiraApi[List] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/extended-community-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[List]{ac, uri, true}
+	api := &AlkiraApi[List]{ac, uri}
 	return api
 }

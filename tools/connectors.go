@@ -22,21 +22,9 @@ func GetAllConnectorAwsTgw() mcp.Tool {
 	)
 }
 
-func GetAllConnectorAwsVpc() mcp.Tool {
-	return mcp.NewTool("getAllConnectorAwsVpc",
-		mcp.WithDescription("Get all AWS VPC connectors"),
-	)
-}
-
 func GetAllConnectorAzureExpressRoute() mcp.Tool {
 	return mcp.NewTool("getAllConnectorAzureExpressRoute",
 		mcp.WithDescription("Get all Azure ExpressRoute connectors"),
-	)
-}
-
-func GetAllConnectorAzureVnet() mcp.Tool {
-	return mcp.NewTool("getAllConnectorAzureVnet",
-		mcp.WithDescription("Get all Azure Virtual Network connectors"),
 	)
 }
 
@@ -67,24 +55,6 @@ func GetAllConnectorGcpVpc() mcp.Tool {
 func GetAllConnectorInternet() mcp.Tool {
 	return mcp.NewTool("getAllConnectorInternet",
 		mcp.WithDescription("Get all Internet Exit connectors"),
-	)
-}
-
-func GetAllConnectorIPSec() mcp.Tool {
-	return mcp.NewTool("getAllConnectorIPSec",
-		mcp.WithDescription("Get all IPSec connectors"),
-	)
-}
-
-func GetAllConnectorAdvIPSec() mcp.Tool {
-	return mcp.NewTool("getAllConnectorAdvIPSec",
-		mcp.WithDescription("Get all Advanced IPSec connectors"),
-	)
-}
-
-func GetAllConnectorIPSecTunnelProfile() mcp.Tool {
-	return mcp.NewTool("getAllConnectorIPSecTunnelProfile",
-		mcp.WithDescription("Get all IPSec Tunnel Profile connectors"),
 	)
 }
 

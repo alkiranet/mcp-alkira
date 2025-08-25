@@ -95,8 +95,8 @@ type ConnectorAzureVnet struct {
 }
 
 // NewConnectorAzureVnet initalize a new connector
-func NewConnectorAzureVnet(ac *AlkiraClient) *AlkiraAPI[ConnectorAzureVnet] {
+func NewConnectorAzureVnet(ac *AlkiraClient) *AlkiraApi[ConnectorAzureVnet] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/azurevnetconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorAzureVnet]{ac, uri, true}
+	api := &AlkiraApi[ConnectorAzureVnet]{ac, uri}
 	return api
 }

@@ -18,8 +18,8 @@ type PeeringGatewayCxp struct {
 	State         string      `json:"state,omitempty"` // response only
 }
 
-func NewPeeringGatewayCxp(ac *AlkiraClient) *AlkiraAPI[PeeringGatewayCxp] {
+func NewPeeringGatewayCxp(ac *AlkiraClient) *AlkiraApi[PeeringGatewayCxp] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/cxp-peering-gateways", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[PeeringGatewayCxp]{ac, uri, false}
+	api := &AlkiraApi[PeeringGatewayCxp]{ac, uri}
 	return api
 }

@@ -20,8 +20,8 @@ type IPReservation struct {
 	Segment           string `json:"segment"`
 }
 
-func NewIPReservation(ac *AlkiraClient) *AlkiraAPI[IPReservation] {
+func NewIPReservation(ac *AlkiraClient) *AlkiraApi[IPReservation] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/ip-reservations", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[IPReservation]{ac, uri, false}
+	api := &AlkiraApi[IPReservation]{ac, uri}
 	return api
 }

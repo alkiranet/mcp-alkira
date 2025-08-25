@@ -20,8 +20,8 @@ type PolicyRuleListRule struct {
 }
 
 // NewPolicyRuleList new policy rule list
-func NewPolicyRuleList(ac *AlkiraClient) *AlkiraAPI[PolicyRuleList] {
+func NewPolicyRuleList(ac *AlkiraClient) *AlkiraApi[PolicyRuleList] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy/rulelists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[PolicyRuleList]{ac, uri, true}
+	api := &AlkiraApi[PolicyRuleList]{ac, uri}
 	return api
 }

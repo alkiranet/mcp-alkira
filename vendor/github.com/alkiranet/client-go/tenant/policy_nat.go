@@ -20,9 +20,22 @@ type NatPolicy struct {
 	AllowOverlappingTranslatedPrefixes *bool       `json:"allowOverlappingTranslatedPrefixes"`
 }
 
+type NatPolicySummary struct {
+	Name string      `json:"name"`
+	Type string      `json:"type"`
+	Id   json.Number `json:"id"`
+}
+
 // NewNatPolicy new nat policy
-func NewNatPolicy(ac *AlkiraClient) *AlkiraAPI[NatPolicy] {
+func NewNatPolicy(ac *AlkiraClient) *AlkiraApi[NatPolicy] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-policies", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[NatPolicy]{ac, uri, true}
+	api := &AlkiraApi[NatPolicy]{ac, uri}
+	return api
+}
+
+// NewNatPoliciesSummary new nat policies summary
+func NewNatPolicySummary(ac *AlkiraClient) *AlkiraApi[NatPolicySummary] {
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-policies", ac.URI, ac.TenantNetworkId)
+	api := &AlkiraApi[NatPolicySummary]{ac, uri}
 	return api
 }

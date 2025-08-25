@@ -235,7 +235,7 @@ func (ac *AlkiraClient) CreateCredential(name string, ctype CredentialType, cred
 		return "", fmt.Errorf("CreateCredential: failed to marshal: %v", err)
 	}
 
-	data, _, err, _ := ac.create(uri, body, false)
+	data, err := ac.Create(uri, body)
 
 	if err != nil {
 		return "", err
@@ -250,8 +250,7 @@ func (ac *AlkiraClient) CreateCredential(name string, ctype CredentialType, cred
 // DeleteCredential delete credential by its Id
 func (ac *AlkiraClient) DeleteCredential(id string, ctype CredentialType) error {
 	uri := fmt.Sprintf("%s/api/credentials/%s/%s", ac.URI, ctype, id)
-	_, err, _ := ac.delete(uri, false)
-	return err
+	return ac.Delete(uri)
 }
 
 // UpdateCredential update a given credential by its Id
@@ -273,8 +272,7 @@ func (ac *AlkiraClient) UpdateCredential(id string, name string, ctype Credentia
 		return fmt.Errorf("UpdateCredential: failed to marshal: %v", err)
 	}
 
-	_, err, _ = ac.update(uri, body, false)
-
+	_, err = ac.Update(uri, body)
 	return err
 }
 
@@ -282,7 +280,7 @@ func (ac *AlkiraClient) UpdateCredential(id string, name string, ctype Credentia
 func (ac *AlkiraClient) GetCredentials() (string, error) {
 	uri := fmt.Sprintf("%s/api/credentials/", ac.URI)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 	return string(data), err
 }
 
@@ -292,7 +290,7 @@ func (ac *AlkiraClient) GetCredentialById(id string) (CredentialResponseDetail, 
 
 	var credential CredentialResponseDetail
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return credential, err

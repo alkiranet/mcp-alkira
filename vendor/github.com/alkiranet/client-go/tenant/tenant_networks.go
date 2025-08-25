@@ -35,7 +35,20 @@ type TenantNetworkProvisionRequest struct {
 func (ac *AlkiraClient) GetTenantNetworks() (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks", ac.URI)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
+// GetTenantNetworkSummary get the tenant networks of the current tenant
+func (ac *AlkiraClient) GetTenantNetworkSummary() (string, error) {
+	uri := fmt.Sprintf("%s/tenantnetworksummaries", ac.URI)
+
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return "", err
@@ -49,7 +62,7 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 
 	uri := fmt.Sprintf("%s/tenantnetworks", ac.URI)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return "", err
@@ -69,7 +82,7 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 func (ac *AlkiraClient) GetTenantNetworkState() (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s", ac.URI, ac.TenantNetworkId)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return "", err
@@ -89,7 +102,7 @@ func (ac *AlkiraClient) GetTenantNetworkState() (string, error) {
 func (ac *AlkiraClient) GetTenantNetworkConnectorState(id string) (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/connectors/%s", ac.URI, ac.TenantNetworkId, id)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return "", err
@@ -109,7 +122,7 @@ func (ac *AlkiraClient) GetTenantNetworkConnectorState(id string) (string, error
 func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, id)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return "", err
@@ -129,7 +142,7 @@ func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) 
 func (ac *AlkiraClient) GetTenantNetworkProvisionRequest(id string) (*TenantNetworkProvisionRequest, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision-requests/%s", ac.URI, ac.TenantNetworkId, id)
 
-	data, _, err := ac.get(uri)
+	data, err := ac.Get(uri)
 
 	if err != nil {
 		return nil, err
@@ -149,7 +162,7 @@ func (ac *AlkiraClient) GetTenantNetworkProvisionRequest(id string) (*TenantNetw
 func (ac *AlkiraClient) ProvisionTenantNetwork() (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision", ac.URI, ac.TenantNetworkId)
 
-	data, _, err, _ := ac.create(uri, nil, false)
+	data, err := ac.Create(uri, nil)
 
 	if err != nil {
 		return "", err

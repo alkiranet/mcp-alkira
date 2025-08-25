@@ -36,8 +36,8 @@ type PolicyRuleAction struct {
 }
 
 // NewTrafficPolicyRule new traffic policy rule
-func NewTrafficPolicyRule(ac *AlkiraClient) *AlkiraAPI[TrafficPolicyRule] {
+func NewTrafficPolicyRule(ac *AlkiraClient) *AlkiraApi[TrafficPolicyRule] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy/rules", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[TrafficPolicyRule]{ac, uri, true}
+	api := &AlkiraApi[TrafficPolicyRule]{ac, uri}
 	return api
 }

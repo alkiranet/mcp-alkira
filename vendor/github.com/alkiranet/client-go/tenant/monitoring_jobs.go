@@ -31,7 +31,7 @@ func (ac *AlkiraClient) GetJobs(jobStatus string, jobType string) (string, error
 
 	// GET
 	uri.RawQuery = q.Encode()
-	data, _, err := ac.get(uri.String())
+	data, err := ac.Get(uri.String())
 
 	return string(data), err
 }

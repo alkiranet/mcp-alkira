@@ -59,8 +59,8 @@ type InfobloxInstance struct {
 }
 
 // NewServiceInfoblox new service infoblox
-func NewServiceInfoblox(ac *AlkiraClient) *AlkiraAPI[ServiceInfoblox] {
+func NewServiceInfoblox(ac *AlkiraClient) *AlkiraApi[ServiceInfoblox] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/infoblox-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ServiceInfoblox]{ac, uri, true}
+	api := &AlkiraApi[ServiceInfoblox]{ac, uri}
 	return api
 }

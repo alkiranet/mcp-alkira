@@ -41,8 +41,8 @@ type Segment struct {
 	ServiceTrafficDistribution                        ServiceTrafficDistribution `json:"serviceTrafficDistribution,omitempty"`
 }
 
-func NewSegment(ac *AlkiraClient) *AlkiraAPI[Segment] {
+func NewSegment(ac *AlkiraClient) *AlkiraApi[Segment] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/segments", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[Segment]{ac, uri, true}
+	api := &AlkiraApi[Segment]{ac, uri}
 	return api
 }

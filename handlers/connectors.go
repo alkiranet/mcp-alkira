@@ -64,50 +64,12 @@ func GetAllConnectorAwsTgw(client *ak.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func GetAllConnectorAwsVpc(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorAwsVpc(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
 func GetAllConnectorAzureExpressRoute(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
 		api := ak.NewConnectorAzureExpressRoute(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAzureVnet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorAzureVnet(client)
 
 		// Get resources
 		connectors, err := api.GetAll()
@@ -184,82 +146,6 @@ func GetAllConnectorGcpVpc(client *ak.AlkiraClient) func(ctx context.Context, re
 
 		// INIT
 		api := ak.NewConnectorGcpVpc(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorInternet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorInternet(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorIPSec(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorIPSec(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorAdvIPSec(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorAdvIPSec(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
-
-func GetAllConnectorIPSecTunnelProfile(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewConnectorIPSecTunnelProfile(client)
 
 		// Get resources
 		connectors, err := api.GetAll()

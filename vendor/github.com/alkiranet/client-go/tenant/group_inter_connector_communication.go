@@ -18,8 +18,8 @@ type InterConnectorCommunicationGroup struct {
 	VirtualNetworkManagerAzureId int         `json:"azureVirtualNetworkManagerId"`
 }
 
-func NewInterConnectorCommunicationGroup(ac *AlkiraClient) *AlkiraAPI[InterConnectorCommunicationGroup] {
+func NewInterConnectorCommunicationGroup(ac *AlkiraClient) *AlkiraApi[InterConnectorCommunicationGroup] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/inter-connector-communication-groups", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[InterConnectorCommunicationGroup]{ac, uri, true}
+	api := &AlkiraApi[InterConnectorCommunicationGroup]{ac, uri}
 	return api
 }

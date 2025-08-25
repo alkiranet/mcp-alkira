@@ -12,8 +12,8 @@ type ZtaProfile struct {
 }
 
 // NewZtaProfile new Ztna profile
-func NewZtaProfile(ac *AlkiraClient) *AlkiraAPI[ZtaProfile] {
+func NewZtaProfile(ac *AlkiraClient) *AlkiraApi[ZtaProfile] {
 	uri := fmt.Sprintf("%s/zero-trust-access-profiles", ac.URI)
-	api := &AlkiraAPI[ZtaProfile]{ac, uri, true}
+	api := &AlkiraApi[ZtaProfile]{ac, uri}
 	return api
 }

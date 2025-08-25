@@ -43,9 +43,9 @@ type F5InstanceDeployment struct {
 	Type   string `json:"type"`
 }
 
-func NewServiceF5Lb(ac *AlkiraClient) *AlkiraAPI[ServiceF5Lb] {
+func NewServiceF5Lb(ac *AlkiraClient) *AlkiraApi[ServiceF5Lb] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/f5-lb-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ServiceF5Lb]{ac, uri, true}
+	api := &AlkiraApi[ServiceF5Lb]{ac, uri}
 	return api
 
 }

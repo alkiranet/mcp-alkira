@@ -55,8 +55,8 @@ type ConnectorAwsDirectConnect struct {
 }
 
 // NewConnectorAwsDirectConnect new connector-aws-direct-connect
-func NewConnectorAwsDirectConnect(ac *AlkiraClient) *AlkiraAPI[ConnectorAwsDirectConnect] {
+func NewConnectorAwsDirectConnect(ac *AlkiraClient) *AlkiraApi[ConnectorAwsDirectConnect] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/directconnectconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorAwsDirectConnect]{ac, uri, true}
+	api := &AlkiraApi[ConnectorAwsDirectConnect]{ac, uri}
 	return api
 }

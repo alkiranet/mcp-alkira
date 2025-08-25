@@ -64,8 +64,8 @@ type ConnectorAzureExpressRoute struct {
 	BillingTags     []int                                `json:"billingTags"`
 }
 
-func NewConnectorAzureExpressRoute(ac *AlkiraClient) *AlkiraAPI[ConnectorAzureExpressRoute] {
+func NewConnectorAzureExpressRoute(ac *AlkiraClient) *AlkiraApi[ConnectorAzureExpressRoute] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/azure-express-route-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorAzureExpressRoute]{ac, uri, true}
+	api := &AlkiraApi[ConnectorAzureExpressRoute]{ac, uri}
 	return api
 }

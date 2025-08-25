@@ -68,12 +68,12 @@ type EnhancedRouteQueryParams struct {
 
 // Pagination helper for large result sets
 type PaginationHelper struct {
-	TotalRoutes     int                    `json:"totalRoutes"`
-	BatchSize       int                    `json:"batchSize"`
-	TotalBatches    int                    `json:"totalBatches"`
-	ProcessedRoutes int                    `json:"processedRoutes"`
-	Routes          []ak.RouteUIResult `json:"routes,omitempty"`
-	Summary         *RouteSummaryResponse  `json:"summary,omitempty"`
+	TotalRoutes     int                   `json:"totalRoutes"`
+	BatchSize       int                   `json:"batchSize"`
+	TotalBatches    int                   `json:"totalBatches"`
+	ProcessedRoutes int                   `json:"processedRoutes"`
+	Routes          []ak.RouteUIResult    `json:"routes,omitempty"`
+	Summary         *RouteSummaryResponse `json:"summary,omitempty"`
 }
 
 // getRoutesEnhanced retrieves routes with enhanced filtering and output formatting

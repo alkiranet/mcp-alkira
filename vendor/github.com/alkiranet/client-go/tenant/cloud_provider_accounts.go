@@ -16,8 +16,8 @@ type CloudProviderAccount struct {
 }
 
 // NewCloudProviderAccounts
-func NewCloudProviderAccounts(ac *AlkiraClient) *AlkiraAPI[CloudProviderAccount] {
+func NewCloudProviderAccounts(ac *AlkiraClient) *AlkiraApi[CloudProviderAccount] {
 	uri := fmt.Sprintf("%s/cloud-provider-accounts", ac.URI)
-	api := &AlkiraAPI[CloudProviderAccount]{ac, uri, false}
+	api := &AlkiraApi[CloudProviderAccount]{ac, uri}
 	return api
 }

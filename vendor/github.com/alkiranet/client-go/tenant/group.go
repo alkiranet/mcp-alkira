@@ -13,8 +13,8 @@ type Group struct {
 	Description string      `json:"description"`
 }
 
-func NewGroup(ac *AlkiraClient) *AlkiraAPI[Group] {
+func NewGroup(ac *AlkiraClient) *AlkiraApi[Group] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/groups", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[Group]{ac, uri, true}
+	api := &AlkiraApi[Group]{ac, uri}
 	return api
 }

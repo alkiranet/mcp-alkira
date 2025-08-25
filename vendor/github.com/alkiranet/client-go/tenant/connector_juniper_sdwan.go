@@ -40,8 +40,8 @@ type ConnectorJuniperSdwan struct {
 }
 
 // NewConnectorJuniperSdwan
-func NewConnectorJuniperSdwan(ac *AlkiraClient) *AlkiraAPI[ConnectorJuniperSdwan] {
+func NewConnectorJuniperSdwan(ac *AlkiraClient) *AlkiraApi[ConnectorJuniperSdwan] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/juniper-sdwan-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[ConnectorJuniperSdwan]{ac, uri, true}
+	api := &AlkiraApi[ConnectorJuniperSdwan]{ac, uri}
 	return api
 }

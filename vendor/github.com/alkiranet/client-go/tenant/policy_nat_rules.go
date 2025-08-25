@@ -65,8 +65,8 @@ type EgressAction struct {
 }
 
 // NewNatPolicyRule new NAT policy rule
-func NewNatRule(ac *AlkiraClient) *AlkiraAPI[NatPolicyRule] {
+func NewNatRule(ac *AlkiraClient) *AlkiraApi[NatPolicyRule] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-rules", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraAPI[NatPolicyRule]{ac, uri, true}
+	api := &AlkiraApi[NatPolicyRule]{ac, uri}
 	return api
 }
