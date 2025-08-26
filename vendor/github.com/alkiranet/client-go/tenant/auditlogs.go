@@ -8,8 +8,8 @@ import (
 )
 
 type AuditLogResponse struct {
-	Data       []AuditLogEntry `json:"data"`
-	Pagination Pagination      `json:"pagination"`
+	Data       []AuditLogEntry    `json:"data"`
+	Pagination AuditLogPagination `json:"pagination"`
 }
 
 type AuditLogEntry struct {
@@ -26,7 +26,7 @@ type AuditLogEntry struct {
 
 type AuditLogTag map[string]string
 
-type Pagination struct {
+type AuditLogPagination struct {
 	Offset int `json:"offset"`
 	Limit  int `json:"limit"`
 	Hits   int `json:"hits"`

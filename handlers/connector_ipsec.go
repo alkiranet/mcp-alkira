@@ -11,30 +11,23 @@ func GetIPSecConnectors(client *ak.AlkiraClient) func(ctx context.Context, reque
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		// INIT
-		api := ak.NewConnectorIPSec(client)
-
-		// Get resources
-		connectors, err := api.GetAll()
+		offset, err := request.RequireString("offset")
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
 
-		// Return response
-		return mcp.NewToolResultText(connectors), nil
-	}
-}
+		limit, err := request.RequireString("limit")
 
-func GetIPSecConnectorsSummary(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// INIT
 		api := ak.NewConnectorIPSecSummary(client)
 
 		// Get resources
-		connectors, err := api.GetSummary()
+		connectors, err := api.GetSummary("true", offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

@@ -6,18 +6,15 @@ import (
 
 func GetIPSecConnectors() mcp.Tool {
 	return mcp.NewTool("getIPSecConnectors",
-		mcp.WithDescription("Get all IPSec connectors. If there is too many "+
-			"connectors, this tool will return too big payload that can't be "+
-			"procssed, in this case, tool `getConnectorIPSecSummary` could be "+
-			"used to get a compacted list. Otherwise, user should try to get "+
-			"details a single IPSec connector."),
-	)
-}
-
-func GetIPSecConnectorsSummary() mcp.Tool {
-	return mcp.NewTool("getIPSecConnectorsSummary",
-		mcp.WithDescription("Get all IPSec connectors in summary format. "+
-			"This will only return `connector ID` and `CXP` the connector."),
+		mcp.WithDescription("Get all IPSec connectors. The returned data " +
+			"will be with pagination enabled by default."),
+		mcp.WithString("offset",
+			mcp.Description("Offset of paginated data will be returned."),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Limit of paginated data will be returned. If not " +
+				"provided, default value is 10."),
+		),
 	)
 }
 

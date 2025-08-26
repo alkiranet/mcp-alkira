@@ -19,7 +19,6 @@ import (
 )
 
 // Default variables for retrying
-const defaultProvTimeout time.Duration = 240 * time.Minute
 const defaultRetryInterval time.Duration = 5 * time.Second
 const defaultRetryTimeout time.Duration = 10 * time.Second
 
@@ -137,7 +136,7 @@ func NewAlkiraClient(uri string, apiKey string, maxToken int) (*AlkiraClient, er
 	return client, nil
 }
 
-// Get retrieve a resource by sending a GET request
+// Get retrieve resources by sending a GET request
 func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 	logf("DEBUG", "client-get URI: %s\n", uri)
 
@@ -165,7 +164,7 @@ func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 	return data, nil
 }
 
-// create send a POST request to create resource
+// Create create send a POST request to create resource
 func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 
 	logf("DEBUG", "client-create REQ: %s", string(body))

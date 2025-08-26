@@ -11,6 +11,13 @@ func GetNatPolicies() mcp.Tool {
 			"getNatPoliciesSummary could be used to get a shorter list. "+
 			"Otherwise, user should try to get a single NAT policy "+
 			"instead of listing all."),
+		mcp.WithString("offset",
+			mcp.Description("Offset of paginated data will be returned."),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Limit of paginated data will be returned. If not " +
+				"provided, default value is 10."),
+		),
 	)
 }
 
@@ -18,6 +25,13 @@ func GetNatPoliciesSummary() mcp.Tool {
 	return mcp.NewTool("getNatPoliciesSummary",
 		mcp.WithDescription("Get all NAT policies in summary format. "+
 			"This will only return `policy ID` and `policy name`."),
+		mcp.WithString("offset",
+			mcp.Description("Offset of paginated data will be returned."),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Limit of paginated data will be returned. If not " +
+				"provided, default value is 10."),
+		),
 	)
 }
 

@@ -11,11 +11,23 @@ func GetGroups(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Ca
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, err := request.RequireString("offset")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		limit, err := request.RequireString("limit")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
 		// INIT
 		api := ak.NewGroup(client)
 
 		// Get resources
-		groups, err := api.GetAll()
+		groups, err := api.GetAllPaginated(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

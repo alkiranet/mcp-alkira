@@ -6,7 +6,15 @@ import (
 
 func GetGroups() mcp.Tool {
 	return mcp.NewTool("getGroups",
-		mcp.WithDescription("Get all groups."),
+		mcp.WithDescription("Get all groups. The returned data will be " +
+			"always paginated."),
+		mcp.WithString("offset",
+			mcp.Description("Offset of paginated data will be returned."),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Limit of paginated data will be returned. If " +
+				"not provided, default value is 10."),
+		),
 	)
 }
 

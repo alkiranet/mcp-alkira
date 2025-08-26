@@ -11,11 +11,23 @@ func GetNatPolicies(client *ak.AlkiraClient) func(ctx context.Context, request m
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, err := request.RequireString("offset")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		limit, err := request.RequireString("limit")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
 		// INIT
 		api := ak.NewNatPolicy(client)
 
 		// Get resources
-		policies, err := api.GetAll()
+		policies, err := api.GetAllPaginated(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -30,11 +42,23 @@ func GetNatPoliciesSummary(client *ak.AlkiraClient) func(ctx context.Context, re
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, err := request.RequireString("offset")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		limit, err := request.RequireString("limit")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
 		// INIT
 		api := ak.NewNatPolicySummary(client)
 
 		// Get resources
-		policies, err := api.GetAll()
+		policies, err := api.GetSummary("true", offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

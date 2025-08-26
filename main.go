@@ -134,7 +134,6 @@ func main() {
 
 	// Add connector-ipsec tools
 	srv.AddTool(tools.GetIPSecConnectors(), handlers.GetIPSecConnectors(alkiraClient))
-	srv.AddTool(tools.GetIPSecConnectorsSummary(), handlers.GetIPSecConnectorsSummary(alkiraClient))
 	srv.AddTool(tools.GetIPSecConnectorById(), handlers.GetIPSecConnectorById(alkiraClient))
 	srv.AddTool(tools.GetIPSecConnectorByName(), handlers.GetIPSecConnectorByName(alkiraClient))
 

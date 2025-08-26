@@ -1,5 +1,5 @@
-github.com/alkiranet/client-go v0.3.0 h1:aYwYBCBFK8VCY+XMj4mHfSCjAWUShTDRzKzD3WQY7Vg=
-github.com/alkiranet/client-go v0.3.0/go.mod h1:ZSUmZPV8OkFSjg5EipnO5EzScdx7FzyRDkO5+PEzTQ4=
+github.com/alkiranet/client-go v0.4.1 h1:651+I0mJajY5PQ8FhBBUIqlgeqnkgdBJvcmPmCtdtsE=
+github.com/alkiranet/client-go v0.4.1/go.mod h1:ZSUmZPV8OkFSjg5EipnO5EzScdx7FzyRDkO5+PEzTQ4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fatih/color v1.16.0 h1:zmkK9Ngbjj+K0yRhTVONQh1p/HknKYSlNT+vZCzyokM=

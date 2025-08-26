@@ -45,10 +45,3 @@ func (ac *AlkiraClient) GetResourceUsages(resourceCategory string, resourceType 
 
 	return string(data), err
 }
-
-// GetResourceLimits get resource limits of the tenant
-func (ac *AlkiraClient) GetResourceLimits() (string, error) {
-	uri := fmt.Sprintf("%s/api/resourcelimits", ac.URI)
-	data, err := ac.Get(uri)
-	return string(data), err
-}

@@ -5,7 +5,25 @@ package tenant
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 )
+
+// Pagination Support
+const PaginationOn bool = true
+const PaginationOff bool = false
+
+// For each API defined as T, GET result with pagination On will have
+// a wrapper layer around.
+type Pagination struct {
+	Paginated bool `json:"paginated"`
+	Offset    int  `json:"Offset"`
+	Limit     int  `json:"limit"`
+}
+
+type DataWithPagination[T any] struct {
+	Data       []T        `json:"data"`
+	Pagination Pagination `json:"pagination"`
+}
 
 // Struct defines a Alkira API by resource T
 type AlkiraApi[T any] struct {
@@ -76,35 +94,104 @@ func (a *AlkiraApi[T]) GetAll() (string, error) {
 //
 // A special hacky function made to handle the super large payload
 // that may exceed the max token (mainly used with AI agent).
-func (a *AlkiraApi[T]) GetSummary() (string, error) {
+func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string) (string, error) {
 
-	// GET
-	data, err := a.GetAll()
+	uri, err := url.Parse(a.Uri)
+
+	if err != nil {
+		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
+	}
+
+	//
+	// Query parameters for pagination
+	//
+	q := uri.Query()
+	q.Add("paginated", paginated)
+
+	if offset != "" {
+		q.Add("offset", offset)
+	}
+
+	if limit != "" {
+		q.Add("limit", limit)
+	}
+	uri.RawQuery = q.Encode()
+
+	data, err := a.Client.Get(uri.String())
 
 	if err != nil {
 		return "", fmt.Errorf("GetSummary: failed to GET data: %v", err)
 	}
 
-	logf("TRACE", "GetSummary: payload size %d", len(data))
+	logf("DEBUG", "GetSummary: payload size %d", len(data))
 
 	if a.Client.MaxToken != 0 && len(data) > a.Client.MaxToken {
-		return "{payload too large, please try other APIs", nil
+		return "{Payload too large. Please try other APIs}", nil
 	}
 
 	var result []T
-	err = json.Unmarshal([]byte(data), &result)
+	var resultPaginated DataWithPagination[T]
+
+	// Pagination Support
+	if paginated == "true" {
+		err = json.Unmarshal([]byte(data), &resultPaginated)
+	} else {
+		err = json.Unmarshal([]byte(data), &result)
+	}
 
 	if err != nil {
 		return "", fmt.Errorf("GetSummary: failed to unmarshal: %v", err)
 	}
 
-	summary, err := json.Marshal(result)
+	// Marshal the summary data
+	var summary []byte
+
+	if paginated == "true" {
+		summary, err = json.Marshal(resultPaginated)
+	} else {
+		summary, err = json.Marshal(result)
+	}
 
 	if err != nil {
 		return "", fmt.Errorf("GetSummary: failed to marshal: %v", err)
 	}
 
 	return string(summary), nil
+}
+
+// GetAllPaginated get all resources
+func (a *AlkiraApi[T]) GetAllPaginated(offset string, limit string) (string, error) {
+
+	uri, err := url.Parse(a.Uri)
+
+	if err != nil {
+		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
+	}
+
+	//
+	// Query parameters for pagination
+	//
+	q := uri.Query()
+	q.Add("paginated", "true")
+
+	if offset != "" {
+		q.Add("offset", offset)
+	}
+
+	if limit != "" {
+		q.Add("limit", limit)
+	}
+	uri.RawQuery = q.Encode()
+
+	data, err := a.Client.Get(uri.String())
+
+	logf("DEBUG", "GetSummary: payload size %d", len(data))
+
+	if a.Client.MaxToken != 0 && len(data) > a.Client.MaxToken {
+		return "{Payload too large. Please try other APIs}", nil
+	}
+
+	return string(data), err
 }
 
 // GetById get a resource by its ID
