@@ -101,20 +101,25 @@ type ConnectorIPSec struct {
 
 // Special struct to strip out most fields
 type ConnectorIPSecSummary struct {
-	CXP string      `json:"cxp"`
-	Id  json.Number `json:"id"`
+	Id       json.Number `json:"id"`
+	Name     string      `json:"name"`
+	Type     string      `json:"type"`
+	State    string      `json:"state"`
+	Group    string      `json:"group,omitempty"`
+	Segments []string    `json:"segments"`
+	CXP      string      `json:"cxp"`
 }
 
 // NewConnectorIPSec initialize a new connector
 func NewConnectorIPSec(ac *AlkiraClient) *AlkiraApi[ConnectorIPSec] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/ipsecconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorIPSec]{ac, uri}
+	api := &AlkiraApi[ConnectorIPSec]{ac, uri, PaginationOn}
 	return api
 }
 
 // NewConnectorIPSecSummary initialize a new connector
 func NewConnectorIPSecSummary(ac *AlkiraClient) *AlkiraApi[ConnectorIPSecSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/ipsecconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorIPSecSummary]{ac, uri}
+	api := &AlkiraApi[ConnectorIPSecSummary]{ac, uri, PaginationOn}
 	return api
 }

@@ -18,6 +18,6 @@ type DnsServerList struct {
 // NewDnsServerList new DNS server list
 func NewDnsServerList(ac *AlkiraClient) *AlkiraApi[DnsServerList] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/dns-server-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[DnsServerList]{ac, uri}
+	api := &AlkiraApi[DnsServerList]{ac, uri, PaginationOn}
 	return api
 }

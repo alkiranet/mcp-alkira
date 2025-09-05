@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetResourceHealths() mcp.Tool {
-	return mcp.NewTool("getResourceHealths",
+func GetHealths() mcp.Tool {
+	return mcp.NewTool("getHealths",
 		mcp.WithDescription("Get health status of all resources."),
 	)
 }

@@ -113,13 +113,13 @@ type ConnectorAdvIPSecSummary struct {
 // NewConnectorAdvIPSec initialize a new connector
 func NewConnectorAdvIPSec(ac *AlkiraClient) *AlkiraApi[ConnectorAdvIPSec] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/adv-ipsec-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorAdvIPSec]{ac, uri}
+	api := &AlkiraApi[ConnectorAdvIPSec]{ac, uri, PaginationOn}
 	return api
 }
 
 // NewConnectorAdvIPSecSummary initialize a new connector
 func NewConnectorAdvIPSecSummary(ac *AlkiraClient) *AlkiraApi[ConnectorAdvIPSecSummary] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/adv-ipsec-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorAdvIPSecSummary]{ac, uri}
+	api := &AlkiraApi[ConnectorAdvIPSecSummary]{ac, uri, PaginationOn}
 	return api
 }

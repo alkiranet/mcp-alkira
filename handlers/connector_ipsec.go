@@ -12,22 +12,13 @@ func GetIPSecConnectors(client *ak.AlkiraClient) func(ctx context.Context, reque
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		offset, err := request.RequireString("offset")
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
 		limit, err := request.RequireString("limit")
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
 
 		// INIT
 		api := ak.NewConnectorIPSecSummary(client)
 
 		// Get resources
-		connectors, err := api.GetSummary("true", offset, limit)
+		connectors, err := api.GetSummary(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -92,11 +83,14 @@ func GetIPSecAdvConnectors(client *ak.AlkiraClient) func(ctx context.Context, re
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, err := request.RequireString("offset")
+		limit, err := request.RequireString("limit")
+
 		// INIT
 		api := ak.NewConnectorAdvIPSec(client)
 
 		// Get resources
-		connectors, err := api.GetAll()
+		connectors, err := api.GetAll(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -161,11 +155,14 @@ func GetIPSecConnectorTunnelProfile(client *ak.AlkiraClient) func(ctx context.Co
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, err := request.RequireString("offset")
+		limit, err := request.RequireString("limit")
+
 		// INIT
 		api := ak.NewConnectorIPSecTunnelProfile(client)
 
 		// Get resources
-		connectors, err := api.GetAll()
+		connectors, err := api.GetAll(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

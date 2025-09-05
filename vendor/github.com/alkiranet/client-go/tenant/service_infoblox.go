@@ -58,9 +58,17 @@ type InfobloxInstance struct {
 	Version            string      `json:"version,omitempty"`
 }
 
+type ServiceInfobloxSummary struct {
+	Cxp          string      `json:"cxp"`
+	Id           json.Number `json:"id,omitempty"`
+	InternalName string      `json:"internalName,omitempty"`
+	LicenseType  string      `json:"licenseType,omitempty"`
+	Name         string      `json:"name"`
+}
+
 // NewServiceInfoblox new service infoblox
-func NewServiceInfoblox(ac *AlkiraClient) *AlkiraApi[ServiceInfoblox] {
+func NewServiceInfoblox(ac *AlkiraClient) *AlkiraApi[ServiceInfobloxSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/infoblox-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServiceInfoblox]{ac, uri}
+	api := &AlkiraApi[ServiceInfobloxSummary]{ac, uri, PaginationOn}
 	return api
 }

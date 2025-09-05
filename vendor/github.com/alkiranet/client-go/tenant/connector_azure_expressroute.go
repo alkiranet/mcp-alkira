@@ -66,6 +66,6 @@ type ConnectorAzureExpressRoute struct {
 
 func NewConnectorAzureExpressRoute(ac *AlkiraClient) *AlkiraApi[ConnectorAzureExpressRoute] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/azure-express-route-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorAzureExpressRoute]{ac, uri}
+	api := &AlkiraApi[ConnectorAzureExpressRoute]{ac, uri, PaginationOn}
 	return api
 }

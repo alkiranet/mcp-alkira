@@ -7,28 +7,6 @@ import (
 	"fmt"
 )
 
-type ServiceCheckpoint struct {
-	AutoScale        string                      `json:"autoScale"`
-	BillingTags      []int                       `json:"billingTags"`
-	Cxp              string                      `json:"cxp"`
-	CredentialId     string                      `json:"credentialId"`
-	Description      string                      `json:"description"`
-	Id               json.Number                 `json:"id,omitempty"` // response only
-	Instances        []CheckpointInstance        `json:"instances"`
-	InternalName     string                      `json:"internalName"`
-	LicenseType      string                      `json:"licenseType"`
-	ManagementServer *CheckpointManagementServer `json:"managementServer"`
-	MaxInstanceCount int                         `json:"maxInstanceCount"`
-	MinInstanceCount int                         `json:"minInstanceCount"`
-	Name             string                      `json:"name"`
-	PdpIps           []string                    `json:"pdpIps,omitempty"`
-	Segments         []string                    `json:"segments"`
-	SegmentOptions   SegmentNameToZone           `json:"segmentOptions"`
-	Size             string                      `json:"size"`
-	TunnelProtocol   string                      `json:"tunnelProtocol"`
-	Version          string                      `json:"version"`
-}
-
 type CheckpointInstance struct {
 	Id             int    `json:"id,omitempty"` // response only
 	Name           string `json:"name"`
@@ -55,9 +33,42 @@ type CheckpointManagementServer struct {
 	UserName          string   `json:"userName"`
 }
 
+type ServiceCheckpoint struct {
+	AutoScale        string                      `json:"autoScale"`
+	BillingTags      []int                       `json:"billingTags"`
+	Cxp              string                      `json:"cxp"`
+	CredentialId     string                      `json:"credentialId"`
+	Description      string                      `json:"description"`
+	Id               json.Number                 `json:"id,omitempty"` // response only
+	Instances        []CheckpointInstance        `json:"instances"`
+	InternalName     string                      `json:"internalName"`
+	LicenseType      string                      `json:"licenseType"`
+	ManagementServer *CheckpointManagementServer `json:"managementServer"`
+	MaxInstanceCount int                         `json:"maxInstanceCount"`
+	MinInstanceCount int                         `json:"minInstanceCount"`
+	Name             string                      `json:"name"`
+	PdpIps           []string                    `json:"pdpIps,omitempty"`
+	Segments         []string                    `json:"segments"`
+	SegmentOptions   SegmentNameToZone           `json:"segmentOptions"`
+	Size             string                      `json:"size"`
+	TunnelProtocol   string                      `json:"tunnelProtocol"`
+	Version          string                      `json:"version"`
+}
+
+type ServiceCheckpointSummary struct {
+	BillingTags  []int       `json:"billingTags"`
+	Cxp          string      `json:"cxp"`
+	Id           json.Number `json:"id,omitempty"`
+	InternalName string      `json:"internalName"`
+	LicenseType  string      `json:"licenseType"`
+	Name         string      `json:"name"`
+	Segments     []string    `json:"segments"`
+	Version      string      `json:"version"`
+}
+
 // NewServiceCheckpoint new service checkpoint
-func NewServiceCheckpoint(ac *AlkiraClient) *AlkiraApi[ServiceCheckpoint] {
+func NewServiceCheckpoint(ac *AlkiraClient) *AlkiraApi[ServiceCheckpointSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/chkp-fw-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServiceCheckpoint]{ac, uri}
+	api := &AlkiraApi[ServiceCheckpointSummary]{ac, uri, PaginationOn}
 	return api
 }

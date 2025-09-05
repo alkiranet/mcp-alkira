@@ -20,7 +20,7 @@ type F5vServerEndpoint struct {
 
 func NewF5vServerEndpoint(ac *AlkiraClient) *AlkiraApi[F5vServerEndpoint] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/f5-vserver-endpoints", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[F5vServerEndpoint]{ac, uri}
+	api := &AlkiraApi[F5vServerEndpoint]{ac, uri, PaginationOn}
 	return api
 
 }

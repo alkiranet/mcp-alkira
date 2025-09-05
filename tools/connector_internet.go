@@ -7,6 +7,14 @@ import (
 func GetInternetConnectors() mcp.Tool {
 	return mcp.NewTool("getInternetConnectors",
 		mcp.WithDescription("Get all internet connectors"),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

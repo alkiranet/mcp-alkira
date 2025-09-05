@@ -7,6 +7,14 @@ import (
 func GetSegments() mcp.Tool {
 	return mcp.NewTool("getSegments",
 		mcp.WithDescription("Get all segments."),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

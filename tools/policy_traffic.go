@@ -55,3 +55,24 @@ func GetTrafficPolicyRuleByName() mcp.Tool {
 		),
 	)
 }
+
+func GetTrafficPolicyRuleLists() mcp.Tool {
+	return mcp.NewTool("getTrafficPolicyRuleList",
+		mcp.WithDescription("Get all Policy Rule lists."),
+	)
+}
+
+func GetTrafficPolicyRuleListById() mcp.Tool {
+	return mcp.NewTool("getTrafficPolicyRuleListById",
+		mcp.WithDescription("Get traffic policy rule list by ID"),
+		mcp.WithString("ruleListId", mcp.Required()),
+	)
+}
+
+func GetTrafficPolicyRuleListByName() mcp.Tool {
+	return mcp.NewTool("getTrafficPolicyRuleListByName",
+		mcp.WithDescription("Get traffic policy rule list by name"),
+		mcp.WithString("ruleListName", mcp.Required()),
+	)
+}
+

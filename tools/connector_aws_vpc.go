@@ -7,6 +7,14 @@ import (
 func GetAwsVpcConnectors() mcp.Tool {
 	return mcp.NewTool("getAwsVpcConnectors",
 		mcp.WithDescription("Get all AWS VPC connectors."),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

@@ -36,9 +36,17 @@ type ZscalerIpSecConfig struct {
 	PingProbeIp            string `json:"pingProbeIp,omitempty"`
 }
 
+type ServiceZscalerSummary struct {
+	Cxp          string      `json:"cxp"`
+	Id           json.Number `json:"id,omitempty"`           // only set on response
+	InternalName string      `json:"internalName,omitempty"` // only set on response
+	Name         string      `json:"name"`
+	Segments     []string    `json:"segments"`
+}
+
 // NewServiceZscaler new service zscaler
-func NewServiceZscaler(ac *AlkiraClient) *AlkiraApi[ServiceZscaler] {
+func NewServiceZscaler(ac *AlkiraClient) *AlkiraApi[ServiceZscalerSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/zscaler-internet-access-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServiceZscaler]{ac, uri}
+	api := &AlkiraApi[ServiceZscalerSummary]{ac, uri, PaginationOn}
 	return api
 }

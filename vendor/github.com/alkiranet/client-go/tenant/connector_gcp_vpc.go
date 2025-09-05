@@ -54,6 +54,6 @@ type ConnectorGcpVpc struct {
 // NewConnectorGcpVpc initialize a new connector
 func NewConnectorGcpVpc(ac *AlkiraClient) *AlkiraApi[ConnectorGcpVpc] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/gcpvpcconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorGcpVpc]{ac, uri}
+	api := &AlkiraApi[ConnectorGcpVpc]{ac, uri, PaginationOn}
 	return api
 }

@@ -25,6 +25,6 @@ type UdrList struct {
 // NewUdrList new UDR list
 func NewUdrList(ac *AlkiraClient) *AlkiraApi[UdrList] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/udr-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[UdrList]{ac, uri}
+	api := &AlkiraApi[UdrList]{ac, uri, PaginationOn}
 	return api
 }

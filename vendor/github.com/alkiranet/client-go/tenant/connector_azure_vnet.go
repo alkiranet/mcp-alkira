@@ -94,9 +94,19 @@ type ConnectorAzureVnet struct {
 	Description                       string                `json:"description,omitempty"`
 }
 
+type ConnectorAzureVnetSummary struct {
+	Id              json.Number `json:"id"`
+	Name            string      `json:"name"`
+	Group           string      `json:"group,omitempty"`
+	ImplicitGroupId int         `json:"implicitGroupId,omitempty"` // RESPONSE ONLY
+	Cxp             string      `json:"cxp"`
+	VnetId          string      `json:"vnetId"`
+	CustomerRegion  string      `json:"customerRegion"`
+}
+
 // NewConnectorAzureVnet initalize a new connector
-func NewConnectorAzureVnet(ac *AlkiraClient) *AlkiraApi[ConnectorAzureVnet] {
+func NewConnectorAzureVnet(ac *AlkiraClient) *AlkiraApi[ConnectorAzureVnetSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/azurevnetconnectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorAzureVnet]{ac, uri}
+	api := &AlkiraApi[ConnectorAzureVnetSummary]{ac, uri, PaginationOn}
 	return api
 }

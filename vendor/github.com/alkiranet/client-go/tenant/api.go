@@ -8,18 +8,19 @@ import (
 	"net/url"
 )
 
+type Pagination struct {
+	Paginated bool `json:"paginated,omitempty"`
+	Offset    int  `json:"Offset"`
+	Limit     int  `json:"limit"`
+	Hits      int  `json:"hits,omitempty"`
+}
+
 // Pagination Support
 const PaginationOn bool = true
 const PaginationOff bool = false
 
 // For each API defined as T, GET result with pagination On will have
 // a wrapper layer around.
-type Pagination struct {
-	Paginated bool `json:"paginated"`
-	Offset    int  `json:"Offset"`
-	Limit     int  `json:"limit"`
-}
-
 type DataWithPagination[T any] struct {
 	Data       []T        `json:"data"`
 	Pagination Pagination `json:"pagination"`
@@ -27,8 +28,9 @@ type DataWithPagination[T any] struct {
 
 // Struct defines a Alkira API by resource T
 type AlkiraApi[T any] struct {
-	Client *AlkiraClient
-	Uri    string
+	Client     *AlkiraClient
+	Uri        string
+	Pagination bool
 }
 
 // Create create a resource by making a POST request
@@ -80,8 +82,33 @@ func (a *AlkiraApi[T]) Update(id string, resource *T) (string, error) {
 }
 
 // GetAll get all resources
-func (a *AlkiraApi[T]) GetAll() (string, error) {
-	data, err := a.Client.Get(a.Uri)
+func (a *AlkiraApi[T]) GetAll(offset string, limit string) (string, error) {
+
+	uri, err := url.Parse(a.Uri)
+
+	if err != nil {
+		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
+	}
+
+	//
+	// Query parameters for pagination
+	//
+	q := uri.Query()
+
+	if a.Pagination == PaginationOn {
+		q.Add("paginated", "true")
+	}
+	if offset != "" {
+		q.Add("offset", offset)
+	}
+	if limit != "" {
+		q.Add("limit", limit)
+	}
+	uri.RawQuery = q.Encode()
+
+	data, err := a.Client.Get(uri.String())
+
+	logf("DEBUG", "GetAll: payload size %d", len(data))
 
 	if a.Client.MaxToken != 0 && len(data) > a.Client.MaxToken {
 		return "{Payload too large. Please try other APIs}", nil
@@ -94,7 +121,7 @@ func (a *AlkiraApi[T]) GetAll() (string, error) {
 //
 // A special hacky function made to handle the super large payload
 // that may exceed the max token (mainly used with AI agent).
-func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string) (string, error) {
+func (a *AlkiraApi[T]) GetSummary(offset string, limit string) (string, error) {
 
 	uri, err := url.Parse(a.Uri)
 
@@ -106,15 +133,17 @@ func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string)
 	// Query parameters for pagination
 	//
 	q := uri.Query()
-	q.Add("paginated", paginated)
 
+	if a.Pagination == PaginationOn {
+		q.Add("paginated", "true")
+	}
 	if offset != "" {
 		q.Add("offset", offset)
 	}
-
 	if limit != "" {
 		q.Add("limit", limit)
 	}
+
 	uri.RawQuery = q.Encode()
 
 	data, err := a.Client.Get(uri.String())
@@ -133,7 +162,7 @@ func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string)
 	var resultPaginated DataWithPagination[T]
 
 	// Pagination Support
-	if paginated == "true" {
+	if a.Pagination == PaginationOn {
 		err = json.Unmarshal([]byte(data), &resultPaginated)
 	} else {
 		err = json.Unmarshal([]byte(data), &result)
@@ -146,7 +175,7 @@ func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string)
 	// Marshal the summary data
 	var summary []byte
 
-	if paginated == "true" {
+	if a.Pagination == PaginationOn {
 		summary, err = json.Marshal(resultPaginated)
 	} else {
 		summary, err = json.Marshal(result)
@@ -159,46 +188,11 @@ func (a *AlkiraApi[T]) GetSummary(paginated string, offset string, limit string)
 	return string(summary), nil
 }
 
-// GetAllPaginated get all resources
-func (a *AlkiraApi[T]) GetAllPaginated(offset string, limit string) (string, error) {
-
-	uri, err := url.Parse(a.Uri)
-
-	if err != nil {
-		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
-	}
-
-	//
-	// Query parameters for pagination
-	//
-	q := uri.Query()
-	q.Add("paginated", "true")
-
-	if offset != "" {
-		q.Add("offset", offset)
-	}
-
-	if limit != "" {
-		q.Add("limit", limit)
-	}
-	uri.RawQuery = q.Encode()
-
-	data, err := a.Client.Get(uri.String())
-
-	logf("DEBUG", "GetSummary: payload size %d", len(data))
-
-	if a.Client.MaxToken != 0 && len(data) > a.Client.MaxToken {
-		return "{Payload too large. Please try other APIs}", nil
-	}
-
-	return string(data), err
-}
-
 // GetById get a resource by its ID
 func (a *AlkiraApi[T]) GetById(id string) (string, error) {
 
 	if len(id) == 0 {
-		return "", fmt.Errorf("API-GetByName: Invalid resource ID")
+		return "", fmt.Errorf("API-GetById: Invalid resource ID")
 	}
 
 	// Construct single resource URI

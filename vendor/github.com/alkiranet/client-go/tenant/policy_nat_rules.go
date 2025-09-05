@@ -7,6 +7,14 @@ import (
 	"fmt"
 )
 
+// A summary of a NAT rule (other fields are ignored)
+type NatPolicyRuleSummary struct {
+	Id        json.Number `json:"id"`
+	Name      string      `json:"name"`
+	Enabled   bool        `json:"enabled"`
+	Direction string      `json:"direction,omitempty"`
+}
+
 type NatPolicyRule struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
@@ -64,9 +72,9 @@ type EgressAction struct {
 	IpType string `json:"ipType"`
 }
 
-// NewNatPolicyRule new NAT policy rule
-func NewNatRule(ac *AlkiraClient) *AlkiraApi[NatPolicyRule] {
+// NewNatRule new NAT rule
+func NewNatRule(ac *AlkiraClient) *AlkiraApi[NatPolicyRuleSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-rules", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[NatPolicyRule]{ac, uri}
+	api := &AlkiraApi[NatPolicyRuleSummary]{ac, uri, PaginationOn}
 	return api
 }

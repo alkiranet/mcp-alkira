@@ -45,7 +45,7 @@ type F5InstanceDeployment struct {
 
 func NewServiceF5Lb(ac *AlkiraClient) *AlkiraApi[ServiceF5Lb] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/f5-lb-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServiceF5Lb]{ac, uri}
+	api := &AlkiraApi[ServiceF5Lb]{ac, uri, PaginationOn}
 	return api
 
 }

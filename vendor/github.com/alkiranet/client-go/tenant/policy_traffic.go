@@ -7,6 +7,15 @@ import (
 	"fmt"
 )
 
+// A summary of the resource (other fields are ignored)
+type TrafficPolicySummary struct {
+	Id           json.Number `json:"id"`
+	Name         string      `json:"name"`
+	InternalName string      `json:"internalName"`
+	RuleListId   int         `json:"ruleListId"`
+	SegmentIds   []int       `json:"segmentIds"`
+}
+
 type TrafficPolicy struct {
 	Description   string      `json:"description"`
 	Enabled       bool        `json:"enabled"`
@@ -20,8 +29,8 @@ type TrafficPolicy struct {
 }
 
 // NewTrafficPolicy new traffic policy
-func NewTrafficPolicy(ac *AlkiraClient) *AlkiraApi[TrafficPolicy] {
+func NewTrafficPolicy(ac *AlkiraClient) *AlkiraApi[TrafficPolicySummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy/policies", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[TrafficPolicy]{ac, uri}
+	api := &AlkiraApi[TrafficPolicySummary]{ac, uri, PaginationOff}
 	return api
 }

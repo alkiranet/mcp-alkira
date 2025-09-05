@@ -7,13 +7,14 @@ import (
 func GetRoutes() mcp.Tool {
 	return mcp.NewTool("getRoutes",
 		mcp.WithDescription("Retrieve detailed route information from the routes cache. Examples: Get received routes for segment 'Seg1', Find routes for connector ID 60, Search routes containing 'customer'. Returns route objects with connector details, BGP attributes, segment assignments, and inter-CXP relationships. Requires pagination for large datasets (use limit=100). For advertised routes, specify segmentName or cxp. Common combinations: type+segmentName, type+connectorId+segmentName, type+cxp."),
+		mcp.WithNumber("offset", mcp.Description("Starting offset for route retrieval (pagination required for large datasets)")),
+		mcp.WithNumber("limit", mcp.Description("Maximum number of routes to return per page (recommended: 100 for optimal performance)")),
+
 		mcp.WithString("type", mcp.Required(), mcp.Description("Routes type cache to pull: 'received' (routes learned by Alkira) or 'advertised' (routes Alkira advertises to connectors)")),
 		mcp.WithString("segmentName", mcp.Description("Filter by network segment - isolated routing domains that provide security boundaries and traffic control (e.g., 'Corporate', 'DMZ')")),
 		mcp.WithString("segmentNames", mcp.Description("Comma-separated list of segment names to match against (e.g., 'seg1,seg2')")),
 		mcp.WithString("cxp", mcp.Description("Filter by CXP (Cloud Exchange Point) - Alkira's PoPs in different cloud regions where connectors terminate (e.g., 'US-WEST', 'EU-CENTRAL')")),
 		mcp.WithString("connectorId", mcp.Description("Filter by connector ID - connectors link customer networks (AWS VPCs, Azure VNets, on-premises) to Alkira (e.g., 60)")),
-		mcp.WithNumber("offset", mcp.Description("Starting offset for route retrieval (pagination required for large datasets)")),
-		mcp.WithNumber("limit", mcp.Description("Maximum number of routes to return per page (recommended: 100 for optimal performance)")),
 		mcp.WithString("search", mcp.Description("Search across all fields, returns routes matching the term (e.g., 'Ipsec', 'customer')")),
 		mcp.WithString("prefixType", mcp.Description("Filter by route scope: 'LOCAL' (segment-only), 'SHARED' (cross-segment via segment resource shares)")),
 		mcp.WithString("segmentId", mcp.Description("Filter by segment ID (numeric identifier like 12)")),

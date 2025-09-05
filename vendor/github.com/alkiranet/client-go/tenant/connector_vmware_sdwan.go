@@ -42,6 +42,6 @@ type ConnectorVmwareSdwan struct {
 // NewConnectorVmwareSdwan new connector
 func NewConnectorVmwareSdwan(ac *AlkiraClient) *AlkiraApi[ConnectorVmwareSdwan] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/vmware-sdwan-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorVmwareSdwan]{ac, uri}
+	api := &AlkiraApi[ConnectorVmwareSdwan]{ac, uri, PaginationOn}
 	return api
 }

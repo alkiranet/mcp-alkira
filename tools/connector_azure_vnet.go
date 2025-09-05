@@ -7,6 +7,14 @@ import (
 func GetAzureVnetConnectors() mcp.Tool {
 	return mcp.NewTool("getAzureVnetConnectors",
 		mcp.WithDescription("Get all Azure VNET connectors."),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

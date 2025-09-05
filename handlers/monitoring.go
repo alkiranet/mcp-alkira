@@ -11,23 +11,15 @@ func GetAlerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Ca
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		s, err := request.RequireString("status")
-		if err != nil {
-			s = ""
-		}
+		s, _ := request.RequireString("status")
+		t, _ := request.RequireString("type")
+		p, _ := request.RequireString("priority")
 
-		t, err := request.RequireString("type")
-		if err != nil {
-			t = ""
-		}
-
-		p, err := request.RequireString("priority")
-		if err != nil {
-			p = ""
-		}
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
 
 		// Get resources
-		alerts, err := client.GetAlerts(s, t, p)
+		alerts, err := client.GetAlertsSummary(s, t, p, offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -42,18 +34,14 @@ func GetAuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		s, err := request.RequireString("status")
-		if err != nil {
-			s = ""
-		}
+		s, _ := request.RequireString("status")
+		t, _ := request.RequireString("type")
 
-		t, err := request.RequireString("type")
-		if err != nil {
-			t = ""
-		}
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
 
 		// Get resources
-		auditLogs, err := client.GetAuditLogs(s, t)
+		auditLogs, err := client.GetAuditLogSummary(s, t, offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

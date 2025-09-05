@@ -28,6 +28,6 @@ type SegmentResourceShare struct {
 // NewSegmentResourceShare new segment resource share
 func NewSegmentResourceShare(ac *AlkiraClient) *AlkiraApi[SegmentResourceShare] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/segment-resource-shares", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[SegmentResourceShare]{ac, uri}
+	api := &AlkiraApi[SegmentResourceShare]{ac, uri, PaginationOn}
 	return api
 }

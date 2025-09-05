@@ -46,9 +46,21 @@ type ServiceCiscoFTDv struct {
 	Description      string                    `json:"description,omitempty"`
 }
 
+type ServiceCiscoFTDvSummary struct {
+	Id               json.Number `json:"id"`
+	Name             string      `json:"name"`
+	GlobalCidrListId int         `json:"globalCidrListId"`
+	Size             string      `json:"size"`
+	Cxp              string      `json:"cxp"`
+	Segments         []string    `json:"segments"`
+	BillingTags      []int       `json:"billingTags"`
+	InternalName     string      `json:"internalName,omitempty"`
+	State            string      `json:"state,omitempty"`
+}
+
 // NewServiceCiscoFTDv new service cisco FTDv
-func NewServiceCiscoFTDv(ac *AlkiraClient) *AlkiraApi[ServiceCiscoFTDv] {
+func NewServiceCiscoFTDv(ac *AlkiraClient) *AlkiraApi[ServiceCiscoFTDvSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/cisco-ftdv-fw-services", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServiceCiscoFTDv]{ac, uri}
+	api := &AlkiraApi[ServiceCiscoFTDvSummary]{ac, uri, PaginationOn}
 	return api
 }

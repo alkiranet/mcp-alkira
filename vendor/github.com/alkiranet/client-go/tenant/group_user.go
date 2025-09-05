@@ -15,6 +15,6 @@ type UserGroup struct {
 // NewUserGroup new user group
 func NewUserGroup(ac *AlkiraClient) *AlkiraApi[UserGroup] {
 	uri := fmt.Sprintf("%s/user-groups", ac.URI)
-	api := &AlkiraApi[UserGroup]{ac, uri}
+	api := &AlkiraApi[UserGroup]{ac, uri, PaginationOff}
 	return api
 }

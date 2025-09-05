@@ -18,6 +18,6 @@ type InventoryCXP struct {
 
 func NewInventoryCXP(ac *AlkiraClient) *AlkiraApi[InventoryCXP] {
 	uri := fmt.Sprintf("%s/inventory/cxps", ac.URI)
-	api := &AlkiraApi[InventoryCXP]{ac, uri}
+	api := &AlkiraApi[InventoryCXP]{ac, uri, PaginationOff}
 	return api
 }

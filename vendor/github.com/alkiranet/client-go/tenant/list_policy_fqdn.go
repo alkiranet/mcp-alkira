@@ -18,6 +18,6 @@ type PolicyFqdnList struct {
 // NewPolicyFqdnList new global cidr list
 func NewPolicyFqdnList(ac *AlkiraClient) *AlkiraApi[PolicyFqdnList] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy-fqdn-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[PolicyFqdnList]{ac, uri}
+	api := &AlkiraApi[PolicyFqdnList]{ac, uri, PaginationOn}
 	return api
 }

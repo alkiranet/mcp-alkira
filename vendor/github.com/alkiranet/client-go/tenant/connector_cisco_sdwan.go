@@ -44,6 +44,6 @@ type ConnectorCiscoSdwan struct {
 // NewConnectorCiscoSdwan initialize a new connector
 func NewConnectorCiscoSdwan(ac *AlkiraClient) *AlkiraApi[ConnectorCiscoSdwan] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/ciscosdwaningresses", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorCiscoSdwan]{ac, uri}
+	api := &AlkiraApi[ConnectorCiscoSdwan]{ac, uri, PaginationOn}
 	return api
 }

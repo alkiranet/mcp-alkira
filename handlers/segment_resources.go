@@ -7,15 +7,18 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAllSegmentResources(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetSegmentResources(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
 
 		// INIT
 		api := ak.NewSegmentResource(client)
 
 		// Get resources
-		segmentResources, err := api.GetAll()
+		segmentResources, err := api.GetAll(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
@@ -26,21 +29,52 @@ func GetAllSegmentResources(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func GetAllSegmentResourceShares(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetSegmentResourceById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		resourceId, err := request.RequireString("resourceId")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
 		// INIT
-		api := ak.NewSegmentResourceShare(client)
+		api := ak.NewSegmentResource(client)
 
 		// Get resources
-		segmentResourceShares, err := api.GetAll()
+		data, err := api.GetById(resourceId)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
 
 		// Return response
-		return mcp.NewToolResultText(segmentResourceShares), nil
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func GetSegmentResourceByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		resourceName, err := request.RequireString("resourceName")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// INIT
+		api := ak.NewSegmentResource(client)
+
+		// Get resources
+		data, err := api.GetByName(resourceName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
 	}
 }

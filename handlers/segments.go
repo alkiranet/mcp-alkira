@@ -15,7 +15,7 @@ func GetSegments(client *ak.AlkiraClient) func(ctx context.Context, request mcp.
 		api := ak.NewSegment(client)
 
 		// Get resources
-		segments, err := api.GetAll()
+		segments, err := api.GetSummary("", "")
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

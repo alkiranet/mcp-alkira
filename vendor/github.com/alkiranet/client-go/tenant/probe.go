@@ -70,6 +70,6 @@ type ProbeResponseBodyValidator struct {
 // NewProbe creates a new Probe API client
 func NewProbe(ac *AlkiraClient) *AlkiraApi[Probe] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/probes", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[Probe]{ac, uri}
+	api := &AlkiraApi[Probe]{ac, uri, PaginationOn}
 	return api
 }

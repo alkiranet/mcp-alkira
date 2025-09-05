@@ -20,6 +20,6 @@ type PeeringGatewayCxp struct {
 
 func NewPeeringGatewayCxp(ac *AlkiraClient) *AlkiraApi[PeeringGatewayCxp] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/cxp-peering-gateways", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[PeeringGatewayCxp]{ac, uri}
+	api := &AlkiraApi[PeeringGatewayCxp]{ac, uri, PaginationOn}
 	return api
 }

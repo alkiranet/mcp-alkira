@@ -14,6 +14,6 @@ type ZtaProfile struct {
 // NewZtaProfile new Ztna profile
 func NewZtaProfile(ac *AlkiraClient) *AlkiraApi[ZtaProfile] {
 	uri := fmt.Sprintf("%s/zero-trust-access-profiles", ac.URI)
-	api := &AlkiraApi[ZtaProfile]{ac, uri}
+	api := &AlkiraApi[ZtaProfile]{ac, uri, PaginationOn}
 	return api
 }

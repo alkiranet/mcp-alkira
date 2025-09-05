@@ -7,6 +7,14 @@ import (
 func GetRoutePolicies() mcp.Tool {
 	return mcp.NewTool("getRoutePoliciesAll",
 		mcp.WithDescription("Get all route policies."),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

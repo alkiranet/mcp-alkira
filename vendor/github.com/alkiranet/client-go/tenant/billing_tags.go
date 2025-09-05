@@ -16,7 +16,7 @@ type BillingTag struct {
 // NewBillingTag
 func NewBillingTag(ac *AlkiraClient) *AlkiraApi[BillingTag] {
 	uri := fmt.Sprintf("%s/tags", ac.URI)
-	api := &AlkiraApi[BillingTag]{ac, uri}
+	api := &AlkiraApi[BillingTag]{ac, uri, PaginationOn}
 
 	return api
 }

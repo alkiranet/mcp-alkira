@@ -7,6 +7,15 @@ import (
 	"fmt"
 )
 
+type RoutePolicySummary struct {
+	Id             json.Number `json:"id"`
+	Name           string      `json:"name"`
+	Direction      string      `json:"direction"`
+	Segment        string      `json:"segment"`
+	IncludedGroups []int       `json:"includedGroups"`
+	ExcludedGroups []int       `json:"excludedGroups,omitempty"`
+}
+
 type RoutePolicy struct {
 	Name                          string             `json:"name"`
 	Description                   string             `json:"description"`
@@ -60,8 +69,8 @@ type RoutePolicyRulesInterCxpRoutesRedistribution struct {
 }
 
 // NewRoutePolicy new route policy
-func NewRoutePolicy(ac *AlkiraClient) *AlkiraApi[RoutePolicy] {
+func NewRoutePolicy(ac *AlkiraClient) *AlkiraApi[RoutePolicySummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/route-policies", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[RoutePolicy]{ac, uri}
+	api := &AlkiraApi[RoutePolicySummary]{ac, uri, PaginationOn}
 	return api
 }

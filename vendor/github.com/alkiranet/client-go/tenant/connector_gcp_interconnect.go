@@ -46,6 +46,6 @@ type ConnectorGcpInterconnectCustomerGateway struct {
 
 func NewConnectorGcpInterconnect(ac *AlkiraClient) *AlkiraApi[ConnectorGcpInterconnect] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/gcp-interconnect-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorGcpInterconnect]{ac, uri}
+	api := &AlkiraApi[ConnectorGcpInterconnect]{ac, uri, PaginationOn}
 	return api
 }

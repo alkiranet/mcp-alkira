@@ -26,6 +26,6 @@ type ConnectorAwsTgw struct {
 // NewConnectorAwsTgw new connector-aws-tgw
 func NewConnectorAwsTgw(ac *AlkiraClient) *AlkiraApi[ConnectorAwsTgw] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/aws-tgw-connectors", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorAwsTgw]{ac, uri}
+	api := &AlkiraApi[ConnectorAwsTgw]{ac, uri, PaginationOn}
 	return api
 }

@@ -15,7 +15,7 @@ func GetCxps(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Call
 		api := ak.NewInventoryCXP(client)
 
 		// Get resources
-		cxps, err := api.GetAll()
+		cxps, err := api.GetSummary("", "")
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

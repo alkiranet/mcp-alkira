@@ -1,0 +1,80 @@
+package handlers
+
+import (
+	"context"
+
+	ak "github.com/alkiranet/client-go/tenant"
+	"github.com/mark3labs/mcp-go/mcp"
+)
+
+func GetRemoteAccessConnectors(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
+
+		// INIT
+		api := ak.NewConnectorRemoteAccessTemplate(client)
+
+		// Get resources
+		connectors, err := api.GetSummary(offset, limit)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(connectors), nil
+	}
+}
+
+func GetRemoteAccessConnectorById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		connectorId, err := request.RequireString("connectorId")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// INIT
+		api := ak.NewConnectorRemoteAccessTemplate(client)
+
+		// Get resources
+		data, err := api.GetById(connectorId)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func GetRemoteAccessConnectorByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		connectorName, err := request.RequireString("connectorName")
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// INIT
+		api := ak.NewConnectorRemoteAccessTemplate(client)
+
+		// Get resources
+		data, err := api.GetByName(connectorName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}

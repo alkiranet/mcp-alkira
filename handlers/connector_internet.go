@@ -11,11 +11,14 @@ func GetInternetConnectors(client *ak.AlkiraClient) func(ctx context.Context, re
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
+
 		// INIT
 		api := ak.NewConnectorInternet(client)
 
 		// Get resources
-		connectors, err := api.GetAll()
+		connectors, err := api.GetAll(offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

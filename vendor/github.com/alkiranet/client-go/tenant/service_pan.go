@@ -7,6 +7,35 @@ import (
 	"fmt"
 )
 
+type GlobalProtectSegmentOptions struct {
+	SegmentName *GlobalProtectSegmentName `json:"segmentName"`
+}
+
+type GlobalProtectSegmentName struct {
+	RemoteUserZoneName string `json:"remoteUserZoneName"`
+	PortalFqdnPrefix   string `json:"portalFqdnPrefix"`
+	ServiceGroupName   string `json:"serviceGroupName"`
+}
+
+type GlobalProtectSegmentOptionsInstance struct {
+	SegmentName *GlobalProtectSegmentNameInstance `json:"segmentName"`
+}
+
+type GlobalProtectSegmentNameInstance struct {
+	PortalEnabled  bool `json:"portalEnabled"`
+	GatewayEnabled bool `json:"gatewayEnabled"`
+	PrefixListId   int  `json:"prefixListId"`
+}
+
+type ServicePanInstance struct {
+	CredentialId                string                                       `json:"credentialId"`
+	GlobalProtectSegmentOptions map[string]*GlobalProtectSegmentNameInstance `json:"globalProtectSegmentOptions,omitempty"`
+	Id                          int                                          `json:"id,omitempty"`
+	MasterKeyEnabled            bool                                         `json:"masterKeyEnabled,omitempty"`
+	Name                        string                                       `json:"name"`
+	TrafficEnabled              bool                                         `json:"trafficEnabled"`
+}
+
 type ServicePan struct {
 	BillingTagIds               []int                                `json:"billingTags"`
 	Bundle                      string                               `json:"bundle,omitempty"`
@@ -41,38 +70,17 @@ type ServicePan struct {
 	Description                 string                               `json:"description,omitempty"`
 }
 
-type GlobalProtectSegmentOptions struct {
-	SegmentName *GlobalProtectSegmentName `json:"segmentName"`
-}
-
-type GlobalProtectSegmentName struct {
-	RemoteUserZoneName string `json:"remoteUserZoneName"`
-	PortalFqdnPrefix   string `json:"portalFqdnPrefix"`
-	ServiceGroupName   string `json:"serviceGroupName"`
-}
-
-type GlobalProtectSegmentOptionsInstance struct {
-	SegmentName *GlobalProtectSegmentNameInstance `json:"segmentName"`
-}
-
-type GlobalProtectSegmentNameInstance struct {
-	PortalEnabled  bool `json:"portalEnabled"`
-	GatewayEnabled bool `json:"gatewayEnabled"`
-	PrefixListId   int  `json:"prefixListId"`
-}
-
-type ServicePanInstance struct {
-	CredentialId                string                                       `json:"credentialId"`
-	GlobalProtectSegmentOptions map[string]*GlobalProtectSegmentNameInstance `json:"globalProtectSegmentOptions,omitempty"`
-	Id                          int                                          `json:"id,omitempty"`
-	MasterKeyEnabled            bool                                         `json:"masterKeyEnabled,omitempty"`
-	Name                        string                                       `json:"name"`
-	TrafficEnabled              bool                                         `json:"trafficEnabled"`
+type ServicePanSummary struct {
+	Id           json.Number `json:"id"`
+	Name         string      `json:"name"`
+	InternalName string      `json:"internalName"`
+	CXP          string      `json:"cxp"`
+	LicenseType  string      `json:"licenseType"`
 }
 
 // NewServicePan new service pan
-func NewServicePan(ac *AlkiraClient) *AlkiraApi[ServicePan] {
+func NewServicePan(ac *AlkiraClient) *AlkiraApi[ServicePanSummary] {
 	uri := fmt.Sprintf("%s/v1/tenantnetworks/%s/panfwservices", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ServicePan]{ac, uri}
+	api := &AlkiraApi[ServicePanSummary]{ac, uri, PaginationOn}
 	return api
 }

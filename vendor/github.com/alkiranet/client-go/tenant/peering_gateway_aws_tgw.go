@@ -21,6 +21,6 @@ type PeeringGatewayAwsTgw struct {
 // NewPeeringGatewayAwsTgw new peering gateway AWS-TGW
 func NewPeeringGatewayAwsTgw(ac *AlkiraClient) *AlkiraApi[PeeringGatewayAwsTgw] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/aws-tgws", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[PeeringGatewayAwsTgw]{ac, uri}
+	api := &AlkiraApi[PeeringGatewayAwsTgw]{ac, uri, PaginationOn}
 	return api
 }

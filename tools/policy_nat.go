@@ -6,31 +6,15 @@ import (
 
 func GetNatPolicies() mcp.Tool {
 	return mcp.NewTool("getNatPolicies",
-		mcp.WithDescription("Get all NAT policies. There could be too "+
-			"many policies that can't be processed. In this case, tool "+
-			"getNatPoliciesSummary could be used to get a shorter list. "+
-			"Otherwise, user should try to get a single NAT policy "+
-			"instead of listing all."),
+		mcp.WithDescription("Get all NAT policies. By default, max 50 policies " +
+			"will be returned once."),
 		mcp.WithString("offset",
-			mcp.Description("Offset of paginated data will be returned."),
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
 		),
 		mcp.WithString("limit",
-			mcp.Description("Limit of paginated data will be returned. If not " +
-				"provided, default value is 10."),
-		),
-	)
-}
-
-func GetNatPoliciesSummary() mcp.Tool {
-	return mcp.NewTool("getNatPoliciesSummary",
-		mcp.WithDescription("Get all NAT policies in summary format. "+
-			"This will only return `policy ID` and `policy name`."),
-		mcp.WithString("offset",
-			mcp.Description("Offset of paginated data will be returned."),
-		),
-		mcp.WithString("limit",
-			mcp.Description("Limit of paginated data will be returned. If not " +
-				"provided, default value is 10."),
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
 		),
 	)
 }
@@ -57,7 +41,16 @@ func GetNatPolicyByName() mcp.Tool {
 
 func GetNatPolicyRules() mcp.Tool {
 	return mcp.NewTool("getNatPolicyRules",
-		mcp.WithDescription("Get all NAT policy rules"),
+		mcp.WithDescription("Get all NAT policy rules. By default, max 50 " +
+			"rules will be returned once."),
+		mcp.WithString("offset",
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
+		),
+		mcp.WithString("limit",
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
+		),
 	)
 }
 

@@ -20,6 +20,6 @@ type InterConnectorCommunicationGroup struct {
 
 func NewInterConnectorCommunicationGroup(ac *AlkiraClient) *AlkiraApi[InterConnectorCommunicationGroup] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/inter-connector-communication-groups", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[InterConnectorCommunicationGroup]{ac, uri}
+	api := &AlkiraApi[InterConnectorCommunicationGroup]{ac, uri, PaginationOn}
 	return api
 }

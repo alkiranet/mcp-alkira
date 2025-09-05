@@ -9,11 +9,12 @@ func GetGroups() mcp.Tool {
 		mcp.WithDescription("Get all groups. The returned data will be " +
 			"always paginated."),
 		mcp.WithString("offset",
-			mcp.Description("Offset of paginated data will be returned."),
+			mcp.Description("Pagination offset"),
+			mcp.DefaultString("0"),
 		),
 		mcp.WithString("limit",
-			mcp.Description("Limit of paginated data will be returned. If " +
-				"not provided, default value is 10."),
+			mcp.Description("Pagination limit"),
+			mcp.DefaultString("50"),
 		),
 	)
 }

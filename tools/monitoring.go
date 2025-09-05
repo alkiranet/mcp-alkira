@@ -6,7 +6,7 @@ import (
 
 func GetAlerts() mcp.Tool {
 	return mcp.NewTool("getAlerts",
-		mcp.WithDescription("Get all alerts with optional filter 'status' or 'type', or 'prioirty'"),
+		mcp.WithDescription("Get all alerts with optional filter 'status' or 'type', or 'priority'"),
 		mcp.WithString("type",
 			mcp.Description("Alert Type, like: 'NETWORK_STATUS'"),
 			mcp.Enum("NETWORK_STATUS", "NETWORK_PROVISIONING", "OPERATIONS",
@@ -46,7 +46,7 @@ func GetJobs() mcp.Tool {
 				"MISCELLANEOUS"),
 		),
 		mcp.WithString("status",
-			mcp.Description("Job Status, which describe the status of the job."),
+			mcp.Description("Job Status, which describes the status of the job."),
 			mcp.Enum("PENDING", "IN_PROGRESS", "SUCCESS", "FAILED"),
 		),
 	)

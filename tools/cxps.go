@@ -7,7 +7,7 @@ import (
 func GetCxps() mcp.Tool {
 	return mcp.NewTool("getCxps",
 		mcp.WithDescription("Get all CXPs (Cloud Exchange Point). "+
-			"Each CXP is unqiuly defined by cloud provider (`provider`) and "+
-			"could provider region (`providerRegion`)."),
+			"Each CXP is uniquely defined by cloud provider (`provider` field) " +
+			"and cloud provider region (`providerRegion` field)."),
 	)
 }

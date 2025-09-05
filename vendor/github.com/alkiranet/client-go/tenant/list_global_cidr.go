@@ -19,6 +19,6 @@ type GlobalCidrList struct {
 // NewGlobalCidrList new global cidr list
 func NewGlobalCidrList(ac *AlkiraClient) *AlkiraApi[GlobalCidrList] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/global-cidr-lists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[GlobalCidrList]{ac, uri}
+	api := &AlkiraApi[GlobalCidrList]{ac, uri, PaginationOn}
 	return api
 }

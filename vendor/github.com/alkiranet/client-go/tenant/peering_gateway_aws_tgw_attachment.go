@@ -22,6 +22,6 @@ type PeeringGatewayAwsTgwAttachment struct {
 // NewConnectorPeeringGatewayAwsTgwAttachment new peering gateway aws tgw attachment
 func NewPeeringGatewayAwsTgwAttachment(ac *AlkiraClient) *AlkiraApi[PeeringGatewayAwsTgwAttachment] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/aws-tgw-peering-attachments", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[PeeringGatewayAwsTgwAttachment]{ac, uri}
+	api := &AlkiraApi[PeeringGatewayAwsTgwAttachment]{ac, uri, PaginationOn}
 	return api
 }
