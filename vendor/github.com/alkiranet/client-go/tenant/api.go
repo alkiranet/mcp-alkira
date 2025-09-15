@@ -1,5 +1,12 @@
 // Copyright (C) 2023-2025 Alkira Inc. All Rights Reserved.
 
+// This file implment common functions for resource API by using
+// generics. Each resource defined by type T should be able to use all
+// those common functions.
+//
+// NOTE: for some special resources that needs some handling. The raw
+// client functions in client.go could be still used directly in that
+// case.
 package tenant
 
 import (
@@ -8,16 +15,20 @@ import (
 	"net/url"
 )
 
+// Pagination Support
+//
+// Most APIs follow this standard pagination structure. Please check
+// the specific API carefully and there may be cases that some APIs
+// don't follow it.
+const PaginationOn bool = true
+const PaginationOff bool = false
+
 type Pagination struct {
 	Paginated bool `json:"paginated,omitempty"`
 	Offset    int  `json:"Offset"`
 	Limit     int  `json:"limit"`
 	Hits      int  `json:"hits,omitempty"`
 }
-
-// Pagination Support
-const PaginationOn bool = true
-const PaginationOff bool = false
 
 // For each API defined as T, GET result with pagination On will have
 // a wrapper layer around.
@@ -82,12 +93,16 @@ func (a *AlkiraApi[T]) Update(id string, resource *T) (string, error) {
 }
 
 // GetAll get all resources
+//
+// This function may return big payload with many resources,
+// especially in scaled tenant. Even with pagination support, this
+// function should be avoided to use in most cases.
 func (a *AlkiraApi[T]) GetAll(offset string, limit string) (string, error) {
 
 	uri, err := url.Parse(a.Uri)
 
 	if err != nil {
-		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
+		return "", fmt.Errorf("GetAll: failed to parse URI %s: %v", a.Uri, err)
 	}
 
 	//
@@ -126,7 +141,7 @@ func (a *AlkiraApi[T]) GetSummary(offset string, limit string) (string, error) {
 	uri, err := url.Parse(a.Uri)
 
 	if err != nil {
-		return "", fmt.Errorf("GetPaginated: failed to parse URI %s: %v", a.Uri, err)
+		return "", fmt.Errorf("GetSummary: failed to parse URI %s: %v", a.Uri, err)
 	}
 
 	//
@@ -192,7 +207,7 @@ func (a *AlkiraApi[T]) GetSummary(offset string, limit string) (string, error) {
 func (a *AlkiraApi[T]) GetById(id string) (string, error) {
 
 	if len(id) == 0 {
-		return "", fmt.Errorf("API-GetById: Invalid resource ID")
+		return "", fmt.Errorf("GetById: Invalid resource ID")
 	}
 
 	// Construct single resource URI
@@ -211,7 +226,7 @@ func (a *AlkiraApi[T]) GetById(id string) (string, error) {
 func (a *AlkiraApi[T]) GetByName(name string) (string, error) {
 
 	if len(name) == 0 {
-		return "", fmt.Errorf("API-GetByName: Invalid resource name")
+		return "", fmt.Errorf("GetByName: Invalid resource name")
 	}
 
 	// Construct single resource URI
@@ -224,4 +239,57 @@ func (a *AlkiraApi[T]) GetByName(name string) (string, error) {
 	}
 
 	return string(data), nil
+}
+
+type ResourceCount struct {
+	Total int `json:"total"`
+}
+
+// GetCount
+//
+// A special hacky function to use the pagination block retrieve the
+// total count of the given resource.
+func (a *AlkiraApi[T]) GetCount() (string, error) {
+
+	uri, err := url.Parse(a.Uri)
+
+	if err != nil {
+		return "", fmt.Errorf("GetCount: failed to parse URI %s: %v", a.Uri, err)
+	}
+
+	//
+	// Query parameters for pagination
+	//
+	q := uri.Query()
+
+	if a.Pagination == PaginationOff {
+		return "", fmt.Errorf("GetCount: couldn't get resource count since pagination is not supported.")
+	}
+
+	q.Add("paginated", "true")
+	q.Add("offset", "0")
+	q.Add("limit", "1")
+
+	uri.RawQuery = q.Encode()
+
+	data, err := a.Client.Get(uri.String())
+
+	if err != nil {
+		return "", fmt.Errorf("GetCount: failed to GET data: %v", err)
+	}
+
+	var resultPaginated DataWithPagination[T]
+	err = json.Unmarshal([]byte(data), &resultPaginated)
+
+	if err != nil {
+		return "", fmt.Errorf("GetCount: failed to unmarshal: %v", err)
+	}
+
+	count, err := json.Marshal(ResourceCount{Total: resultPaginated.Pagination.Hits})
+
+	if err != nil {
+		return "", fmt.Errorf("GetCount: failed to marshal: %v", err)
+	}
+
+	return string(count), nil
 }

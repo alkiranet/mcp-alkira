@@ -8,25 +8,25 @@ import (
 )
 
 // A summary of a NAT rule (other fields are ignored)
-type NatPolicyRuleSummary struct {
+type NATPolicyRuleSummary struct {
 	Id        json.Number `json:"id"`
 	Name      string      `json:"name"`
 	Enabled   bool        `json:"enabled"`
 	Direction string      `json:"direction,omitempty"`
 }
 
-type NatPolicyRule struct {
+type NATPolicyRule struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	Id          json.Number   `json:"id,omitempty"`
 	Enabled     bool          `json:"enabled"`
-	Match       NatRuleMatch  `json:"match"`
-	Action      NatRuleAction `json:"action"`
+	Match       NATRuleMatch  `json:"match"`
+	Action      NATRuleAction `json:"action"`
 	Category    string        `json:"category"`
 	Direction   string        `json:"direction,omitempty"`
 }
 
-type NatRuleMatch struct {
+type NATRuleMatch struct {
 	SourcePrefixes      []string `json:"sourcePrefixes,omitempty"`
 	SourcePrefixListIds []int    `json:"sourcePrefixListIds,omitempty"`
 	DestPrefixes        []string `json:"destPrefixes,omitempty"`
@@ -36,22 +36,22 @@ type NatRuleMatch struct {
 	Protocol            string   `json:"protocol"`
 }
 
-type NatRuleAction struct {
-	SourceAddressTranslation      NatRuleActionSrcTranslation `json:"sourceAddressTranslation"`
-	DestinationAddressTranslation NatRuleActionDstTranslation `json:"destinationAddressTranslation"`
+type NATRuleAction struct {
+	SourceAddressTranslation      NATRuleActionSrcTranslation `json:"sourceAddressTranslation"`
+	DestinationAddressTranslation NATRuleActionDstTranslation `json:"destinationAddressTranslation"`
 	Egress                        EgressAction                `json:"egress"`
 }
 
-type NatRuleActionSrcTranslation struct {
+type NATRuleActionSrcTranslation struct {
 	TranslationType         string                `json:"translationType"`
 	TranslatedPrefixes      []string              `json:"translatedPrefixes,omitempty"`
 	TranslatedPrefixListIds []int                 `json:"translatedPrefixListIds,omitempty"`
 	Bidirectional           *bool                 `json:"bidirectional,omitempty"`
 	MatchAndInvalidate      *bool                 `json:"matchAndInvalidate,omitempty"`
-	RoutingOptions          NatRuleRoutingOptions `json:"routingOptions,omitempty"`
+	RoutingOptions          NATRuleRoutingOptions `json:"routingOptions,omitempty"`
 }
 
-type NatRuleActionDstTranslation struct {
+type NATRuleActionDstTranslation struct {
 	TranslationType            string                `json:"translationType"`
 	TranslatedPrefixes         []string              `json:"translatedPrefixes,omitempty"`
 	TranslatedPrefixListIds    []int                 `json:"translatedPrefixListIds,omitempty"`
@@ -59,10 +59,10 @@ type NatRuleActionDstTranslation struct {
 	TranslatedPolicyFqdnListId int                   `json:"translatedPolicyFqdnListId,omitempty"`
 	Bidirectional              *bool                 `json:"bidirectional,omitempty"`
 	AdvertiseToConnector       *bool                 `json:"advertiseToConnector,omitempty"`
-	RoutingOptions             NatRuleRoutingOptions `json:"routingOptions,omitempty"`
+	RoutingOptions             NATRuleRoutingOptions `json:"routingOptions,omitempty"`
 }
 
-type NatRuleRoutingOptions struct {
+type NATRuleRoutingOptions struct {
 	TrackPrefixes                  []string `json:"trackPrefixes,omitempty"`
 	TrackPrefixListIds             []int    `json:"trackPrefixListIds,omitempty"`
 	InvalidateRoutingTrackPrefixes *bool    `json:"invalidateRoutingTrackPrefixes,omitempty"`
@@ -72,9 +72,9 @@ type EgressAction struct {
 	IpType string `json:"ipType"`
 }
 
-// NewNatRule new NAT rule
-func NewNatRule(ac *AlkiraClient) *AlkiraApi[NatPolicyRuleSummary] {
+// NewNATRule new NAT rule
+func NewNATRule(ac *AlkiraClient) *AlkiraApi[NATPolicyRuleSummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-rules", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[NatPolicyRuleSummary]{ac, uri, PaginationOn}
+	api := &AlkiraApi[NATPolicyRuleSummary]{ac, uri, PaginationOn}
 	return api
 }

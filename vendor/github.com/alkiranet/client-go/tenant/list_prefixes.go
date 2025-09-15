@@ -5,39 +5,80 @@ package tenant
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 )
 
-type PrefixListRange struct {
-	Prefix      string `json:"prefix"`
-	Le          int    `json:"le,omitempty"`
-	Ge          int    `json:"ge,omitempty"`
-	Description string `json:"description,omitempty"`
-}
-
-type PrefixListDetails struct {
-	Description string `json:"description,omitempty"`
-}
-
 type PrefixList struct {
-	Description   string                        `json:"description,omitempty"`
-	Id            json.Number                   `json:"id,omitempty"`
-	Name          string                        `json:"name"`
-	Prefixes      []string                      `json:"prefixes"`
-	PrefixDetails map[string]*PrefixListDetails `json:"prefixDetails,omitempty"`
-	PrefixRanges  []PrefixListRange             `json:"prefixRanges,omitempty"`
-	Type          string                        `json:"type,omitempty"`
+	Id   json.Number `json:"id"`
+	Name string      `json:"name"`
 }
 
-type PrefixListSummary struct {
+// NewPrefixList new prefix list
+func NewPrefixLists(ac *AlkiraClient) *AlkiraApi[PrefixList] {
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy/prefixlists", ac.URI, ac.TenantNetworkId)
+	return &AlkiraApi[PrefixList]{ac, uri, PaginationOff}
+}
+
+// Special structure to return prefix lists that contains specific
+// prefix
+type PrefixListCompact struct {
 	Id       json.Number `json:"id"`
 	Name     string      `json:"name"`
 	Prefixes []string    `json:"prefixes"`
 	Type     string      `json:"type,omitempty"`
 }
 
-// NewPrefixList new prefix list
-func NewPrefixList(ac *AlkiraClient) *AlkiraApi[PrefixListSummary] {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/policy/prefixlists", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[PrefixListSummary]{ac, uri, PaginationOff}
-	return api
+// GetByPrefix
+//
+// This function will retrieve all prefix lists and return prefix
+// lists that contains specific prefix before API has the
+// functionality.
+func (aa *AlkiraApi[PrefixList]) GetByPrefix(prefix string) (string, error) {
+
+	uri, err := url.Parse(aa.Uri)
+
+	if err != nil {
+		return "", fmt.Errorf("GetByPrefix: failed to parse URI %s: %v", aa.Uri, err)
+	}
+
+	// Disable pagination so we could read all resources at once
+	q := uri.Query()
+	q.Add("paginated", "false")
+
+	uri.RawQuery = q.Encode()
+	data, err := aa.Client.Get(uri.String())
+
+	if err != nil {
+		return "", fmt.Errorf("GetByPrefix: failed to get prefix list: %v", err)
+	}
+
+	logf("TRACE", "GetByPrefix: payload size %d", len(data))
+
+	var lists []PrefixListCompact
+	err = json.Unmarshal([]byte(data), &lists)
+
+	if err != nil {
+		return "", fmt.Errorf("GetByPrefix: failed to unmarshal: %v", err)
+	}
+
+	var result []PrefixListCompact
+
+	for _, list := range lists {
+		if len(list.Prefixes) > 0 {
+			for _, onePrefix := range list.Prefixes {
+				if prefix == onePrefix {
+					result = append(result, list)
+				}
+			}
+		}
+	}
+
+	// Marshal the summary data
+	prefixLists, err := json.Marshal(result)
+
+	if err != nil {
+		return "", fmt.Errorf("GetByPrefix: failed to marshal: %v", err)
+	}
+
+	return string(prefixLists), err
 }

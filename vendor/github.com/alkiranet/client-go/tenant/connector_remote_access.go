@@ -62,15 +62,9 @@ type ConnectorRemoteAccessCxpToSubnetMapping struct {
 	Subnets []string `json:"subnets"`
 }
 
-type ConnectorRemoteAccessSummary struct {
-	Id                    json.Number                           `json:"id,omitempty"`
-	Name                  string                                `json:"name"`
-	Segments              []string                              `json:"segments,omitempty"`
-}
-
 // NewConnectorRemoteAccessTemplate
-func NewConnectorRemoteAccessTemplate(ac *AlkiraClient) *AlkiraApi[ConnectorRemoteAccessSummary] {
+func NewConnectorRemoteAccessTemplate(ac *AlkiraClient) *AlkiraApi[ConnectorRemoteAccessTemplate] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/alkira-remote-access-connector-templates", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[ConnectorRemoteAccessSummary]{ac, uri, PaginationOn}
+	api := &AlkiraApi[ConnectorRemoteAccessTemplate]{ac, uri, PaginationOn}
 	return api
 }

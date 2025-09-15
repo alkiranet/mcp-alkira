@@ -15,7 +15,7 @@ func GetPanServices(client *ak.AlkiraClient) func(ctx context.Context, request m
 		limit, _ := request.RequireString("limit")
 
 		// INIT
-		api := ak.NewServicePan(client)
+		api := ak.NewServicePAN(client)
 
 		// Get resources
 		services, err := api.GetSummary(offset, limit)
@@ -40,7 +40,7 @@ func GetPanServiceById(client *ak.AlkiraClient) func(ctx context.Context, reques
 		}
 
 		// INIT
-		api := ak.NewServicePan(client)
+		api := ak.NewServicePAN(client)
 
 		// Get resources
 		data, err := api.GetById(serviceId)
@@ -65,7 +65,7 @@ func GetPanServiceByName(client *ak.AlkiraClient) func(ctx context.Context, requ
 		}
 
 		// INIT
-		api := ak.NewServicePan(client)
+		api := ak.NewServicePAN(client)
 
 		// Get resources
 		data, err := api.GetByName(serviceName)

@@ -15,7 +15,7 @@ func GetNatPolicyRules(client *ak.AlkiraClient) func(ctx context.Context, reques
 		limit, err := request.RequireString("limit")
 
 		// INIT
-		api := ak.NewNatRule(client)
+		api := ak.NewNATRule(client)
 
 		// Get resources
 		rules, err := api.GetSummary(offset, limit)
@@ -40,7 +40,7 @@ func GetNatPolicyRuleById(client *ak.AlkiraClient) func(ctx context.Context, req
 		}
 
 		// INIT
-		api := ak.NewNatRule(client)
+		api := ak.NewNATRule(client)
 
 		// Get resources
 		data, err := api.GetById(ruleId)
@@ -65,7 +65,7 @@ func GetNatPolicyRuleByName(client *ak.AlkiraClient) func(ctx context.Context, r
 		}
 
 		// INIT
-		api := ak.NewNatRule(client)
+		api := ak.NewNATRule(client)
 
 		// Get resources
 		data, err := api.GetByName(ruleName)

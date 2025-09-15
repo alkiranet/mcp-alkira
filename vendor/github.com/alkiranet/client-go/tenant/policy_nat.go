@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-type NatPolicy struct {
+type NATPolicy struct {
 	Name                               string      `json:"name"`
 	Description                        string      `json:"description"`
 	Type                               string      `json:"type"`
@@ -15,22 +15,22 @@ type NatPolicy struct {
 	IncludedGroups                     []int       `json:"includedGroups"`
 	ExcludedGroups                     []int       `json:"excludedGroups"`
 	Id                                 json.Number `json:"id,omitempty"`
-	NatRuleIds                         []int       `json:"natRuleIds"`
+	NATRuleIds                         []int       `json:"natRuleIds"`
 	Category                           string      `json:"category"`
 	AllowOverlappingTranslatedPrefixes *bool       `json:"allowOverlappingTranslatedPrefixes"`
 }
 
 // A summary of a NAT policy (other fields are ignored)
-type NatPolicySummary struct {
+type NATPolicySummary struct {
 	Id         json.Number `json:"id"`
 	Name       string      `json:"name"`
 	Segment    string      `json:"segment"`
-	NatRuleIds []int       `json:"natRuleIds"`
+	NATRuleIds []int       `json:"natRuleIds"`
 }
 
-// NewNatPolicy new nat policy
-func NewNatPolicy(ac *AlkiraClient) *AlkiraApi[NatPolicySummary] {
+// NewNATPolicy new NAT policy
+func NewNATPolicy(ac *AlkiraClient) *AlkiraApi[NATPolicySummary] {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/nat-policies", ac.URI, ac.TenantNetworkId)
-	api := &AlkiraApi[NatPolicySummary]{ac, uri, PaginationOn}
+	api := &AlkiraApi[NATPolicySummary]{ac, uri, PaginationOn}
 	return api
 }

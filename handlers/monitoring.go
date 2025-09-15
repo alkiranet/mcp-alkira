@@ -66,8 +66,11 @@ func GetJobs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Call
 			t = ""
 		}
 
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
+
 		// Get resources
-		jobs, err := client.GetJobs(s, t)
+		jobs, err := client.GetJobs(s, t, offset, limit)
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

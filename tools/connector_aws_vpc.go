@@ -5,7 +5,7 @@ import (
 )
 
 func GetAwsVpcConnectors() mcp.Tool {
-	return mcp.NewTool("getAwsVpcConnectors",
+	return mcp.NewTool("connector_aws_vpc_get_all",
 		mcp.WithDescription("Get all AWS VPC connectors."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -19,7 +19,7 @@ func GetAwsVpcConnectors() mcp.Tool {
 }
 
 func GetAwsVpcConnectorById() mcp.Tool {
-	return mcp.NewTool("getAwsVpcConnectorById",
+	return mcp.NewTool("connector_aws_vpc_get_by_id",
 		mcp.WithDescription("Get details of one AWS VPC connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -29,7 +29,7 @@ func GetAwsVpcConnectorById() mcp.Tool {
 }
 
 func GetAwsVpcConnectorByName() mcp.Tool {
-	return mcp.NewTool("getAwsVpcConnectorByName",
+	return mcp.NewTool("connector_aws_vpc_get_by_name",
 		mcp.WithDescription("Get details of one AWS VPC connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),

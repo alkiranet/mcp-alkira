@@ -18,7 +18,7 @@ func GetPrefixListById(client *ak.AlkiraClient) func(ctx context.Context, reques
 		}
 
 		// INIT
-		api := ak.NewPrefixList(client)
+		api := ak.NewPrefixLists(client)
 
 		// Get resources
 		data, err := api.GetById(listId)
@@ -43,7 +43,7 @@ func GetPrefixListByName(client *ak.AlkiraClient) func(ctx context.Context, requ
 		}
 
 		// INIT
-		api := ak.NewPrefixList(client)
+		api := ak.NewPrefixLists(client)
 
 		// Get resources
 		data, err := api.GetByName(listName)

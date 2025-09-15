@@ -12,7 +12,7 @@ func GetCxps(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Call
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := ak.NewInventoryCXP(client)
+		api := ak.NewCXP(client)
 
 		// Get resources
 		cxps, err := api.GetSummary("", "")
