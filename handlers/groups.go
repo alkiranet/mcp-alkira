@@ -7,6 +7,32 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
+func GroupGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		offset, _ := request.RequireString("offset")
+		limit, _ := request.RequireString("limit")
+
+		if limit == "" {
+			limit = "20"
+		}
+
+		// INIT
+		api := ak.NewGroup(client)
+
+		// Get resources
+		segments, err := api.GetSummary(offset, limit)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(segments), nil
+	}
+}
+
 func GroupGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {

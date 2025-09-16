@@ -73,7 +73,7 @@ func main() {
 	// Create MCP server
 	srv := server.NewMCPServer(
 		"mcp-alkira",
-		"0.1.0",
+		"0.2.0",
 	)
 
 	// Prompts

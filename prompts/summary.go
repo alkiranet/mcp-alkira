@@ -9,7 +9,7 @@ import (
 
 func Summary() mcp.Prompt {
 
-	return mcp.NewPrompt("ak-summary",
+	return mcp.NewPrompt("summary",
 		mcp.WithPromptDescription("Prompt to gather summary of essential informations of the tenant"),
 	)
 }
@@ -23,9 +23,9 @@ func SummaryHandler() func(ctx context.Context, request mcp.GetPromptRequest) (*
 				mcp.NewPromptMessage(
 					mcp.RoleUser,
 					mcp.NewTextContent("Firsly, get tenant summary and " +
-						"total number of resources, combine the result " +
-						"together and get CXPs and connector health and " +
-						"service health, summarize the result and print " +
+						"total number of resources and CXPs, combine " +
+						"the result together, then summarize alerts and " +
+						"audit logs, summarize the result and print " +
 						"in a fancy table by the categories of " +
 						"resources (connector, service, list, etc)."),
 				),

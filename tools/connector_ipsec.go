@@ -7,7 +7,10 @@ import (
 func ConnectorIPSecGetAll() mcp.Tool {
 	return mcp.NewTool("connector_ipsec_get_all",
 		mcp.WithDescription("Get all IPSec connectors. By default, 50 " +
-			"connectors will be returned once."),
+			"connectors will be returned once. limit will indicate the number " +
+			"of resouces that will returned once. Offset could be used to get " +
+			"the next batch of the resource. Hits will tell the total number of" +
+			"the resources."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
 			mcp.DefaultString("0"),
