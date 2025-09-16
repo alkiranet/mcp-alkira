@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetGlobalCidrLists() mcp.Tool {
-	return mcp.NewTool("getGlobalCidrLists",
+func ListGlobalCidrGetAll() mcp.Tool {
+	return mcp.NewTool("list_global_cidr_get_all",
 		mcp.WithDescription("Get all Global CIDR lists."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,16 +18,22 @@ func GetGlobalCidrLists() mcp.Tool {
 	)
 }
 
-func GetGlobalCidrListById() mcp.Tool {
-	return mcp.NewTool("getGlobalCidrListById",
+func ListGlobalCidrGetById() mcp.Tool {
+	return mcp.NewTool("list_global_cidr_get_by_id",
 		mcp.WithDescription("Get Global CIDR list by ID"),
 		mcp.WithString("listId", mcp.Required()),
 	)
 }
 
-func GetGlobalCidrListByName() mcp.Tool {
-	return mcp.NewTool("getGlobalCidrListByName",
+func ListGlobalCidrGetByName() mcp.Tool {
+	return mcp.NewTool("list_global_cidr_get_by_name",
 		mcp.WithDescription("Get Global CIDR list by name"),
 		mcp.WithString("listName", mcp.Required()),
+	)
+}
+
+func ListGlobalCidrGetTotal() mcp.Tool {
+	return mcp.NewTool("list_global_cidr_get_total",
+		mcp.WithDescription("Get total numbers of Global CIDR lists."),
 	)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAwsTgwConnectors(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAwsTgwGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -29,7 +29,7 @@ func GetAwsTgwConnectors(client *ak.AlkiraClient) func(ctx context.Context, requ
 	}
 }
 
-func GetAwsTgwConnectorById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAwsTgwGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -54,7 +54,7 @@ func GetAwsTgwConnectorById(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func GetAwsTgwConnectorByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAwsTgwGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -69,6 +69,25 @@ func GetAwsTgwConnectorByName(client *ak.AlkiraClient) func(ctx context.Context,
 
 		// Get resources
 		data, err := api.GetByName(connectorName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func ConnectorAwsTgwGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := ak.NewConnectorAwsTgw(client)
+
+		// Get resources
+		data, err := api.GetCount()
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

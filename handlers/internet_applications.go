@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetInternetApplications(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -29,7 +29,7 @@ func GetInternetApplications(client *ak.AlkiraClient) func(ctx context.Context, 
 	}
 }
 
-func GetInternetApplicationById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -54,7 +54,7 @@ func GetInternetApplicationById(client *ak.AlkiraClient) func(ctx context.Contex
 	}
 }
 
-func GetInternetApplicationByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -69,6 +69,25 @@ func GetInternetApplicationByName(client *ak.AlkiraClient) func(ctx context.Cont
 
 		// Get resources
 		data, err := api.GetByName(applicationName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func InternetApplicationGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := ak.NewInternetApplication(client)
+
+		// Get resources
+		data, err := api.GetCount()
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

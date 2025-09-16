@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetBillingTags(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func BillingTagGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -29,7 +29,7 @@ func GetBillingTags(client *ak.AlkiraClient) func(ctx context.Context, request m
 	}
 }
 
-func GetBillingTagById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func BillingTagGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -54,7 +54,7 @@ func GetBillingTagById(client *ak.AlkiraClient) func(ctx context.Context, reques
 	}
 }
 
-func GetBillingTagByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func BillingTagGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -69,6 +69,25 @@ func GetBillingTagByName(client *ak.AlkiraClient) func(ctx context.Context, requ
 
 		// Get resources
 		data, err := api.GetByName(tagName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func BillingTagGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := ak.NewBillingTag(client)
+
+		// Get resources
+		data, err := api.GetCount()
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

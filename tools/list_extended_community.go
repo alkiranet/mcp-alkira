@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetExtendedCommunityLists() mcp.Tool {
-	return mcp.NewTool("getExtendedCommunityLists",
+func ListExtendedCommunityGetAll() mcp.Tool {
+	return mcp.NewTool("list_extended_community_get_all",
 		mcp.WithDescription("Get all BGP Extended Community lists."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,16 +18,22 @@ func GetExtendedCommunityLists() mcp.Tool {
 	)
 }
 
-func GetExtendedCommunityListById() mcp.Tool {
-	return mcp.NewTool("getExtendedCommunityListById",
+func ListExtendedCommunityGetById() mcp.Tool {
+	return mcp.NewTool("list_extended_community_get_by_id",
 		mcp.WithDescription("Get BGP Extended Community list by ID"),
 		mcp.WithString("listId", mcp.Required()),
 	)
 }
 
-func GetExtendedCommunityListByName() mcp.Tool {
-	return mcp.NewTool("getExtendedCommunityListByName",
+func ListExtendedCommunityGetByName() mcp.Tool {
+	return mcp.NewTool("list_extended_community_get_by_name",
 		mcp.WithDescription("Get BGP Extended Community list by name"),
 		mcp.WithString("listName", mcp.Required()),
+	)
+}
+
+func ListExtendedCommunityGetTotal() mcp.Tool {
+	return mcp.NewTool("list_extended_community_get_total",
+		mcp.WithDescription("Get total numbers of BGP Extended Community lists."),
 	)
 }

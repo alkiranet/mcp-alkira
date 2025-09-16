@@ -4,7 +4,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAwsVpcConnectors() mcp.Tool {
+func ConnectorAwsVpcGetAll() mcp.Tool {
 	return mcp.NewTool("connector_aws_vpc_get_all",
 		mcp.WithDescription("Get all AWS VPC connectors."),
 		mcp.WithString("offset",
@@ -18,7 +18,7 @@ func GetAwsVpcConnectors() mcp.Tool {
 	)
 }
 
-func GetAwsVpcConnectorById() mcp.Tool {
+func ConnectorAwsVpcGetById() mcp.Tool {
 	return mcp.NewTool("connector_aws_vpc_get_by_id",
 		mcp.WithDescription("Get details of one AWS VPC connector by its ID."),
 		mcp.WithString("connectorId",
@@ -28,12 +28,18 @@ func GetAwsVpcConnectorById() mcp.Tool {
 	)
 }
 
-func GetAwsVpcConnectorByName() mcp.Tool {
+func ConnectorAwsVpcGetByName() mcp.Tool {
 	return mcp.NewTool("connector_aws_vpc_get_by_name",
 		mcp.WithDescription("Get details of one AWS VPC connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorAwsVpcGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_aws_vpc_get_total",
+		mcp.WithDescription("Get total numbers of AWS VPC connectors."),
 	)
 }

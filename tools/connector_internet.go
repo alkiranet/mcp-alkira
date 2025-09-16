@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetInternetConnectors() mcp.Tool {
-	return mcp.NewTool("getInternetConnectors",
+func ConnectorInternetGetAll() mcp.Tool {
+	return mcp.NewTool("connector_internet_get_all",
 		mcp.WithDescription("Get all internet connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetInternetConnectors() mcp.Tool {
 	)
 }
 
-func GetInternetConnectorById() mcp.Tool {
-	return mcp.NewTool("getInternetConnectorById",
+func ConnectorInternetGetById() mcp.Tool {
+	return mcp.NewTool("connector_internet_get_by_id",
 		mcp.WithDescription("Get details of one internet connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetInternetConnectorById() mcp.Tool {
 	)
 }
 
-func GetInternetConnectorByName() mcp.Tool {
-	return mcp.NewTool("getInternetConnectorByName",
+func ConnectorInternetGetByName() mcp.Tool {
+	return mcp.NewTool("connector_internet_get_by_name",
 		mcp.WithDescription("Get details of one internet connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorInternetGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_internet_get_total",
+		mcp.WithDescription("Get total number of internet connectors."),
 	)
 }

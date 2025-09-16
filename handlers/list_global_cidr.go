@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetGlobalCidrLists(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -29,7 +29,7 @@ func GetGlobalCidrLists(client *ak.AlkiraClient) func(ctx context.Context, reque
 	}
 }
 
-func GetGlobalCidrListById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -54,7 +54,7 @@ func GetGlobalCidrListById(client *ak.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func GetGlobalCidrListByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -69,6 +69,25 @@ func GetGlobalCidrListByName(client *ak.AlkiraClient) func(ctx context.Context, 
 
 		// Get resources
 		data, err := api.GetByName(listName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func ListGlobalCidrGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := ak.NewGlobalCidrList(client)
+
+		// Get resources
+		data, err := api.GetCount()
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

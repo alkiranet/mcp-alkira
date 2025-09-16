@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetVmwareSdwanConnectors() mcp.Tool {
-	return mcp.NewTool("getVmwareSdwanConnectors",
+func ConnectorVmwareSdwanGetAll() mcp.Tool {
+	return mcp.NewTool("connector_vmware_sdwan_get_all",
 		mcp.WithDescription("Get all VMware SD-WAN (VeloCloud) connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetVmwareSdwanConnectors() mcp.Tool {
 	)
 }
 
-func GetVmwareSdwanConnectorById() mcp.Tool {
-	return mcp.NewTool("getVmwareSdwanConnectorById",
+func ConnectorVmwareSdwanGetById() mcp.Tool {
+	return mcp.NewTool("connector_vmware_sdwan_get_by_id",
 		mcp.WithDescription("Get details of one VMware SD-WAN (VeloCloud) connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetVmwareSdwanConnectorById() mcp.Tool {
 	)
 }
 
-func GetVmwareSdwanConnectorByName() mcp.Tool {
-	return mcp.NewTool("getVmwareSdwanConnectorByName",
+func ConnectorVmwareSdwanGetByName() mcp.Tool {
+	return mcp.NewTool("connector_vmware_sdwan_get_by_name",
 		mcp.WithDescription("Get details of one VMware SD-WAN (VeloCloud) connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorVmwareSdwanGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_vmware_sdwan_get_total",
+		mcp.WithDescription("Get total numbers of VMware SD-WAN (VeloCloud) connectors."),
 	)
 }

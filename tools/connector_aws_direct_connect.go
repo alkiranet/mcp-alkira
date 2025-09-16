@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAwsDirectConnectConnectors() mcp.Tool {
-	return mcp.NewTool("getAwsDirectConnectConnectors",
+func ConnectorAwsDirectConnectGetAll() mcp.Tool {
+	return mcp.NewTool("connector_aws_direct_connect_get_all",
 		mcp.WithDescription("Get all AWS Direct Connect connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetAwsDirectConnectConnectors() mcp.Tool {
 	)
 }
 
-func GetAwsDirectConnectConnectorById() mcp.Tool {
-	return mcp.NewTool("getAwsDirectConnectConnectorById",
+func ConnectorAwsDirectConnectGetById() mcp.Tool {
+	return mcp.NewTool("connector_aws_direct_connect_get_by_id",
 		mcp.WithDescription("Get details of one AWS Direct Connect connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetAwsDirectConnectConnectorById() mcp.Tool {
 	)
 }
 
-func GetAwsDirectConnectConnectorByName() mcp.Tool {
-	return mcp.NewTool("getAwsDirectConnectConnectorByName",
+func ConnectorAwsDirectConnectGetByName() mcp.Tool {
+	return mcp.NewTool("connector_aws_direct_connect_get_by_name",
 		mcp.WithDescription("Get details of one AWS Direct Connect connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorAwsDirectConnectGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_aws_direct_connect_get_total",
+		mcp.WithDescription("Get total numbers of AWS Direct Connect connectors."),
 	)
 }

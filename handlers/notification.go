@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func AlertGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Alerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -30,7 +30,7 @@ func AlertGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Cal
 	}
 }
 
-func AuditLogGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func AuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -52,7 +52,7 @@ func AuditLogGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.
 	}
 }
 
-func JobGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Jobs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -78,53 +78,5 @@ func JobGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallT
 
 		// Return response
 		return mcp.NewToolResultText(jobs), nil
-	}
-}
-
-func ResourceUsageGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		resourceCategory, err := request.RequireString("category")
-		if err != nil {
-			resourceCategory = ""
-		}
-
-		resourceType, err := request.RequireString("type")
-		if err != nil {
-			resourceType = ""
-		}
-
-		resourceScope, err := request.RequireString("scope")
-		if err != nil {
-			resourceScope = ""
-		}
-
-		// Get resources
-		data, err := client.GetResourceUsages(
-			resourceCategory, resourceType, resourceScope)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(data), nil
-	}
-}
-
-func ResourceLimitGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// Get resources
-		data, err := client.GetResourceLimits()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(data), nil
 	}
 }

@@ -7,23 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetHealths(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// Get resources
-		health, err := client.GetHealthAll()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(health), nil
-	}
-}
-
-func GetConnectorHealthById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HealthConnectorGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -45,7 +29,7 @@ func GetConnectorHealthById(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func GetConnectorInstanceHealthById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HealthConnectorInstanceGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -73,7 +57,7 @@ func GetConnectorInstanceHealthById(client *ak.AlkiraClient) func(ctx context.Co
 	}
 }
 
-func GetServiceHealthById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HealthServiceGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -95,7 +79,7 @@ func GetServiceHealthById(client *ak.AlkiraClient) func(ctx context.Context, req
 	}
 }
 
-func GetServiceInstanceHealthById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func HealthServiceInstanceGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 

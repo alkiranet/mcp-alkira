@@ -7,15 +7,15 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
- func ConnectorOciVcnGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorIPSecAdvGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
+		offset, err := request.RequireString("offset")
+		limit, err := request.RequireString("limit")
 
 		// INIT
-		api := ak.NewConnectorOciVcn(client)
+		api := ak.NewConnectorAdvIPSec(client)
 
 		// Get resources
 		connectors, err := api.GetAll(offset, limit)
@@ -29,7 +29,7 @@ import (
 	}
 }
 
-func ConnectorOciVcnGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorIPSecAdvGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -40,7 +40,7 @@ func ConnectorOciVcnGetById(client *ak.AlkiraClient) func(ctx context.Context, r
 		}
 
 		// INIT
-		api := ak.NewConnectorOciVcn(client)
+		api := ak.NewConnectorAdvIPSec(client)
 
 		// Get resources
 		data, err := api.GetById(connectorId)
@@ -54,7 +54,7 @@ func ConnectorOciVcnGetById(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func ConnectorOciVcnGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorIPSecAdvGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -65,7 +65,7 @@ func ConnectorOciVcnGetByName(client *ak.AlkiraClient) func(ctx context.Context,
 		}
 
 		// INIT
-		api := ak.NewConnectorOciVcn(client)
+		api := ak.NewConnectorAdvIPSec(client)
 
 		// Get resources
 		data, err := api.GetByName(connectorName)
@@ -79,12 +79,12 @@ func ConnectorOciVcnGetByName(client *ak.AlkiraClient) func(ctx context.Context,
 	}
 }
 
-func ConnectorOciVcnGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorIPSecAdvGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		// INIT
-		api := ak.NewConnectorOciVcn(client)
+		api := ak.NewConnectorAdvIPSec(client)
 
 		// Get resources
 		data, err := api.GetCount()

@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetFortinetServices() mcp.Tool {
-	return mcp.NewTool("getFortinetServices",
+func ServiceFortinetGetAll() mcp.Tool {
+	return mcp.NewTool("service_fortinet_get_all",
 		mcp.WithDescription("Get all Fortinet firewall services"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetFortinetServices() mcp.Tool {
 	)
 }
 
-func GetFortinetServiceById() mcp.Tool {
-	return mcp.NewTool("getFortinetServiceById",
+func ServiceFortinetGetById() mcp.Tool {
+	return mcp.NewTool("service_fortinet_get_by_id",
 		mcp.WithDescription("Get details of one Fortinet firewall service " +
 			"by its ID."),
 		mcp.WithString("serviceId",
@@ -29,13 +29,19 @@ func GetFortinetServiceById() mcp.Tool {
 	)
 }
 
-func GetFortinetServiceByName() mcp.Tool {
-	return mcp.NewTool("getFortinetServiceByName",
+func ServiceFortinetGetByName() mcp.Tool {
+	return mcp.NewTool("service_fortinet_get_by_name",
 		mcp.WithDescription("Get details of one Fortinet firewall service " +
 			"by its name."),
 		mcp.WithString("serviceName",
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+	)
+}
+
+func ServiceFortinetGetTotal() mcp.Tool {
+	return mcp.NewTool("service_fortinet_get_total",
+		mcp.WithDescription("Get total number of Fortinet firewall services"),
 	)
 }

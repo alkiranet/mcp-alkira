@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetNatPolicies() mcp.Tool {
-	return mcp.NewTool("getNatPolicies",
+func PolicyNatGetAll() mcp.Tool {
+	return mcp.NewTool("policy_nat_get_all",
 		mcp.WithDescription("Get all NAT policies. By default, max 50 policies " +
 			"will be returned once."),
 		mcp.WithString("offset",
@@ -19,8 +19,8 @@ func GetNatPolicies() mcp.Tool {
 	)
 }
 
-func GetNatPolicyById() mcp.Tool {
-	return mcp.NewTool("getNatPolicyById",
+func PolicyNatGetById() mcp.Tool {
+	return mcp.NewTool("policy_nat_get_by_id",
 		mcp.WithDescription("Get details of one NAT policy by its ID."),
 		mcp.WithString("policyId",
 			mcp.Required(),
@@ -29,8 +29,8 @@ func GetNatPolicyById() mcp.Tool {
 	)
 }
 
-func GetNatPolicyByName() mcp.Tool {
-	return mcp.NewTool("getNatPolicyByName",
+func PolicyNatGetByName() mcp.Tool {
+	return mcp.NewTool("policy_nat_get_by_name",
 		mcp.WithDescription("Get details of one NAT policy by its name."),
 		mcp.WithString("policyName",
 			mcp.Required(),
@@ -39,8 +39,8 @@ func GetNatPolicyByName() mcp.Tool {
 	)
 }
 
-func GetNatPolicyRules() mcp.Tool {
-	return mcp.NewTool("getNatPolicyRules",
+func PolicyNatRuleGetAll() mcp.Tool {
+	return mcp.NewTool("policy_nat_rule_get_all",
 		mcp.WithDescription("Get all NAT policy rules. By default, max 50 " +
 			"rules will be returned once."),
 		mcp.WithString("offset",
@@ -54,8 +54,8 @@ func GetNatPolicyRules() mcp.Tool {
 	)
 }
 
-func GetNatPolicyRuleById() mcp.Tool {
-	return mcp.NewTool("getNatPolicyRuleById",
+func PolicyNatRuleGetById() mcp.Tool {
+	return mcp.NewTool("policy_nat_rule_get_by_id",
 		mcp.WithDescription("Get details of one NAT rule by its ID."),
 		mcp.WithString("ruleId",
 			mcp.Required(),
@@ -64,12 +64,24 @@ func GetNatPolicyRuleById() mcp.Tool {
 	)
 }
 
-func GetNatPolicyRuleByName() mcp.Tool {
-	return mcp.NewTool("getNatPolicyRuleByName",
+func PolicyNatRuleGetByName() mcp.Tool {
+	return mcp.NewTool("policy_nat_rule_get_by_name",
 		mcp.WithDescription("Get details of one NAT rule by its name."),
 		mcp.WithString("ruleName",
 			mcp.Required(),
 			mcp.Description("Rule Name."),
 		),
+	)
+}
+
+func PolicyNatGetTotal() mcp.Tool {
+	return mcp.NewTool("policy_nat_get_total",
+		mcp.WithDescription("Get total numbers of NAT policies."),
+	)
+}
+
+func PolicyNatRuleGetTotal() mcp.Tool {
+	return mcp.NewTool("policy_nat_rule_get_total",
+		mcp.WithDescription("Get total numbers of NAT policy rules."),
 	)
 }

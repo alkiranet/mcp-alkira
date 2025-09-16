@@ -104,7 +104,7 @@ func getRoutesEnhanced(client *ak.AlkiraClient, params EnhancedRouteQueryParams)
 	}
 }
 
-func GetRoutes(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func RouteGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		routeType := request.GetString("type", "received")
 		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
@@ -172,7 +172,7 @@ func GetRoutes(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Ca
 	}
 }
 
-func GetRouteCount(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func RouteGetCount(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		routeType := request.GetString("type", "received")
 		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
@@ -551,7 +551,7 @@ func contains(slice []string, item string) bool {
 }
 
 // GetRouteSummary handler
-func GetRouteSummary(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func RouteSummaryGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract parameters
 		routeType := request.GetString("type", "received")
@@ -578,7 +578,7 @@ func GetRouteSummary(client *ak.AlkiraClient) func(ctx context.Context, request 
 }
 
 // GetAllRoutes handler with automatic pagination
-func GetAllRoutes(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func AllRouteGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Extract parameters
 		routeType := request.GetString("type", "received")

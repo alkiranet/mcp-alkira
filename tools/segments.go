@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetSegments() mcp.Tool {
-	return mcp.NewTool("getSegments",
+func SegmentGetAll() mcp.Tool {
+	return mcp.NewTool("segment_get_all",
 		mcp.WithDescription("Get all segments."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetSegments() mcp.Tool {
 	)
 }
 
-func GetSegmentById() mcp.Tool {
-	return mcp.NewTool("getSegmentById",
+func SegmentGetById() mcp.Tool {
+	return mcp.NewTool("segment_get_by_id",
 		mcp.WithDescription("Get details of one segment by its ID."),
 		mcp.WithString("segmentId",
 			mcp.Required(),
@@ -28,8 +28,8 @@ func GetSegmentById() mcp.Tool {
 	)
 }
 
-func GetSegmentByName() mcp.Tool {
-	return mcp.NewTool("getSegmentByName",
+func SegmentGetByName() mcp.Tool {
+	return mcp.NewTool("segment_get_by_name",
 		mcp.WithDescription("Get details of one segment by its name."),
 		mcp.WithString("segmentName",
 			mcp.Required(),

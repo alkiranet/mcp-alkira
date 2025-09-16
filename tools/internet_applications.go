@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetInternetApplications() mcp.Tool {
-	return mcp.NewTool("getInternetApplications",
+func InternetApplicationGetAll() mcp.Tool {
+	return mcp.NewTool("internet_application_get_all",
 		mcp.WithDescription("Get all Internet Applications"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,16 +18,22 @@ func GetInternetApplications() mcp.Tool {
 	)
 }
 
-func GetInternetApplicationById() mcp.Tool {
-	return mcp.NewTool("getInternetApplicationById",
+func InternetApplicationGetById() mcp.Tool {
+	return mcp.NewTool("internet_application_get_by_id",
 		mcp.WithDescription("Get Internet Application by ID"),
 		mcp.WithString("applicationId", mcp.Required()),
 	)
 }
 
-func GetInternetApplicationByName() mcp.Tool {
-	return mcp.NewTool("getInternetApplicationByName",
+func InternetApplicationGetByName() mcp.Tool {
+	return mcp.NewTool("internet_application_get_by_name",
 		mcp.WithDescription("Get Internet Application by name"),
 		mcp.WithString("applicationName", mcp.Required()),
+	)
+}
+
+func InternetApplicationGetTotal() mcp.Tool {
+	return mcp.NewTool("internet_application_get_total",
+		mcp.WithDescription("Get total number of Internet Application"),
 	)
 }

@@ -4,14 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetHealths() mcp.Tool {
-	return mcp.NewTool("getHealths",
-		mcp.WithDescription("Get health status of all resources."),
-	)
-}
-
-func GetConnectorHealthById() mcp.Tool {
-	return mcp.NewTool("getConnectorHealthById",
+func HealthConnectorGetById() mcp.Tool {
+	return mcp.NewTool("health_connector_get_by_id",
 		mcp.WithDescription("Get health status of a connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -20,8 +14,8 @@ func GetConnectorHealthById() mcp.Tool {
 	)
 }
 
-func GetConnectorInstanceHealthById() mcp.Tool {
-	return mcp.NewTool("getConnectorInstanceHealthById",
+func HealthConnectorInstanceGetById() mcp.Tool {
+	return mcp.NewTool("health_connector_instance_get_by_id",
 		mcp.WithDescription("Get health status of a connector instance by its ID"),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -34,8 +28,8 @@ func GetConnectorInstanceHealthById() mcp.Tool {
 	)
 }
 
-func GetServiceHealthById() mcp.Tool {
-	return mcp.NewTool("getServiceHealthById",
+func HealthServiceGetById() mcp.Tool {
+	return mcp.NewTool("health_service_get_by_id",
 		mcp.WithDescription("Get health status of a service by ID"),
 		mcp.WithString("serviceId",
 			mcp.Required(),
@@ -44,8 +38,8 @@ func GetServiceHealthById() mcp.Tool {
 	)
 }
 
-func GetServiceInstanceHealthById() mcp.Tool {
-	return mcp.NewTool("getServiceInstanceHealthById",
+func HealthServiceInstanceGetById() mcp.Tool {
+	return mcp.NewTool("health_service_instance_get_by_id",
 		mcp.WithDescription("Get health status of a service instance by ID"),
 		mcp.WithString("serviceId",
 			mcp.Required(),

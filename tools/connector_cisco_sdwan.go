@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetCiscoSdwanConnectors() mcp.Tool {
-	return mcp.NewTool("getCiscoSdwanConnectors",
+func ConnectorCiscoSdwanGetAll() mcp.Tool {
+	return mcp.NewTool("connector_cisco_sdwan_get_all",
 		mcp.WithDescription("Get all Cisco SD-WAN connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetCiscoSdwanConnectors() mcp.Tool {
 	)
 }
 
-func GetCiscoSdwanConnectorById() mcp.Tool {
-	return mcp.NewTool("getCiscoSdwanConnectorById",
+func ConnectorCiscoSdwanGetById() mcp.Tool {
+	return mcp.NewTool("connector_cisco_sdwan_get_by_id",
 		mcp.WithDescription("Get details of one Cisco SD-WAN connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetCiscoSdwanConnectorById() mcp.Tool {
 	)
 }
 
-func GetCiscoSdwanConnectorByName() mcp.Tool {
-	return mcp.NewTool("getCiscoSdwanConnectorByName",
+func ConnectorCiscoSdwanGetByName() mcp.Tool {
+	return mcp.NewTool("connector_cisco_sdwan_get_by_name",
 		mcp.WithDescription("Get details of one Cisco SD-WAN connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorCiscoSdwanGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_cisco_sdwan_get_total",
+		mcp.WithDescription("Get total numbers of Cisco SD-WAN connectors."),
 	)
 }

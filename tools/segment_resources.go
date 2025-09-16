@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetSegmentResources() mcp.Tool {
-	return mcp.NewTool("getSegmentResources",
+func SegmentResourceGetAll() mcp.Tool {
+	return mcp.NewTool("segment_resource_get_all",
 		mcp.WithDescription("Get all segment resources"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetSegmentResources() mcp.Tool {
 	)
 }
 
-func GetSegmentResourceById() mcp.Tool {
-	return mcp.NewTool("getSegmentResourceById",
+func SegmentResourceGetById() mcp.Tool {
+	return mcp.NewTool("segment_resource_get_by_id",
 		mcp.WithDescription("Get segment resource by ID."),
 		mcp.WithString("resourceId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetSegmentResourceById() mcp.Tool {
 	)
 }
 
-func GetSegmentResourceByName() mcp.Tool {
-	return mcp.NewTool("getSegmentResourceByName",
+func SegmentResourceGetByName() mcp.Tool {
+	return mcp.NewTool("segment_resource_get_by_name",
 		mcp.WithDescription("Get segment resource by name."),
 		mcp.WithString("resourceName",
 			mcp.Required(),
 			mcp.Description("Segment Resource Name"),
 		),
+	)
+}
+
+func SegmentResourceGetTotal() mcp.Tool {
+	return mcp.NewTool("segment_resource_get_total",
+		mcp.WithDescription("Get total numbers of segment resources."),
 	)
 }

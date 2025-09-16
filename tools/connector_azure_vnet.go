@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetAzureVnetConnectors() mcp.Tool {
-	return mcp.NewTool("getAzureVnetConnectors",
+func ConnectorAzureVnetGetAll() mcp.Tool {
+	return mcp.NewTool("connector_azure_vnet_get_all",
 		mcp.WithDescription("Get all Azure VNET connectors."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetAzureVnetConnectors() mcp.Tool {
 	)
 }
 
-func GetAzureVnetConnectorById() mcp.Tool {
-	return mcp.NewTool("getAzureVnetConnectorById",
+func ConnectorAzureVnetGetById() mcp.Tool {
+	return mcp.NewTool("connector_azure_vnet_get_by_id",
 		mcp.WithDescription("Get details of one Azure VNET connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetAzureVnetConnectorById() mcp.Tool {
 	)
 }
 
-func GetAzureVnetConnectorByName() mcp.Tool {
-	return mcp.NewTool("getAzureVnetConnectorByName",
+func ConnectorAzureVnetGetByName() mcp.Tool {
+	return mcp.NewTool("connector_azure_vnet_get_by_name",
 		mcp.WithDescription("Get details of one Azure Vnet connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorAzureVnetGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_azure_vnet_get_total",
+		mcp.WithDescription("Get total numbers of Azure VNET connectors."),
 	)
 }

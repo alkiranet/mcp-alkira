@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetArubaEdgeConnectors() mcp.Tool {
-	return mcp.NewTool("getArubaEdgeConnectors",
+func ConnectorArubaEdgeGetAll() mcp.Tool {
+	return mcp.NewTool("connector_aruba_edge_get_all",
 		mcp.WithDescription("Get all Aruba Edge Connect SD-WAN connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetArubaEdgeConnectors() mcp.Tool {
 	)
 }
 
-func GetArubaEdgeConnectorById() mcp.Tool {
-	return mcp.NewTool("getArubaEdgeConnectorById",
+func ConnectorArubaEdgeGetById() mcp.Tool {
+	return mcp.NewTool("connector_aruba_edge_get_by_id",
 		mcp.WithDescription("Get details of one Aruba Edge Connect SD-WAN connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetArubaEdgeConnectorById() mcp.Tool {
 	)
 }
 
-func GetArubaEdgeConnectorByName() mcp.Tool {
-	return mcp.NewTool("getArubaEdgeConnectorByName",
+func ConnectorArubaEdgeGetByName() mcp.Tool {
+	return mcp.NewTool("connector_aruba_edge_get_by_name",
 		mcp.WithDescription("Get details of one Aruba Edge Connect SD-WAN connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorArubaEdgeGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_aruba_edge_get_total",
+		mcp.WithDescription("Get total numbers of Aruba Edge Connect SD-WAN connectors."),
 	)
 }

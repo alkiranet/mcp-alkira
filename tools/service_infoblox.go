@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetInfobloxServices() mcp.Tool {
-	return mcp.NewTool("getInfobloxServices",
+func ServiceInfobloxGetAll() mcp.Tool {
+	return mcp.NewTool("service_infoblox_get_all",
 		mcp.WithDescription("Get all Infoblox DNS/DHCP services"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetInfobloxServices() mcp.Tool {
 	)
 }
 
-func GetInfobloxServiceById() mcp.Tool {
-	return mcp.NewTool("getInfobloxServiceById",
+func ServiceInfobloxGetById() mcp.Tool {
+	return mcp.NewTool("service_infoblox_get_by_id",
 		mcp.WithDescription("Get details of one Infoblox DNS/DHCP service " +
 			"by its ID."),
 		mcp.WithString("serviceId",
@@ -29,13 +29,19 @@ func GetInfobloxServiceById() mcp.Tool {
 	)
 }
 
-func GetInfobloxServiceByName() mcp.Tool {
-	return mcp.NewTool("getInfobloxServiceByName",
+func ServiceInfobloxGetByName() mcp.Tool {
+	return mcp.NewTool("service_infoblox_get_by_name",
 		mcp.WithDescription("Get details of one Infoblox DNS/DHCP service " +
 			"by its name."),
 		mcp.WithString("serviceName",
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+	)
+}
+
+func ServiceInfobloxGetTotal() mcp.Tool {
+	return mcp.NewTool("service_infoblox_get_total",
+		mcp.WithDescription("Get total number of Infoblox DNS/DHCP services"),
 	)
 }

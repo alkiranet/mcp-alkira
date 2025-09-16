@@ -4,23 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetGroups() mcp.Tool {
-	return mcp.NewTool("getGroups",
-		mcp.WithDescription("Get all groups. The returned data will be " +
-			"always paginated."),
-		mcp.WithString("offset",
-			mcp.Description("Pagination offset"),
-			mcp.DefaultString("0"),
-		),
-		mcp.WithString("limit",
-			mcp.Description("Pagination limit"),
-			mcp.DefaultString("50"),
-		),
-	)
-}
-
-func GetGroupById() mcp.Tool {
-	return mcp.NewTool("getGroupById",
+func GroupGetById() mcp.Tool {
+	return mcp.NewTool("group_get_by_id",
 		mcp.WithDescription("Get details of one group by its ID."),
 		mcp.WithString("groupId",
 			mcp.Required(),
@@ -29,12 +14,18 @@ func GetGroupById() mcp.Tool {
 	)
 }
 
-func GetGroupByName() mcp.Tool {
-	return mcp.NewTool("getGroupByName",
+func GroupGetByName() mcp.Tool {
+	return mcp.NewTool("group_get_by_name",
 		mcp.WithDescription("Get details of one group by its name."),
 		mcp.WithString("groupName",
 			mcp.Required(),
 			mcp.Description("Group Name."),
 		),
+	)
+}
+
+func GroupGetTotal() mcp.Tool {
+	return mcp.NewTool("group_get_total",
+		mcp.WithDescription("Get total numbers of groups."),
 	)
 }

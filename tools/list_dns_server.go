@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetDnsServerLists() mcp.Tool {
-	return mcp.NewTool("getDnsServerLists",
+func ListDnsServerGetAll() mcp.Tool {
+	return mcp.NewTool("list_dns_server_get_all",
 		mcp.WithDescription("Get all DNS Server lists."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,16 +18,22 @@ func GetDnsServerLists() mcp.Tool {
 	)
 }
 
-func GetDnsServerListById() mcp.Tool {
-	return mcp.NewTool("getDnsServerListById",
+func ListDnsServerGetById() mcp.Tool {
+	return mcp.NewTool("list_dns_server_get_by_id",
 		mcp.WithDescription("Get DNS Server list by ID"),
 		mcp.WithString("listId", mcp.Required()),
 	)
 }
 
-func GetDnsServerListByName() mcp.Tool {
-	return mcp.NewTool("getDnsServerListByName",
+func ListDnsServerGetByName() mcp.Tool {
+	return mcp.NewTool("list_dns_server_get_by_name",
 		mcp.WithDescription("Get DNS Server list by name"),
 		mcp.WithString("listName", mcp.Required()),
+	)
+}
+
+func ListDnsServerGetTotal() mcp.Tool {
+	return mcp.NewTool("list_dns_server_get_total",
+		mcp.WithDescription("Get total numbers of DNS Server lists."),
 	)
 }

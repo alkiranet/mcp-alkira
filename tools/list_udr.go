@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetUdrLists() mcp.Tool {
-	return mcp.NewTool("getUdrLists",
+func ListUdrGetAll() mcp.Tool {
+	return mcp.NewTool("list_udr_get_all",
 		mcp.WithDescription("Get all User Defined Route (UDR) lists."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,16 +18,22 @@ func GetUdrLists() mcp.Tool {
 	)
 }
 
-func GetUdrListById() mcp.Tool {
-	return mcp.NewTool("getUdrListById",
+func ListUdrGetById() mcp.Tool {
+	return mcp.NewTool("list_udr_get_by_id",
 		mcp.WithDescription("Get User Defined Route (UDR) list by ID"),
 		mcp.WithString("listId", mcp.Required()),
 	)
 }
 
-func GetUdrListByName() mcp.Tool {
-	return mcp.NewTool("getUdrListByName",
+func ListUdrGetByName() mcp.Tool {
+	return mcp.NewTool("list_udr_get_by_name",
 		mcp.WithDescription("Get User Defined Route (UDR) list by name"),
 		mcp.WithString("listName", mcp.Required()),
+	)
+}
+
+func ListUdrGetTotal() mcp.Tool {
+	return mcp.NewTool("list_udr_get_total",
+		mcp.WithDescription("Get total numbers of User Defined Route (UDR) lists."),
 	)
 }

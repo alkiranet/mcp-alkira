@@ -7,29 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetGroups(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
-
-		// INIT
-		api := ak.NewGroup(client)
-
-		// Get resources
-		groups, err := api.GetSummary(offset, limit)
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(groups), nil
-	}
-}
-
-func GetGroupById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GroupGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -54,7 +32,7 @@ func GetGroupById(client *ak.AlkiraClient) func(ctx context.Context, request mcp
 	}
 }
 
-func GetGroupByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GroupGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
@@ -67,8 +45,27 @@ func GetGroupByName(client *ak.AlkiraClient) func(ctx context.Context, request m
 		// INIT
 		api := ak.NewGroup(client)
 
-		// Get resources
+		// Get res ources
 		data, err := api.GetByName(groupName)
+
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Return response
+		return mcp.NewToolResultText(data), nil
+	}
+}
+
+func GroupGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
+		// INIT
+		api := ak.NewGroup(client)
+
+		// Get resources
+		data, err := api.GetCount()
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil

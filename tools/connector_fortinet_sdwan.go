@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetFortinetSdwanConnectors() mcp.Tool {
-	return mcp.NewTool("getFortinetSdwanConnectors",
+func ConnectorFortinetSdwanGetAll() mcp.Tool {
+	return mcp.NewTool("connector_fortinet_sdwan_get_all",
 		mcp.WithDescription("Get all Fortinet SD-WAN connectors"),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetFortinetSdwanConnectors() mcp.Tool {
 	)
 }
 
-func GetFortinetSdwanConnectorById() mcp.Tool {
-	return mcp.NewTool("getFortinetSdwanConnectorById",
+func ConnectorFortinetSdwanGetById() mcp.Tool {
+	return mcp.NewTool("connector_fortinet_sdwan_get_by_id",
 		mcp.WithDescription("Get details of one Fortinet SD-WAN connector by its ID."),
 		mcp.WithString("connectorId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetFortinetSdwanConnectorById() mcp.Tool {
 	)
 }
 
-func GetFortinetSdwanConnectorByName() mcp.Tool {
-	return mcp.NewTool("getFortinetSdwanConnectorByName",
+func ConnectorFortinetSdwanGetByName() mcp.Tool {
+	return mcp.NewTool("connector_fortinet_sdwan_get_by_name",
 		mcp.WithDescription("Get details of one Fortinet SD-WAN connector by its name."),
 		mcp.WithString("connectorName",
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+	)
+}
+
+func ConnectorFortinetSdwanGetTotal() mcp.Tool {
+	return mcp.NewTool("connector_fortinet_sdwan_get_total",
+		mcp.WithDescription("Get total numbers of Fortinet SD-WAN connectors."),
 	)
 }

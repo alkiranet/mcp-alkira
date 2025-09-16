@@ -4,8 +4,8 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GetRoutePolicies() mcp.Tool {
-	return mcp.NewTool("getRoutePoliciesAll",
+func PolicyRouteGetAll() mcp.Tool {
+	return mcp.NewTool("policy_route_get_all",
 		mcp.WithDescription("Get all route policies."),
 		mcp.WithString("offset",
 			mcp.Description("Pagination offset"),
@@ -18,8 +18,8 @@ func GetRoutePolicies() mcp.Tool {
 	)
 }
 
-func GetRoutePolicyById() mcp.Tool {
-	return mcp.NewTool("getRoutePolicyById",
+func PolicyRouteGetById() mcp.Tool {
+	return mcp.NewTool("policy_route_get_by_id",
 		mcp.WithDescription("Get details of one route policy by its ID."),
 		mcp.WithString("policyId",
 			mcp.Required(),
@@ -28,12 +28,18 @@ func GetRoutePolicyById() mcp.Tool {
 	)
 }
 
-func GetRoutePolicyByName() mcp.Tool {
-	return mcp.NewTool("getRoutePolicyByName",
+func PolicyRouteGetByName() mcp.Tool {
+	return mcp.NewTool("policy_route_get_by_name",
 		mcp.WithDescription("Get details of one route policy by its name."),
 		mcp.WithString("policyName",
 			mcp.Required(),
 			mcp.Description("Policy Name."),
 		),
+	)
+}
+
+func PolicyRouteGetTotal() mcp.Tool {
+	return mcp.NewTool("policy_route_get_total",
+		mcp.WithDescription("Get total numbers of route policies."),
 	)
 }
