@@ -51,7 +51,7 @@ jobs:
           payload: |
             {
               "text": "*[PUBLIC]* mcp-alkira <${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}|(commit)>",
-              "attachments: [
+              "attachments": [
                 {
                   "color": "#66ff00",
                   "title": "mcp-alkira-${{ env.latest_version }}",
