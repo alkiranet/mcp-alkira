@@ -50,14 +50,12 @@ jobs:
           # For posting a rich message using Block Kit
           payload: |
             {
-              "text": "Latest Build: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
-              "blocks": [
+              "text": "*[PUBLIC]* mcp-alkira <${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}|(commit)>",
+              "attachments: [
                 {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*mcp-alkira-${{ env.latest_version }}*\n - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-amd64.tar.gz|darwin-amd64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-arm64.tar.gz|darwin-arm64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-amd64.tar.gz|linux-amd64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-arm64.tar.gz|linux-arm64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-windows-amd64.zip|win-amd64>\n"
-                  }
+                  "color": "#66ff00",
+                  "title": "mcp-alkira-${{ env.latest_version }}",
+                  "text": "- <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-amd64.tar.gz|darwin-amd64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-darwin-arm64.tar.gz|darwin-arm64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-amd64.tar.gz|linux-amd64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-linux-arm64.tar.gz|linux-arm64> - <https://downloads.alkira.com/dev/mcp-alkira/latest/mcp-alkira-${{ env.latest_version }}-windows-amd64.zip|win-amd64>\n"
                 }
               ]
             }
