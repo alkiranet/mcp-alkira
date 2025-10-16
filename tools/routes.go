@@ -17,6 +17,7 @@ func GetRoutes() mcp.Tool {
 		mcp.WithString("connectorId", mcp.Description("Filter by connector ID - connectors link customer networks (AWS VPCs, Azure VNets, on-premises) to Alkira (e.g., 60)")),
 		mcp.WithString("search", mcp.Description("Search across all fields, returns routes matching the term (e.g., 'Ipsec', 'customer')")),
 		mcp.WithString("prefixType", mcp.Description("Filter by route scope: 'LOCAL' (segment-only), 'SHARED' (cross-segment via segment resource shares)")),
+		mcp.WithString("routeType", mcp.Description("Filter routes by prefix type: 'ORIGINAL' (unmodified routes), 'TRANSLATED' (NAT translated), 'NAT_PRE_TRANSLATED' (pre-NAT translation), 'OVERLAP' (conflicting prefixes)")),
 		mcp.WithString("segmentId", mcp.Description("Filter by segment ID (numeric identifier like 12)")),
 		mcp.WithString("overlapType", mcp.Description("Filter by overlap type - routes with conflicting prefixes: 'OVERLAP_INVALIDATED', 'SEGSHARE_OVERLAP', 'REMOTE_CXP_OVERLAP_INVALIDATED'")),
 		mcp.WithString("sourceCXP", mcp.Description("Filter by source CXP for inter-CXP routes - routes redistributed between different Alkira regions")),
@@ -32,7 +33,6 @@ func GetRoutes() mcp.Tool {
 		mcp.WithString("prefixRange", mcp.Description("Filter by IP prefix range (e.g., '10.0.0.0/8', '192.168.0.0/16')")),
 		mcp.WithString("connectorTypes", mcp.Description("Comma-separated list of connector types (e.g., 'AWS_VPC,AZURE_VNET,IP_SEC')")),
 		mcp.WithBoolean("includeSharedRoutes", mcp.Description("Include segment resource shared routes (default: true)")),
-		mcp.WithBoolean("includeTranslatedRoutes", mcp.Description("Include NAT translated routes (default: true)")),
 		mcp.WithString("routeStatus", mcp.Description("Filter by route status: active, suppressed, overlap")),
 	)
 }
@@ -57,12 +57,12 @@ func GetRouteCount() mcp.Tool {
 		mcp.WithString("prefix", mcp.Description("Exact match prefix filter. Use URL encoding for '/' (e.g., '10.1.1.0%2F24' for '10.1.1.0/24')")),
 		mcp.WithString("lpmPrefix", mcp.Description("Longest Prefix Match search for IP address (e.g., '0.0.0.0', '10.1.0.0')")),
 		mcp.WithString("prefixType", mcp.Description("Filter by route scope: 'LOCAL' (segment-only), 'SHARED' (cross-segment via segment resource shares)")),
+		mcp.WithString("routeType", mcp.Description("Filter routes by prefix type: 'ORIGINAL' (unmodified routes), 'TRANSLATED' (NAT translated), 'NAT_PRE_TRANSLATED' (pre-NAT translation), 'OVERLAP' (conflicting prefixes)")),
 		// Enhanced filtering options
 		mcp.WithString("outputFormat", mcp.Description("Output format: json, table, csv, summary (default: json)")),
 		mcp.WithString("prefixRange", mcp.Description("Filter by IP prefix range (e.g., '10.0.0.0/8', '192.168.0.0/16')")),
 		mcp.WithString("connectorTypes", mcp.Description("Comma-separated list of connector types (e.g., 'AWS_VPC,AZURE_VNET,IP_SEC')")),
 		mcp.WithBoolean("includeSharedRoutes", mcp.Description("Include segment resource shared routes (default: true)")),
-		mcp.WithBoolean("includeTranslatedRoutes", mcp.Description("Include NAT translated routes (default: true)")),
 	)
 }
 

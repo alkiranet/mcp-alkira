@@ -58,12 +58,11 @@ type PrefixAnalysis struct {
 // Enhanced query parameters
 type EnhancedRouteQueryParams struct {
 	ak.RouteQueryParams
-	OutputFormat            string `json:"outputFormat,omitempty"`
-	PrefixRange             string `json:"prefixRange,omitempty"`
-	ConnectorTypes          string `json:"connectorTypes,omitempty"`
-	IncludeSharedRoutes     bool   `json:"includeSharedRoutes"`
-	IncludeTranslatedRoutes bool   `json:"includeTranslatedRoutes"`
-	RouteStatus             string `json:"routeStatus,omitempty"`
+	OutputFormat        string `json:"outputFormat,omitempty"`
+	PrefixRange         string `json:"prefixRange,omitempty"`
+	ConnectorTypes      string `json:"connectorTypes,omitempty"`
+	IncludeSharedRoutes bool   `json:"includeSharedRoutes"`
+	RouteStatus         string `json:"routeStatus,omitempty"`
 }
 
 // Pagination helper for large result sets
@@ -142,12 +141,11 @@ func RouteGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Cal
 				LPMPrefix:            request.GetString("lpmPrefix", ""),
 			},
 			// Enhanced parameters
-			OutputFormat:            request.GetString("outputFormat", "json"),
-			PrefixRange:             request.GetString("prefixRange", ""),
-			ConnectorTypes:          request.GetString("connectorTypes", ""),
-			IncludeSharedRoutes:     request.GetBool("includeSharedRoutes", true),
-			IncludeTranslatedRoutes: request.GetBool("includeTranslatedRoutes", true),
-			RouteStatus:             request.GetString("routeStatus", ""),
+			OutputFormat:        request.GetString("outputFormat", "json"),
+			PrefixRange:         request.GetString("prefixRange", ""),
+			ConnectorTypes:      request.GetString("connectorTypes", ""),
+			IncludeSharedRoutes: request.GetBool("includeSharedRoutes", true),
+			RouteStatus:         request.GetString("routeStatus", ""),
 		}
 
 		// Get routes with enhanced filtering
@@ -231,11 +229,6 @@ func optimizeRouteQueryParams(params EnhancedRouteQueryParams) ak.RouteQueryPara
 	// Push shared route filtering to API using PrefixType
 	if !params.IncludeSharedRoutes {
 		optimized.PrefixType = "LOCAL"
-	}
-
-	// Push translated route filtering to API using RouteType
-	if !params.IncludeTranslatedRoutes {
-		optimized.RouteType = "ORIGINAL"
 	}
 
 	// Push route status filtering to API using RouteRecvType
