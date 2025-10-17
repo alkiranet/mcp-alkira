@@ -172,20 +172,22 @@ func RouteGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Cal
 
 func RouteGetCount(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		routeType := request.GetString("type", "received")
-		if routeType != "received" && routeType != "advertised" && routeType != "overlap" {
-			return mcp.NewToolResultError("type must be 'received', 'advertised', or 'overlap'"), nil
+		// Get routeRecvType parameter (defaults to "received" for counting all received routes)
+		routeRecvType := request.GetString("routeRecvType", "received")
+
+		// Validate routeRecvType values per API spec
+		if routeRecvType != "" && routeRecvType != "received" && routeRecvType != "HIGH_CHURN" && routeRecvType != "ALL_OVERLAP" {
+			return mcp.NewToolResultError("routeRecvType must be 'received', 'HIGH_CHURN', or 'ALL_OVERLAP'"), nil
 		}
 
 		// Build query parameters from request
 		params := ak.RouteCountQueryParams{
-			Type:                 routeType,
+			RouteRecvType:        routeRecvType,
 			SegmentName:          request.GetString("segmentName", ""),
 			SegmentNames:         request.GetString("segmentNames", ""),
 			CXP:                  request.GetString("cxp", ""),
 			ConnectorID:          request.GetString("connectorId", ""),
 			SegmentID:            request.GetString("segmentId", ""),
-			RouteRecvType:        request.GetString("routeRecvType", ""),
 			OverlapType:          request.GetString("overlapType", ""),
 			SourceCXP:            request.GetString("sourceCXP", ""),
 			EntityInstance:       request.GetString("entityInstance", ""),
