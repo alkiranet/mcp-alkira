@@ -40,7 +40,7 @@ func GetRoutes() mcp.Tool {
 func GetRouteCount() mcp.Tool {
 	return mcp.NewTool("route_get_count",
 		mcp.WithDescription("Get route count matching specified criteria. Uses cached counts for fast queries with basic filters (cxp, segmentName, connectorId, routeRecvType). Additional filters trigger slower uncached mode. Useful for: checking route table sizes before pagination, monitoring route growth, validating filter effectiveness."),
-		mcp.WithString("routeRecvType", mcp.Description("Count mode: 'received' (all received routes - default), 'HIGH_CHURN' (suppressed/flapping routes only), 'ALL_OVERLAP' (all overlap types). Cached filter - fast performance.")),
+		mcp.WithString("routeRecvType", mcp.Description("Default: 'received'. Count mode: 'received' (all received routes - default), 'HIGH_CHURN' (suppressed/flapping routes only), 'ALL_OVERLAP' (all overlap types). Cached filter - fast performance.")),
 		mcp.WithString("segmentName", mcp.Description("Filter by network segment - isolated routing domains that provide security boundaries and traffic control (e.g., 'Corporate', 'DMZ')")),
 		mcp.WithString("segmentNames", mcp.Description("Comma-separated list of segment names to match against (e.g., 'seg1,seg2')")),
 		mcp.WithString("cxp", mcp.Description("Filter by CXP (Cloud Exchange Point) - Alkira's PoPs in different cloud regions where connectors terminate (e.g., 'US-WEST', 'EU-CENTRAL')")),

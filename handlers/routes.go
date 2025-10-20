@@ -176,7 +176,7 @@ func RouteGetCount(client *ak.AlkiraClient) func(ctx context.Context, request mc
 		routeRecvType := request.GetString("routeRecvType", "received")
 
 		// Validate routeRecvType values per API spec
-		if routeRecvType != "" && routeRecvType != "received" && routeRecvType != "HIGH_CHURN" && routeRecvType != "ALL_OVERLAP" {
+		if routeRecvType != "received" && routeRecvType != "HIGH_CHURN" && routeRecvType != "ALL_OVERLAP" {
 			return mcp.NewToolResultError("routeRecvType must be 'received', 'HIGH_CHURN', or 'ALL_OVERLAP'"), nil
 		}
 
