@@ -1,30 +1,12 @@
 Alkira MCP Server
 ---
 
-A [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server for Alkira.
+A [Model Context Protocol](https://modelcontextprotocol.io) (MCP)
+server for Alkira.
 
 This server provides access to Alkira system by your choice of your AI
-agent. It's based on the open source MCP framework
+agent and LLMs. It's based on the open source MCP framework
 [mcp-go](https://github.com/mark3labs/mcp-go).
-
-> [!CAUTION]
-> This project is only for experimental right now and not
-> ready for production use.
-
-
-## BUILD
-
-You will need Golang to build and you could easily build `mcp-alkira` by:
-
-```
-$ make build
-```
-
-The following targets are also supported:
-
-* `make fmt`        - Do `gofmt`
-* `make vendor`     - Shortcut command to do `go mod tidy` and `go mod vendor`
-* `make superclean` - Remove all files not part of the repo (including new files)
 
 
 HOW TO USE
@@ -127,6 +109,20 @@ Once you launch `claude`, check MCP status to make sure that it's up:
 ```
 
 That's it.
+
+## BUILD
+
+You will need Golang to build and you could easily build `mcp-alkira` by:
+
+```
+$ make build
+```
+
+The following targets are also supported:
+
+* `make fmt`        - Do `gofmt`
+* `make vendor`     - Shortcut command to do `go mod tidy` and `go mod vendor`
+* `make superclean` - Remove all files not part of the repo (including new files)
 
 
 AVAILABLE TOOLS
