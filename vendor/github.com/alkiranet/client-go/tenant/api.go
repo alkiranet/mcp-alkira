@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2025 Alkira Inc. All Rights Reserved.
+// Copyright (C) 2023-2026 Alkira Inc. All Rights Reserved.
 
 // This file implment common functions for resource API by using
 // generics. Each resource defined by type T should be able to use all
@@ -13,6 +13,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+
+	"github.com/alpkeskin/gotoon"
 )
 
 // Pagination Support
@@ -30,7 +32,7 @@ type Pagination struct {
 	Hits      int  `json:"hits,omitempty"`
 }
 
-// For each API defined as T, GET result with pagination On will have
+// For each API defined as T, GET result with pagination on will have
 // a wrapper layer around.
 type DataWithPagination[T any] struct {
 	Data       []T        `json:"data"`
@@ -44,7 +46,7 @@ type AlkiraApi[T any] struct {
 	Pagination bool
 }
 
-// Create create a resource by making a POST request
+// Create make a HTTP POST request to create resource
 func (a *AlkiraApi[T]) Create(resource *T) (*T, error) {
 
 	// Construct the request
@@ -187,20 +189,36 @@ func (a *AlkiraApi[T]) GetSummary(offset string, limit string) (string, error) {
 		return "", fmt.Errorf("GetSummary: failed to unmarshal: %v", err)
 	}
 
-	// Marshal the summary data
-	var summary []byte
+	var summary string
 
-	if a.Pagination == PaginationOn {
-		summary, err = json.Marshal(resultPaginated)
+	if a.Client.Compression == "toon" {
+		if a.Pagination == PaginationOn {
+			summary, err = gotoon.Encode(map[string]interface{}{"data": resultPaginated})
+		} else {
+			summary, err = gotoon.Encode(map[string]interface{}{"data": result})
+		}
+
+		if err != nil {
+			return "", fmt.Errorf("GetSummary: failed to encode to toon format: %v", err)
+		}
 	} else {
-		summary, err = json.Marshal(result)
+		// Marshal the summary data
+		var summaryInJSON []byte
+
+		if a.Pagination == PaginationOn {
+			summaryInJSON, err = json.Marshal(resultPaginated)
+		} else {
+			summaryInJSON, err = json.Marshal(result)
+		}
+
+		if err != nil {
+			return "", fmt.Errorf("GetSummary: failed to marshal: %v", err)
+		}
+
+		summary = string(summaryInJSON)
 	}
 
-	if err != nil {
-		return "", fmt.Errorf("GetSummary: failed to marshal: %v", err)
-	}
-
-	return string(summary), nil
+	return summary, nil
 }
 
 // GetById get a resource by its ID

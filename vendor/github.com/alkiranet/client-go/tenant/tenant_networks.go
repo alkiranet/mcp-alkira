@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2025 Alkira Inc. All Rights Reserved.
+// Copyright (C) 2020-2026 Alkira Inc. All Rights Reserved.
 
 package tenant
 
@@ -8,40 +8,47 @@ import (
 	"strconv"
 )
 
-type TenantNetworkId struct {
-	Id int `json:"id"`
+type TenantNetworkFirewallZone struct {
+	ID                  int    `json:"id"`
+	Name                string `json:"name"`
+	TagId               int    `json:"tagId"`
+	SegmentID           int    `json:"segmentId"`
+	ServiceID           int    `json:"serviceId"`
+	CXP                 string `json:"cxp"`
+	ZoneType            string `json:"zoneType"`
+	NetworkEntityID     string `json:"networkEntityId"`
+	NetworkEntityType   string `json:"networkEntityType"`
+	FtntPolicyID        int    `json:"ftntPolicyId"`
+	LastConfigUpdatedAt int    `json:"lastConfigUpdatedAt"`
 }
 
-type TenantNetworkState struct {
-	State string `json:"state"`
+type TenantNetworkFirewallZones struct {
+	FirewallZones []TenantNetworkFirewallZone `json:"firewallZones"`
 }
 
-type TenantNetworkConnectorState struct {
-	State    string `json:"state"`
-	DocState string `json:"docState"`
+// A simplifed struct that describes a tenant network.
+type TenantNetwork struct {
+	ID            int                         `json:"id"`
+	Name          string                      `json:"name"`
+	State         string                      `json:"state"`
+	AwsExternalId string                      `json:"awsExternalId,omitempty"`
+	CXPPairs      []interface{}               `json:"cxpPairs,omitempty"`
+	FirewallZones []TenantNetworkFirewallZone `json:"firewallZones,omitempty"`
+	ByoIPs        []interface{}               `json:"byoips,omitempty"`
 }
 
-type TenantNetworkServiceState struct {
-	State    string `json:"state"`
-	DocState string `json:"docState"`
+// NewTenantNetwork
+func NewTenantNetwork(ac *AlkiraClient) *AlkiraApi[TenantNetwork] {
+	uri := fmt.Sprintf("%s/api/tenantnetworks", ac.URI)
+	api := &AlkiraApi[TenantNetwork]{ac, uri, PaginationOff}
+	return api
 }
 
-type TenantNetworkProvisionRequest struct {
-	Id    string `json:"id"`
-	State string `json:"state"`
-}
-
-// GetTenantNetworks get the tenant networks of the current tenant
-func (ac *AlkiraClient) GetTenantNetworks() (string, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks", ac.URI)
-
-	data, err := ac.Get(uri)
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
+// NewTenantnetworkFirewallZones
+func NewTenantNetworkFirewallZones(ac *AlkiraClient) *AlkiraApi[TenantNetworkFirewallZones] {
+	uri := fmt.Sprintf("%s/api/tenantnetworks", ac.URI)
+	api := &AlkiraApi[TenantNetworkFirewallZones]{ac, uri, PaginationOff}
+	return api
 }
 
 // GetTenantNetworkSummary get the tenant networks of the current tenant
@@ -55,6 +62,10 @@ func (ac *AlkiraClient) GetTenantNetworkSummary() (string, error) {
 	}
 
 	return string(data), nil
+}
+
+type TenantNetworkId struct {
+	Id int `json:"id"`
 }
 
 // GetTenantNetworkId get the tenant network Id of the current tenant
@@ -78,6 +89,10 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 	return strconv.Itoa(result[0].Id), nil
 }
 
+type TenantNetworkState struct {
+	State string `json:"state"`
+}
+
 // GetTenantNetworkState get the tenant network state
 func (ac *AlkiraClient) GetTenantNetworkState() (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s", ac.URI, ac.TenantNetworkId)
@@ -96,6 +111,11 @@ func (ac *AlkiraClient) GetTenantNetworkState() (string, error) {
 	}
 
 	return result.State, nil
+}
+
+type TenantNetworkConnectorState struct {
+	State    string `json:"state"`
+	DocState string `json:"docState"`
 }
 
 // GetTenantNetworkConnectorState get the tenant network connector state by its Id
@@ -118,6 +138,11 @@ func (ac *AlkiraClient) GetTenantNetworkConnectorState(id string) (string, error
 	return result.State, nil
 }
 
+type TenantNetworkServiceState struct {
+	State    string `json:"state"`
+	DocState string `json:"docState"`
+}
+
 // GetTenantNetworkServiceState get the tenant network service state by its Id
 func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) {
 	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, id)
@@ -136,6 +161,11 @@ func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) 
 	}
 
 	return result.State, nil
+}
+
+type TenantNetworkProvisionRequest struct {
+	Id    string `json:"id"`
+	State string `json:"state"`
 }
 
 // GetTenantNetworkProvisionRequest get the tenant network provision request
