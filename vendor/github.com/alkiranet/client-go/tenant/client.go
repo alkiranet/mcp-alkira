@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2025 Alkira Inc. All Rights Reserved.
+// Copyright (C) 2020-2026 Alkira Inc. All Rights Reserved.
 
 package tenant
 
@@ -22,10 +22,14 @@ import (
 const defaultRetryInterval time.Duration = 5 * time.Second
 const defaultRetryTimeout time.Duration = 10 * time.Second
 
-// This structure defines the basic elements of an Alkira Client.
+// This structure defines an Alkira Client.
 //
-// Client an retryable HTTP client
-// URI The URI to make to API request to
+// Client        - An retryable HTTP client.
+// URI           - Alkira Portal URI.
+// ApiKey        - Alkira API Key to authenticate.
+// Authorization - Authorization header.
+// MaxToken      - Max tokens for LLM usages.
+// Compression   - Compression method for optimizting output for LLMs.
 type AlkiraClient struct {
 	Client          *retryablehttp.Client
 	URI             string
@@ -33,6 +37,7 @@ type AlkiraClient struct {
 	TenantNetworkId string
 	Authorization   string
 	MaxToken        int
+	Compression     string
 }
 
 // NewAlkiraClient creates a new alkira client
@@ -45,7 +50,7 @@ type AlkiraClient struct {
 // uri Alkira portal URI
 // apiKey Alkira API key to be used to authenticate
 // maxToken Max token size if response payload is too big (for AI agent)
-func NewAlkiraClient(uri string, apiKey string, maxToken int) (*AlkiraClient, error) {
+func NewAlkiraClient(uri string, apiKey string, maxToken int, compression string) (*AlkiraClient, error) {
 
 	logf("DEBUG", "Creating new Alkira Client")
 
@@ -131,12 +136,13 @@ func NewAlkiraClient(uri string, apiKey string, maxToken int) (*AlkiraClient, er
 		TenantNetworkId: strconv.Itoa(tenantNetworkId),
 		Authorization:   auth,
 		MaxToken:        maxToken,
+		Compression:     compression,
 	}
 
 	return client, nil
 }
 
-// Get retrieve resources by sending a GET request
+// Get retrieve resources by sending a HTTP GET request
 func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 	logf("DEBUG", "client-get URI: %s\n", uri)
 
@@ -164,7 +170,7 @@ func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 	return data, nil
 }
 
-// Create create send a POST request to create resource
+// Create send a HTTP POST request to create resource
 func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 
 	logf("DEBUG", "client-create REQ: %s", string(body))

@@ -1,13 +1,14 @@
 module github.com/alkiranet/mcp-alkira
 
-go 1.24.4
+go 1.25.3
 
 require (
-	github.com/alkiranet/client-go v0.5.1
+	github.com/alkiranet/client-go v0.5.4
 	github.com/mark3labs/mcp-go v0.34.0
 )
 
 require (
+	github.com/alpkeskin/gotoon v0.1.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect

@@ -63,6 +63,7 @@ func main() {
 		portal,
 		key,
 		maxToken,
+		"toon",
 	)
 
 	if err != nil {
@@ -81,6 +82,7 @@ func main() {
 
 	// Add tenant network basic tools
 	srv.AddTool(tools.TenantNetworkSummary(), handlers.TenantNetworkSummary(alkiraClient))
+	srv.AddTool(tools.TenantNetworkFirewallZones(), handlers.TenantNetworkFirewallZones(alkiraClient))
 
 	// Add billing tag tools
 	srv.AddTool(tools.BillingTagGetAll(), handlers.BillingTagGetAll(alkiraClient))
@@ -99,6 +101,12 @@ func main() {
 	srv.AddTool(tools.GroupGetById(), handlers.GroupGetById(alkiraClient))
 	srv.AddTool(tools.GroupGetByName(), handlers.GroupGetByName(alkiraClient))
 	srv.AddTool(tools.GroupGetTotal(), handlers.GroupGetTotal(alkiraClient))
+
+	// Add BYOIP tools
+	srv.AddTool(tools.ByoipGetAll(), handlers.ByoipGetAll(alkiraClient))
+	srv.AddTool(tools.ByoipGetById(), handlers.ByoipGetById(alkiraClient))
+	srv.AddTool(tools.ByoipGetByName(), handlers.ByoipGetByName(alkiraClient))
+	srv.AddTool(tools.ByoipGetTotal(), handlers.ByoipGetTotal(alkiraClient))
 
 	// Add segment resource tools
 	srv.AddTool(tools.SegmentResourceGetAll(), handlers.SegmentResourceGetAll(alkiraClient))
