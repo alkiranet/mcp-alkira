@@ -15,6 +15,7 @@ func ServiceFortinetGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -26,6 +27,7 @@ func ServiceFortinetGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -37,11 +39,13 @@ func ServiceFortinetGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ServiceFortinetGetTotal() mcp.Tool {
 	return mcp.NewTool("service_fortinet_get_total",
 		mcp.WithDescription("Get total number of Fortinet firewall services"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

@@ -15,6 +15,7 @@ func ServiceInfobloxGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -26,6 +27,7 @@ func ServiceInfobloxGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -37,11 +39,13 @@ func ServiceInfobloxGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ServiceInfobloxGetTotal() mcp.Tool {
 	return mcp.NewTool("service_infoblox_get_total",
 		mcp.WithDescription("Get total number of Infoblox DNS/DHCP services"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

@@ -19,6 +19,7 @@ func ConnectorIPSecGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -29,6 +30,7 @@ func ConnectorIPSecGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -39,12 +41,14 @@ func ConnectorIPSecGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorIPSecGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_ipsec_get_total",
 		mcp.WithDescription("Get total numbers of IPSec connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -59,6 +63,7 @@ func ConnectorIPSecAdvGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -69,6 +74,7 @@ func ConnectorIPSecAdvGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -79,12 +85,14 @@ func ConnectorIPSecAdvGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorIPSecAdvGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_ipsec_adv_get_total",
 		mcp.WithDescription("Get total numbers of Advanced IPSec connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -99,6 +107,7 @@ func ConnectorIPSecTunnelProfileGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 

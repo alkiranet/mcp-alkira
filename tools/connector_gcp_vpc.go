@@ -15,6 +15,7 @@ func ConnectorGcpVpcGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func ConnectorGcpVpcGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func ConnectorGcpVpcGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorGcpVpcGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_gcp_vpc_get_total",
 		mcp.WithDescription("Get total number of Google Cloud VPC connector."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
