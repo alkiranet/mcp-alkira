@@ -15,6 +15,7 @@ func BillingTagGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -22,6 +23,7 @@ func BillingTagGetById() mcp.Tool {
 	return mcp.NewTool("billing_tag_get_by_id",
 		mcp.WithDescription("Get billing tag by ID"),
 		mcp.WithString("tagId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -29,11 +31,13 @@ func BillingTagGetByName() mcp.Tool {
 	return mcp.NewTool("billing_tag_get_by_name",
 		mcp.WithDescription("Get billing tag by name"),
 		mcp.WithString("tagName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func BillingTagGetTotal() mcp.Tool {
 	return mcp.NewTool("billing_tag_get_total",
 		mcp.WithDescription("Get total numbers of billing tags."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

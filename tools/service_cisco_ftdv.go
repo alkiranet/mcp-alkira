@@ -16,6 +16,7 @@ func ServiceCiscoFTDvGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -27,6 +28,7 @@ func ServiceCiscoFTDvGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -38,11 +40,13 @@ func ServiceCiscoFTDvGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ServiceCiscoFTDvGetTotal() mcp.Tool {
 	return mcp.NewTool("service_cisco_ftdv_get_total",
 		mcp.WithDescription("Get total number of Cisco Firepower Threat Defense virtual services"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

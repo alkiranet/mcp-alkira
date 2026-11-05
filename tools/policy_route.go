@@ -15,6 +15,7 @@ func PolicyRouteGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func PolicyRouteGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Policy ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func PolicyRouteGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Policy Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func PolicyRouteGetTotal() mcp.Tool {
 	return mcp.NewTool("policy_route_get_total",
 		mcp.WithDescription("Get total numbers of route policies."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

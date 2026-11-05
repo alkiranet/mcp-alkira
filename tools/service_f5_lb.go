@@ -15,6 +15,7 @@ func ServiceF5LBGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -26,6 +27,7 @@ func ServiceF5LBGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -37,11 +39,13 @@ func ServiceF5LBGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ServiceF5LBGetTotal() mcp.Tool {
 	return mcp.NewTool("service_f5_lb_get_total",
 		mcp.WithDescription("Get total number of F5 Load Balancer services"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

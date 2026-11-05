@@ -15,6 +15,7 @@ func ServicePanGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -26,6 +27,7 @@ func ServicePanGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -37,11 +39,13 @@ func ServicePanGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ServicePanGetTotal() mcp.Tool {
 	return mcp.NewTool("service_pan_get_total",
 		mcp.WithDescription("Get total number of Palo Alto Networks firewall services"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

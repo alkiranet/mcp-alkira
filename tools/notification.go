@@ -18,6 +18,7 @@ func Alerts() mcp.Tool {
 		mcp.WithString("priority",
 			mcp.Description("Alert Priority"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -33,6 +34,7 @@ func AuditLogs() mcp.Tool {
 		mcp.WithString("status",
 			mcp.Description("Audit Log Status, like: 'FAILED', 'SUCCEEDED'"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -49,5 +51,6 @@ func Jobs() mcp.Tool {
 			mcp.Description("Job Status, which describes the status of the job."),
 			mcp.Enum("PENDING", "IN_PROGRESS", "SUCCESS", "FAILED"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
