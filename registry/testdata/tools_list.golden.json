@@ -1,0 +1,4184 @@
+{
+  "tools": [
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all billing tags",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "billing_tag_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get billing tag by ID",
+      "inputSchema": {
+        "properties": {
+          "tagId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tagId"
+        ],
+        "type": "object"
+      },
+      "name": "billing_tag_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get billing tag by name",
+      "inputSchema": {
+        "properties": {
+          "tagName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tagName"
+        ],
+        "type": "object"
+      },
+      "name": "billing_tag_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of billing tags.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "billing_tag_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all BYOIPs (Bring Your Own IP).",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "byoip_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one BYOIP by its ID.",
+      "inputSchema": {
+        "properties": {
+          "byoipId": {
+            "description": "BYOIP ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "byoipId"
+        ],
+        "type": "object"
+      },
+      "name": "byoip_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one BYOIP by its name.",
+      "inputSchema": {
+        "properties": {
+          "byoipName": {
+            "description": "BYOIP Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "byoipName"
+        ],
+        "type": "object"
+      },
+      "name": "byoip_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of BYOIPs.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "byoip_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Aruba Edge Connect SD-WAN connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_aruba_edge_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Aruba Edge Connect SD-WAN connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aruba_edge_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Aruba Edge Connect SD-WAN connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aruba_edge_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Aruba Edge Connect SD-WAN connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_aruba_edge_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all AWS Direct Connect connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_aws_direct_connect_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS Direct Connect connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_direct_connect_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS Direct Connect connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_direct_connect_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of AWS Direct Connect connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_aws_direct_connect_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all AWS Transit Gateway connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_aws_tgw_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS Transit Gateway connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_tgw_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS Transit Gateway connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_tgw_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of AWS Transit Gateway connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_aws_tgw_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all AWS VPC connectors.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_aws_vpc_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS VPC connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_vpc_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one AWS VPC connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_aws_vpc_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of AWS VPC connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_aws_vpc_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Azure ExpressRoute connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_azure_express_route_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Azure ExpressRoute connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_azure_express_route_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Azure ExpressRoute connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_azure_express_route_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Azure ExpressRoute connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_azure_express_route_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Azure VNET connectors.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_azure_vnet_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Azure VNET connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_azure_vnet_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Azure Vnet connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_azure_vnet_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Azure VNET connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_azure_vnet_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Cisco SD-WAN connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_cisco_sdwan_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Cisco SD-WAN connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_cisco_sdwan_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Cisco SD-WAN connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_cisco_sdwan_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Cisco SD-WAN connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_cisco_sdwan_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Fortinet SD-WAN connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_fortinet_sdwan_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Fortinet SD-WAN connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_fortinet_sdwan_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Fortinet SD-WAN connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_fortinet_sdwan_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Fortinet SD-WAN connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_fortinet_sdwan_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Google Cloud Interconnect connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_gcp_interconnect_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Google Cloud Interconnect connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_gcp_interconnect_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Google Cloud Interconnect connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_gcp_interconnect_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Google Cloud Interconnect connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_gcp_interconnect_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Google Cloud VPC connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_gcp_vpc_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Google Cloud VPC connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_gcp_vpc_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Google Cloud VPC connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_gcp_vpc_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Google Cloud VPC connector.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_gcp_vpc_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all internet connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_internet_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one internet connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_internet_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one internet connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_internet_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of internet connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_internet_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Advanced IPSec connectors.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_ipsec_adv_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Advanced IPSec connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_ipsec_adv_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Advanced IPSec connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_ipsec_adv_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Advanced IPSec connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_ipsec_adv_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all IPSec connectors. By default, 50 connectors will be returned once. limit will indicate the number of resouces that will returned once. Offset could be used to get the next batch of the resource. Hits will tell the total number ofthe resources.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_ipsec_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one IPSec connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_ipsec_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one IPSec connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_ipsec_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of IPSec connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_ipsec_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all IPSec Tunnel Profiles",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_ipsec_tunnel_profile_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Oracle Cloud Infrastructure VCN connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_oci_vcn_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Oracle Cloud Infrastructure VCN connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_oci_vcn_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Oracle Cloud Infrastructure VCN connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_oci_vcn_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Oracle Cloud Infrastructure VCN connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_oci_vcn_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Remote Access Template connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_remote_access_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Remote Access connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_remote_access_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Remote Access connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_remote_access_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Remote Access connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_remote_access_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Versa SD-WAN connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_versa_sdwan_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Versa SD-WAN connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_versa_sdwan_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Versa SD-WAN connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_versa_sdwan_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Versa SD-WAN connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_versa_sdwan_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all VMware SD-WAN (VeloCloud) connectors",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "connector_vmware_sdwan_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one VMware SD-WAN (VeloCloud) connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "connector_vmware_sdwan_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one VMware SD-WAN (VeloCloud) connector by its name.",
+      "inputSchema": {
+        "properties": {
+          "connectorName": {
+            "description": "Connector Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorName"
+        ],
+        "type": "object"
+      },
+      "name": "connector_vmware_sdwan_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of VMware SD-WAN (VeloCloud) connectors.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "connector_vmware_sdwan_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all CXPs (Cloud Exchange Point). Each CXP is uniquely defined by cloud provider (`provider` field) and cloud provider region (`providerRegion` field).",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "cxp_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one group by its ID.",
+      "inputSchema": {
+        "properties": {
+          "groupId": {
+            "description": "Group ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "groupId"
+        ],
+        "type": "object"
+      },
+      "name": "group_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one group by its name.",
+      "inputSchema": {
+        "properties": {
+          "groupName": {
+            "description": "Group Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "groupName"
+        ],
+        "type": "object"
+      },
+      "name": "group_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of groups.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "group_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get health status of a connector by its ID.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId"
+        ],
+        "type": "object"
+      },
+      "name": "health_connector_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get health status of a connector instance by its ID",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Connector ID.",
+            "type": "string"
+          },
+          "instanceId": {
+            "description": "Instance ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connectorId",
+          "instanceId"
+        ],
+        "type": "object"
+      },
+      "name": "health_connector_instance_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get health status of a service by ID",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "health_service_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get health status of a service instance by ID",
+      "inputSchema": {
+        "properties": {
+          "instanceId": {
+            "description": "Instance ID.",
+            "type": "string"
+          },
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId",
+          "instanceId"
+        ],
+        "type": "object"
+      },
+      "name": "health_service_instance_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Internet Applications",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "internet_application_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Internet Application by ID",
+      "inputSchema": {
+        "properties": {
+          "applicationId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "applicationId"
+        ],
+        "type": "object"
+      },
+      "name": "internet_application_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Internet Application by name",
+      "inputSchema": {
+        "properties": {
+          "applicationName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "applicationName"
+        ],
+        "type": "object"
+      },
+      "name": "internet_application_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Internet Application",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "internet_application_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all AS Path lists for BGP routing.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_as_path_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get AS Path list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_as_path_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get AS Path list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_as_path_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of AS Path lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_as_path_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all BGP Community lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_community_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get BGP Community list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_community_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get BGP Community list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_community_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of BGP Community lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_community_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all DNS Server lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_dns_server_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get DNS Server list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_dns_server_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get DNS Server list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_dns_server_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of DNS Server lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_dns_server_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all BGP Extended Community lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_extended_community_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get BGP Extended Community list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_extended_community_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get BGP Extended Community list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_extended_community_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of BGP Extended Community lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_extended_community_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Global CIDR lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_global_cidr_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Global CIDR list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_global_cidr_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Global CIDR list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_global_cidr_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Global CIDR lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_global_cidr_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Policy FQDN lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_policy_fqdn_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Policy FQDN list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_policy_fqdn_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Policy FQDN list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_policy_fqdn_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of Policy FQDN lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_policy_fqdn_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Policy Prefix list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_prefix_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Policy Prefix list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_prefix_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get Policy Prefix lists by a prefix",
+      "inputSchema": {
+        "properties": {
+          "prefix": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "prefix"
+        ],
+        "type": "object"
+      },
+      "name": "list_prefix_get_by_prefix"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all User Defined Route (UDR) lists.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "list_udr_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get User Defined Route (UDR) list by ID",
+      "inputSchema": {
+        "properties": {
+          "listId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listId"
+        ],
+        "type": "object"
+      },
+      "name": "list_udr_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get User Defined Route (UDR) list by name",
+      "inputSchema": {
+        "properties": {
+          "listName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "listName"
+        ],
+        "type": "object"
+      },
+      "name": "list_udr_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of User Defined Route (UDR) lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "list_udr_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all alerts with optional filter 'status' or 'type', or 'priority'",
+      "inputSchema": {
+        "properties": {
+          "priority": {
+            "description": "Alert Priority",
+            "type": "string"
+          },
+          "status": {
+            "description": "Alert Status, like: 'ACTIVE', 'RESOLVED'",
+            "type": "string"
+          },
+          "type": {
+            "description": "Alert Type, like: 'NETWORK_STATUS'",
+            "enum": [
+              "NETWORK_STATUS",
+              "NETWORK_PROVISIONING",
+              "OPERATIONS",
+              "MISCELLANEOUS",
+              "PREFIX_OVERLAP"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "notification_alerts"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all audit logs with optional filter: 'status' or 'type'",
+      "inputSchema": {
+        "properties": {
+          "status": {
+            "description": "Audit Log Status, like: 'FAILED', 'SUCCEEDED'",
+            "type": "string"
+          },
+          "type": {
+            "description": "Audit Log Type, which defines the type of the audit log.",
+            "enum": [
+              "USER_SETTINGS",
+              "USER_ACCESS",
+              "TENANT_SETTINGS",
+              "NETWORK_PROVISIONING",
+              "NETWORK_CONFIGURATION",
+              "OPERATIONS",
+              "MISCELLANEOUS"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "notification_auditLogs"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all jobs with optional filter: 'status' or 'type'",
+      "inputSchema": {
+        "properties": {
+          "status": {
+            "description": "Job Status, which describes the status of the job.",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "SUCCESS",
+              "FAILED"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "Job Type, which defines the type of the job.",
+            "enum": [
+              "USER_SETTINGS",
+              "USER_ACCESS",
+              "TENANT_SETTINGS",
+              "NETWORK_PROVISIONING",
+              "NETWORK_CONFIGURATION",
+              "OPERATIONS",
+              "MISCELLANEOUS"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "notification_jobs"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all NAT policies. By default, max 50 policies will be returned once.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "policy_nat_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one NAT policy by its ID.",
+      "inputSchema": {
+        "properties": {
+          "policyId": {
+            "description": "Policy ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_nat_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one NAT policy by its name.",
+      "inputSchema": {
+        "properties": {
+          "policyName": {
+            "description": "Policy Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_nat_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of NAT policies.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_nat_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all NAT policy rules. By default, max 50 rules will be returned once.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "policy_nat_rule_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one NAT rule by its ID.",
+      "inputSchema": {
+        "properties": {
+          "ruleId": {
+            "description": "Rule ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_nat_rule_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one NAT rule by its name.",
+      "inputSchema": {
+        "properties": {
+          "ruleName": {
+            "description": "Rule Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_nat_rule_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of NAT policy rules.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_nat_rule_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all route policies.",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "policy_route_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one route policy by its ID.",
+      "inputSchema": {
+        "properties": {
+          "policyId": {
+            "description": "Policy ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_route_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one route policy by its name.",
+      "inputSchema": {
+        "properties": {
+          "policyName": {
+            "description": "Policy Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_route_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of route policies.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_route_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all traffic policies",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_traffic_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one traffic policy by its ID.",
+      "inputSchema": {
+        "properties": {
+          "policyId": {
+            "description": "Policy ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one traffic policy by its name.",
+      "inputSchema": {
+        "properties": {
+          "policyName": {
+            "description": "Policy Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policyName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all traffic policy rules",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one traffic rule by its ID.",
+      "inputSchema": {
+        "properties": {
+          "ruleId": {
+            "description": "Rule ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one traffic rule by its name.",
+      "inputSchema": {
+        "properties": {
+          "ruleName": {
+            "description": "Rule Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Policy Rule lists.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_list_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get traffic policy rule list by ID",
+      "inputSchema": {
+        "properties": {
+          "ruleListId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleListId"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_list_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get traffic policy rule list by name",
+      "inputSchema": {
+        "properties": {
+          "ruleListName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ruleListName"
+        ],
+        "type": "object"
+      },
+      "name": "policy_traffic_rule_list_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Retrieve detailed route information from the routes cache. Examples: Get received routes for segment 'Seg1', Find routes for connector ID 60, Search routes containing 'customer'. Returns route objects with connector details, BGP attributes, segment assignments, and inter-CXP relationships. Requires pagination for large datasets (use limit=100). For advertised routes, specify segmentName or cxp. Common combinations: type+segmentName, type+connectorId+segmentName, type+cxp.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Filter by connector ID - connectors link customer networks (AWS VPCs, Azure VNets, on-premises) to Alkira (e.g., 60)",
+            "type": "string"
+          },
+          "connectorTypes": {
+            "description": "Comma-separated list of connector types (e.g., 'AWS_VPC,AZURE_VNET,IP_SEC')",
+            "type": "string"
+          },
+          "cxp": {
+            "description": "Filter by CXP (Cloud Exchange Point) - Alkira's PoPs in different cloud regions where connectors terminate (e.g., 'US-WEST', 'EU-CENTRAL')",
+            "type": "string"
+          },
+          "entityInstance": {
+            "description": "Exact match for entity instance name (e.g., 'Site1', 'Joshua-VPC-1')",
+            "type": "string"
+          },
+          "entityType": {
+            "description": "Filter by entity type: 'IP-SEC', 'VPC', etc.",
+            "type": "string"
+          },
+          "group": {
+            "description": "Filter by group routes belong to (e.g., 'routes-group1')",
+            "type": "string"
+          },
+          "includeSharedRoutes": {
+            "description": "Include segment resource shared routes (default: true)",
+            "type": "boolean"
+          },
+          "includeTranslatedRoutes": {
+            "description": "Include NAT translated routes (default: true)",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum number of routes to return per page (recommended: 100 for optimal performance)",
+            "type": "number"
+          },
+          "lpmPrefix": {
+            "description": "Longest Prefix Match search for IP address. If connectorId provided, searches on that connector; otherwise searches across segments (e.g., '0.0.0.0', '10.1.0.0')",
+            "type": "string"
+          },
+          "offset": {
+            "description": "Starting offset for route retrieval (pagination required for large datasets)",
+            "type": "number"
+          },
+          "outputFormat": {
+            "description": "Output format: json, table, csv, summary (default: json)",
+            "type": "string"
+          },
+          "overlapType": {
+            "description": "Filter by overlap type - routes with conflicting prefixes: 'OVERLAP_INVALIDATED', 'SEGSHARE_OVERLAP', 'REMOTE_CXP_OVERLAP_INVALIDATED'",
+            "type": "string"
+          },
+          "prefix": {
+            "description": "Exact match prefix filter. Use URL encoding for '/' (e.g., '10.1.1.0%2F24' for '10.1.1.0/24')",
+            "type": "string"
+          },
+          "prefixRange": {
+            "description": "Filter by IP prefix range (e.g., '10.0.0.0/8', '192.168.0.0/16')",
+            "type": "string"
+          },
+          "prefixType": {
+            "description": "Filter by route scope: 'LOCAL' (segment-only), 'SHARED' (cross-segment via segment resource shares)",
+            "type": "string"
+          },
+          "routeRecvType": {
+            "description": "Filter by route processing status: 'HIGH_CHURN' (suppressed/flapping), 'OVERLAP' (conflicting prefixes), 'ORIGINAL' (clean routes)",
+            "type": "string"
+          },
+          "routeStatus": {
+            "description": "Filter by route status: active, suppressed, overlap",
+            "type": "string"
+          },
+          "search": {
+            "description": "Search across all fields, returns routes matching the term (e.g., 'Ipsec', 'customer')",
+            "type": "string"
+          },
+          "segmentId": {
+            "description": "Filter by segment ID (numeric identifier like 12)",
+            "type": "string"
+          },
+          "segmentName": {
+            "description": "Filter by network segment - isolated routing domains that provide security boundaries and traffic control (e.g., 'Corporate', 'DMZ')",
+            "type": "string"
+          },
+          "segmentNames": {
+            "description": "Comma-separated list of segment names to match against (e.g., 'seg1,seg2')",
+            "type": "string"
+          },
+          "segmentResourceShare": {
+            "description": "Filter by segment resource share - allows selective route sharing between network segments (e.g., 'corp-dmz-share')",
+            "type": "string"
+          },
+          "sourceCXP": {
+            "description": "Filter by source CXP for inter-CXP routes - routes redistributed between different Alkira regions",
+            "type": "string"
+          },
+          "type": {
+            "description": "Routes type cache to pull: 'received' (routes learned by Alkira) or 'advertised' (routes Alkira advertises to connectors)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "route_get"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get ALL routes with automatic pagination (handles large result sets efficiently)",
+      "inputSchema": {
+        "properties": {
+          "batchSize": {
+            "description": "Routes per batch (default: 50, max: 100)",
+            "type": "number"
+          },
+          "connectorType": {
+            "description": "Filter by connector type (SAAS, REMOTE_ACCESS, AWS_VPC, etc.)",
+            "type": "string"
+          },
+          "cxp": {
+            "description": "Filter by Cloud Exchange Point",
+            "type": "string"
+          },
+          "outputFormat": {
+            "description": "Output format: json, summary, count (default: json)",
+            "type": "string"
+          },
+          "segmentName": {
+            "description": "Filter by segment name",
+            "type": "string"
+          },
+          "type": {
+            "description": "Route type: 'received', 'advertised', or 'overlap' (required)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "route_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get route count matching specified criteria. More efficient than getRoutes for count-only queries. Useful for: checking route table sizes before pagination, monitoring route growth, validating filter effectiveness before full data retrieval.",
+      "inputSchema": {
+        "properties": {
+          "connectorId": {
+            "description": "Filter by connector ID - connectors link customer networks (AWS VPCs, Azure VNets, on-premises) to Alkira (e.g., 60)",
+            "type": "string"
+          },
+          "connectorTypes": {
+            "description": "Comma-separated list of connector types (e.g., 'AWS_VPC,AZURE_VNET,IP_SEC')",
+            "type": "string"
+          },
+          "cxp": {
+            "description": "Filter by CXP (Cloud Exchange Point) - Alkira's PoPs in different cloud regions where connectors terminate (e.g., 'US-WEST', 'EU-CENTRAL')",
+            "type": "string"
+          },
+          "entityInstance": {
+            "description": "Exact match for entity instance name (e.g., 'Site1', 'Joshua-VPC-1')",
+            "type": "string"
+          },
+          "entityType": {
+            "description": "Filter by entity type: 'IP-SEC', 'VPC', etc.",
+            "type": "string"
+          },
+          "group": {
+            "description": "Filter by group routes belong to (e.g., 'routes-group1')",
+            "type": "string"
+          },
+          "includeSharedRoutes": {
+            "description": "Include segment resource shared routes (default: true)",
+            "type": "boolean"
+          },
+          "includeTranslatedRoutes": {
+            "description": "Include NAT translated routes (default: true)",
+            "type": "boolean"
+          },
+          "lpmPrefix": {
+            "description": "Longest Prefix Match search for IP address (e.g., '0.0.0.0', '10.1.0.0')",
+            "type": "string"
+          },
+          "outputFormat": {
+            "description": "Output format: json, table, csv, summary (default: json)",
+            "type": "string"
+          },
+          "overlapType": {
+            "description": "Filter by overlap type - routes with conflicting prefixes: 'OVERLAP_INVALIDATED', 'SEGSHARE_OVERLAP', 'REMOTE_CXP_OVERLAP_INVALIDATED'",
+            "type": "string"
+          },
+          "prefix": {
+            "description": "Exact match prefix filter. Use URL encoding for '/' (e.g., '10.1.1.0%2F24' for '10.1.1.0/24')",
+            "type": "string"
+          },
+          "prefixRange": {
+            "description": "Filter by IP prefix range (e.g., '10.0.0.0/8', '192.168.0.0/16')",
+            "type": "string"
+          },
+          "prefixType": {
+            "description": "Filter by route scope: 'LOCAL' (segment-only), 'SHARED' (cross-segment via segment resource shares)",
+            "type": "string"
+          },
+          "routeRecvType": {
+            "description": "Filter by route processing status: 'HIGH_CHURN' (suppressed/flapping), 'OVERLAP' (conflicting prefixes), 'ORIGINAL' (clean routes)",
+            "type": "string"
+          },
+          "search": {
+            "description": "Search across all fields, returns routes matching the term (e.g., 'Ipsec', 'customer')",
+            "type": "string"
+          },
+          "segmentId": {
+            "description": "Filter by segment ID (numeric identifier like 12)",
+            "type": "string"
+          },
+          "segmentName": {
+            "description": "Filter by network segment - isolated routing domains that provide security boundaries and traffic control (e.g., 'Corporate', 'DMZ')",
+            "type": "string"
+          },
+          "segmentNames": {
+            "description": "Comma-separated list of segment names to match against (e.g., 'seg1,seg2')",
+            "type": "string"
+          },
+          "segmentResourceShare": {
+            "description": "Filter by segment resource share - allows selective route sharing between network segments (e.g., 'corp-dmz-share')",
+            "type": "string"
+          },
+          "sourceCXP": {
+            "description": "Filter by source CXP for inter-CXP routes - routes redistributed between different Alkira regions",
+            "type": "string"
+          },
+          "type": {
+            "description": "Routes type cache to count: 'received' (routes learned by Alkira) or 'advertised' (routes Alkira advertises to connectors)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "route_get_count"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get aggregated route analytics grouped by connector type, segment, or CXP. Provides route distribution insights, connector utilization, and network topology understanding. Use includeDetails for per-connector breakdowns.",
+      "inputSchema": {
+        "properties": {
+          "groupBy": {
+            "description": "Group routes by: connectorType, segment, cxp, connectorName, prefixRange (default: connectorType)",
+            "type": "string"
+          },
+          "includeDetails": {
+            "description": "Include detailed breakdown (default: false)",
+            "type": "boolean"
+          },
+          "includePrefixAnalysis": {
+            "description": "Include IP prefix range analysis (default: false)",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "Route type: 'received', 'advertised', or 'overlap' (required)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "name": "route_get_summary"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all segments.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "segment_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one segment by its ID.",
+      "inputSchema": {
+        "properties": {
+          "segmentId": {
+            "description": "Segment ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "segmentId"
+        ],
+        "type": "object"
+      },
+      "name": "segment_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one segment by its name.",
+      "inputSchema": {
+        "properties": {
+          "segmentName": {
+            "description": "Segment Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "segmentName"
+        ],
+        "type": "object"
+      },
+      "name": "segment_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all segment resources",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "segment_resource_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get segment resource by ID.",
+      "inputSchema": {
+        "properties": {
+          "resourceId": {
+            "description": "Segment Resource ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resourceId"
+        ],
+        "type": "object"
+      },
+      "name": "segment_resource_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get segment resource by name.",
+      "inputSchema": {
+        "properties": {
+          "resourceName": {
+            "description": "Segment Resource Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resourceName"
+        ],
+        "type": "object"
+      },
+      "name": "segment_resource_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of segment resources.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "segment_resource_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all segment resource shares",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "20",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "segment_resource_share_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get segment resource share by ID.",
+      "inputSchema": {
+        "properties": {
+          "shareId": {
+            "description": "Segment Resource Share ID",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shareId"
+        ],
+        "type": "object"
+      },
+      "name": "segment_resource_share_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get segment resource share by name.",
+      "inputSchema": {
+        "properties": {
+          "shareName": {
+            "description": "Segment Resource Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "shareName"
+        ],
+        "type": "object"
+      },
+      "name": "segment_resource_share_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total numbers of segment resource shares.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "segment_resource_share_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Check Point firewall services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_check_point_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Check Point firewall service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_check_point_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Check Point firewall service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_check_point_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Check Point firewall services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_check_point_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Cisco Firepower Threat Defense virtual services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_cisco_ftdv_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Cisco Firepower Threat Defense virtual service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_cisco_ftdv_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Cisco Firepower Threat Defense virtual service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_cisco_ftdv_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Cisco Firepower Threat Defense virtual services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_cisco_ftdv_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all F5 Load Balancer services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_f5_lb_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one F5 Load Balancer service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_f5_lb_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one F5 Load Balancer service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_f5_lb_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of F5 Load Balancer services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_f5_lb_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Fortinet firewall services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_fortinet_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Fortinet firewall service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_fortinet_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Fortinet firewall service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_fortinet_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Fortinet firewall services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_fortinet_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Infoblox DNS/DHCP services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_infoblox_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Infoblox DNS/DHCP service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_infoblox_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Infoblox DNS/DHCP service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_infoblox_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Infoblox DNS/DHCP services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_infoblox_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Palo Alto Networks (PAN) firewall services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_pan_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Palo Alto Networks firewall service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_pan_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Palo Alto Networks firewall service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_pan_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Palo Alto Networks firewall services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_pan_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all Zscaler security services",
+      "inputSchema": {
+        "properties": {
+          "limit": {
+            "default": "50",
+            "description": "Pagination limit",
+            "type": "string"
+          },
+          "offset": {
+            "default": "0",
+            "description": "Pagination offset",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "service_zscaler_get_all"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Zscaler security service by its ID.",
+      "inputSchema": {
+        "properties": {
+          "serviceId": {
+            "description": "Service ID.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceId"
+        ],
+        "type": "object"
+      },
+      "name": "service_zscaler_get_by_id"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get details of one Zscaler security service by its name.",
+      "inputSchema": {
+        "properties": {
+          "serviceName": {
+            "description": "Service Name.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "serviceName"
+        ],
+        "type": "object"
+      },
+      "name": "service_zscaler_get_by_name"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get total number of Zscaler security services",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "service_zscaler_get_total"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get all fireall zones of the tenant network.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "tenant_network_firewall_zones"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get tenant network summary of the tenant that contains some basic infos of the tenant network, especially the number of connectors and services of the tenant network.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "tenant_network_summary"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get limits of all resources",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "tenant_resource_limits"
+    },
+    {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Get resource usages with optional filter 'category' or 'type', or 'scope'",
+      "inputSchema": {
+        "properties": {
+          "category": {
+            "description": "Resource category",
+            "type": "string"
+          },
+          "scope": {
+            "description": "Resource scope",
+            "type": "string"
+          },
+          "type": {
+            "description": "Resource type",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "tenant_resource_usages"
+    }
+  ]
+}
