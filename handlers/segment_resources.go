@@ -7,9 +7,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func SegmentResourceGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func SegmentResourceGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -29,9 +33,13 @@ func SegmentResourceGetAll(client *ak.AlkiraClient) func(ctx context.Context, re
 	}
 }
 
-func SegmentResourceGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func SegmentResourceGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		resourceId, err := request.RequireString("resourceId")
 
@@ -54,9 +62,13 @@ func SegmentResourceGetById(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func SegmentResourceGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func SegmentResourceGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		resourceName, err := request.RequireString("resourceName")
 
@@ -79,9 +91,13 @@ func SegmentResourceGetByName(client *ak.AlkiraClient) func(ctx context.Context,
 	}
 }
 
-func SegmentResourceGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func SegmentResourceGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// INIT
 		api := ak.NewSegmentResource(client)

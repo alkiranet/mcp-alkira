@@ -96,9 +96,9 @@ func main() {
 	srv.AddTool(tools.CxpGetAll(), handlers.CxpGetAll(alkiraClient))
 
 	// Add segment tools
-	srv.AddTool(tools.SegmentGetAll(), handlers.SegmentGetAll(alkiraClient))
-	srv.AddTool(tools.SegmentGetById(), handlers.SegmentGetById(alkiraClient))
-	srv.AddTool(tools.SegmentGetByName(), handlers.SegmentGetByName(alkiraClient))
+	srv.AddTool(tools.SegmentGetAll(), handlers.SegmentGetAll(getClient))
+	srv.AddTool(tools.SegmentGetById(), handlers.SegmentGetById(getClient))
+	srv.AddTool(tools.SegmentGetByName(), handlers.SegmentGetByName(getClient))
 
 	// Add group tools
 	srv.AddTool(tools.GroupGetById(), handlers.GroupGetById(alkiraClient))
@@ -112,16 +112,16 @@ func main() {
 	srv.AddTool(tools.ByoipGetTotal(), handlers.ByoipGetTotal(alkiraClient))
 
 	// Add segment resource tools
-	srv.AddTool(tools.SegmentResourceGetAll(), handlers.SegmentResourceGetAll(alkiraClient))
-	srv.AddTool(tools.SegmentResourceGetById(), handlers.SegmentResourceGetById(alkiraClient))
-	srv.AddTool(tools.SegmentResourceGetByName(), handlers.SegmentResourceGetByName(alkiraClient))
-	srv.AddTool(tools.SegmentResourceGetTotal(), handlers.SegmentResourceGetTotal(alkiraClient))
+	srv.AddTool(tools.SegmentResourceGetAll(), handlers.SegmentResourceGetAll(getClient))
+	srv.AddTool(tools.SegmentResourceGetById(), handlers.SegmentResourceGetById(getClient))
+	srv.AddTool(tools.SegmentResourceGetByName(), handlers.SegmentResourceGetByName(getClient))
+	srv.AddTool(tools.SegmentResourceGetTotal(), handlers.SegmentResourceGetTotal(getClient))
 
 	// Add segment resource share tools
-	srv.AddTool(tools.SegmentResourceShareGetAll(), handlers.SegmentResourceShareGetAll(alkiraClient))
-	srv.AddTool(tools.SegmentResourceShareGetById(), handlers.SegmentResourceShareGetById(alkiraClient))
-	srv.AddTool(tools.SegmentResourceShareGetByName(), handlers.SegmentResourceShareGetByName(alkiraClient))
-	srv.AddTool(tools.SegmentResourceShareGetTotal(), handlers.SegmentResourceShareGetTotal(alkiraClient))
+	srv.AddTool(tools.SegmentResourceShareGetAll(), handlers.SegmentResourceShareGetAll(getClient))
+	srv.AddTool(tools.SegmentResourceShareGetById(), handlers.SegmentResourceShareGetById(getClient))
+	srv.AddTool(tools.SegmentResourceShareGetByName(), handlers.SegmentResourceShareGetByName(getClient))
+	srv.AddTool(tools.SegmentResourceShareGetTotal(), handlers.SegmentResourceShareGetTotal(getClient))
 
 	// Add Check Point firewall service tools
 	srv.AddTool(tools.ServiceCheckPointGetAll(), handlers.ServiceCheckPointGetAll(alkiraClient))
@@ -282,82 +282,82 @@ func main() {
 	srv.AddTool(tools.GetAllRoutes(), handlers.AllRouteGet(alkiraClient))
 
 	// Add NAT policy tools
-	srv.AddTool(tools.PolicyNatGetAll(), handlers.PolicyNatGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyNatGetById(), handlers.PolicyNatGetById(alkiraClient))
-	srv.AddTool(tools.PolicyNatGetByName(), handlers.PolicyNatGetByName(alkiraClient))
-	srv.AddTool(tools.PolicyNatGetTotal(), handlers.PolicyNatGetTotal(alkiraClient))
+	srv.AddTool(tools.PolicyNatGetAll(), handlers.PolicyNatGetAll(getClient))
+	srv.AddTool(tools.PolicyNatGetById(), handlers.PolicyNatGetById(getClient))
+	srv.AddTool(tools.PolicyNatGetByName(), handlers.PolicyNatGetByName(getClient))
+	srv.AddTool(tools.PolicyNatGetTotal(), handlers.PolicyNatGetTotal(getClient))
 
-	srv.AddTool(tools.PolicyNatRuleGetAll(), handlers.PolicyNatRuleGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyNatRuleGetById(), handlers.PolicyNatRuleGetById(alkiraClient))
-	srv.AddTool(tools.PolicyNatRuleGetByName(), handlers.PolicyNatRuleGetByName(alkiraClient))
-	srv.AddTool(tools.PolicyNatRuleGetTotal(), handlers.PolicyNatRuleGetTotal(alkiraClient))
+	srv.AddTool(tools.PolicyNatRuleGetAll(), handlers.PolicyNatRuleGetAll(getClient))
+	srv.AddTool(tools.PolicyNatRuleGetById(), handlers.PolicyNatRuleGetById(getClient))
+	srv.AddTool(tools.PolicyNatRuleGetByName(), handlers.PolicyNatRuleGetByName(getClient))
+	srv.AddTool(tools.PolicyNatRuleGetTotal(), handlers.PolicyNatRuleGetTotal(getClient))
 
 	// Add Route policy tools
-	srv.AddTool(tools.PolicyRouteGetAll(), handlers.PolicyRouteGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyRouteGetById(), handlers.PolicyRouteGetById(alkiraClient))
-	srv.AddTool(tools.PolicyRouteGetByName(), handlers.PolicyRouteGetByName(alkiraClient))
-	srv.AddTool(tools.PolicyRouteGetTotal(), handlers.PolicyRouteGetTotal(alkiraClient))
+	srv.AddTool(tools.PolicyRouteGetAll(), handlers.PolicyRouteGetAll(getClient))
+	srv.AddTool(tools.PolicyRouteGetById(), handlers.PolicyRouteGetById(getClient))
+	srv.AddTool(tools.PolicyRouteGetByName(), handlers.PolicyRouteGetByName(getClient))
+	srv.AddTool(tools.PolicyRouteGetTotal(), handlers.PolicyRouteGetTotal(getClient))
 
 	// Add Traffic policy tools
-	srv.AddTool(tools.PolicyTrafficGetAll(), handlers.PolicyTrafficGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficGetById(), handlers.PolicyTrafficGetById(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficGetByName(), handlers.PolicyTrafficGetByName(alkiraClient))
+	srv.AddTool(tools.PolicyTrafficGetAll(), handlers.PolicyTrafficGetAll(getClient))
+	srv.AddTool(tools.PolicyTrafficGetById(), handlers.PolicyTrafficGetById(getClient))
+	srv.AddTool(tools.PolicyTrafficGetByName(), handlers.PolicyTrafficGetByName(getClient))
 
-	srv.AddTool(tools.PolicyTrafficRuleGetAll(), handlers.PolicyTrafficRuleGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficRuleGetById(), handlers.PolicyTrafficRuleGetById(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficRuleGetByName(), handlers.PolicyTrafficRuleGetByName(alkiraClient))
+	srv.AddTool(tools.PolicyTrafficRuleGetAll(), handlers.PolicyTrafficRuleGetAll(getClient))
+	srv.AddTool(tools.PolicyTrafficRuleGetById(), handlers.PolicyTrafficRuleGetById(getClient))
+	srv.AddTool(tools.PolicyTrafficRuleGetByName(), handlers.PolicyTrafficRuleGetByName(getClient))
 
 	// Add traffic policy rule list tools
-	srv.AddTool(tools.PolicyTrafficRuleListGetAll(), handlers.PolicyTrafficRuleListGetAll(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficRuleListGetById(), handlers.PolicyTrafficRuleListGetById(alkiraClient))
-	srv.AddTool(tools.PolicyTrafficRuleListGetByName(), handlers.PolicyTrafficRuleListGetByName(alkiraClient))
+	srv.AddTool(tools.PolicyTrafficRuleListGetAll(), handlers.PolicyTrafficRuleListGetAll(getClient))
+	srv.AddTool(tools.PolicyTrafficRuleListGetById(), handlers.PolicyTrafficRuleListGetById(getClient))
+	srv.AddTool(tools.PolicyTrafficRuleListGetByName(), handlers.PolicyTrafficRuleListGetByName(getClient))
 
 	// Add AS Path list tools
-	srv.AddTool(tools.ListAsPathGetAll(), handlers.ListAsPathGetAll(alkiraClient))
-	srv.AddTool(tools.ListAsPathGetById(), handlers.ListAsPathGetById(alkiraClient))
-	srv.AddTool(tools.ListAsPathGetByName(), handlers.ListAsPathGetByName(alkiraClient))
-	srv.AddTool(tools.ListAsPathGetTotal(), handlers.ListAsPathGetTotal(alkiraClient))
+	srv.AddTool(tools.ListAsPathGetAll(), handlers.ListAsPathGetAll(getClient))
+	srv.AddTool(tools.ListAsPathGetById(), handlers.ListAsPathGetById(getClient))
+	srv.AddTool(tools.ListAsPathGetByName(), handlers.ListAsPathGetByName(getClient))
+	srv.AddTool(tools.ListAsPathGetTotal(), handlers.ListAsPathGetTotal(getClient))
 
 	// Add BGP Community list tools
-	srv.AddTool(tools.ListCommunityGetAll(), handlers.ListCommunityGetAll(alkiraClient))
-	srv.AddTool(tools.ListCommunityGetById(), handlers.ListCommunityGetById(alkiraClient))
-	srv.AddTool(tools.ListCommunityGetByName(), handlers.ListCommunityGetByName(alkiraClient))
-	srv.AddTool(tools.ListCommunityGetTotal(), handlers.ListCommunityGetTotal(alkiraClient))
+	srv.AddTool(tools.ListCommunityGetAll(), handlers.ListCommunityGetAll(getClient))
+	srv.AddTool(tools.ListCommunityGetById(), handlers.ListCommunityGetById(getClient))
+	srv.AddTool(tools.ListCommunityGetByName(), handlers.ListCommunityGetByName(getClient))
+	srv.AddTool(tools.ListCommunityGetTotal(), handlers.ListCommunityGetTotal(getClient))
 
 	// Add BGP Extended Community list tools
-	srv.AddTool(tools.ListExtendedCommunityGetAll(), handlers.ListExtendedCommunityGetAll(alkiraClient))
-	srv.AddTool(tools.ListExtendedCommunityGetById(), handlers.ListExtendedCommunityGetById(alkiraClient))
-	srv.AddTool(tools.ListExtendedCommunityGetByName(), handlers.ListExtendedCommunityGetByName(alkiraClient))
-	srv.AddTool(tools.ListExtendedCommunityGetTotal(), handlers.ListExtendedCommunityGetTotal(alkiraClient))
+	srv.AddTool(tools.ListExtendedCommunityGetAll(), handlers.ListExtendedCommunityGetAll(getClient))
+	srv.AddTool(tools.ListExtendedCommunityGetById(), handlers.ListExtendedCommunityGetById(getClient))
+	srv.AddTool(tools.ListExtendedCommunityGetByName(), handlers.ListExtendedCommunityGetByName(getClient))
+	srv.AddTool(tools.ListExtendedCommunityGetTotal(), handlers.ListExtendedCommunityGetTotal(getClient))
 
 	// Add DNS Server list tools
-	srv.AddTool(tools.ListDnsServerGetAll(), handlers.ListDnsServerGetAll(alkiraClient))
-	srv.AddTool(tools.ListDnsServerGetById(), handlers.ListDnsServerGetById(alkiraClient))
-	srv.AddTool(tools.ListDnsServerGetByName(), handlers.ListDnsServerGetByName(alkiraClient))
-	srv.AddTool(tools.ListDnsServerGetTotal(), handlers.ListDnsServerGetTotal(alkiraClient))
+	srv.AddTool(tools.ListDnsServerGetAll(), handlers.ListDnsServerGetAll(getClient))
+	srv.AddTool(tools.ListDnsServerGetById(), handlers.ListDnsServerGetById(getClient))
+	srv.AddTool(tools.ListDnsServerGetByName(), handlers.ListDnsServerGetByName(getClient))
+	srv.AddTool(tools.ListDnsServerGetTotal(), handlers.ListDnsServerGetTotal(getClient))
 
 	// Add Global CIDR list tools
-	srv.AddTool(tools.ListGlobalCidrGetAll(), handlers.ListGlobalCidrGetAll(alkiraClient))
-	srv.AddTool(tools.ListGlobalCidrGetById(), handlers.ListGlobalCidrGetById(alkiraClient))
-	srv.AddTool(tools.ListGlobalCidrGetByName(), handlers.ListGlobalCidrGetByName(alkiraClient))
-	srv.AddTool(tools.ListGlobalCidrGetTotal(), handlers.ListGlobalCidrGetTotal(alkiraClient))
+	srv.AddTool(tools.ListGlobalCidrGetAll(), handlers.ListGlobalCidrGetAll(getClient))
+	srv.AddTool(tools.ListGlobalCidrGetById(), handlers.ListGlobalCidrGetById(getClient))
+	srv.AddTool(tools.ListGlobalCidrGetByName(), handlers.ListGlobalCidrGetByName(getClient))
+	srv.AddTool(tools.ListGlobalCidrGetTotal(), handlers.ListGlobalCidrGetTotal(getClient))
 
 	// Add User Defined Route (UDR) list tools
-	srv.AddTool(tools.ListUdrGetAll(), handlers.ListUdrGetAll(alkiraClient))
-	srv.AddTool(tools.ListUdrGetById(), handlers.ListUdrGetById(alkiraClient))
-	srv.AddTool(tools.ListUdrGetByName(), handlers.ListUdrGetByName(alkiraClient))
-	srv.AddTool(tools.ListUdrGetTotal(), handlers.ListUdrGetTotal(alkiraClient))
+	srv.AddTool(tools.ListUdrGetAll(), handlers.ListUdrGetAll(getClient))
+	srv.AddTool(tools.ListUdrGetById(), handlers.ListUdrGetById(getClient))
+	srv.AddTool(tools.ListUdrGetByName(), handlers.ListUdrGetByName(getClient))
+	srv.AddTool(tools.ListUdrGetTotal(), handlers.ListUdrGetTotal(getClient))
 
 	// Add Policy Prefix list tools
-	srv.AddTool(tools.ListPrefixGetById(), handlers.ListPrefixGetById(alkiraClient))
-	srv.AddTool(tools.ListPrefixGetByName(), handlers.ListPrefixGetByName(alkiraClient))
-	srv.AddTool(tools.ListPrefixGetByPrefix(), handlers.ListPrefixGetByPrefix(alkiraClient))
+	srv.AddTool(tools.ListPrefixGetById(), handlers.ListPrefixGetById(getClient))
+	srv.AddTool(tools.ListPrefixGetByName(), handlers.ListPrefixGetByName(getClient))
+	srv.AddTool(tools.ListPrefixGetByPrefix(), handlers.ListPrefixGetByPrefix(getClient))
 
 	// Add Policy FQDN list tools
-	srv.AddTool(tools.ListPolicyFqdnGetAll(), handlers.ListPolicyFqdnGetAll(alkiraClient))
-	srv.AddTool(tools.ListPolicyFqdnGetById(), handlers.ListPolicyFqdnGetById(alkiraClient))
-	srv.AddTool(tools.ListPolicyFqdnGetByName(), handlers.ListPolicyFqdnGetByName(alkiraClient))
-	srv.AddTool(tools.ListPolicyFqdnGetTotal(), handlers.ListPolicyFqdnGetTotal(alkiraClient))
+	srv.AddTool(tools.ListPolicyFqdnGetAll(), handlers.ListPolicyFqdnGetAll(getClient))
+	srv.AddTool(tools.ListPolicyFqdnGetById(), handlers.ListPolicyFqdnGetById(getClient))
+	srv.AddTool(tools.ListPolicyFqdnGetByName(), handlers.ListPolicyFqdnGetByName(getClient))
+	srv.AddTool(tools.ListPolicyFqdnGetTotal(), handlers.ListPolicyFqdnGetTotal(getClient))
 
 	// Add monitoring tools
 	srv.AddTool(tools.Alerts(), handlers.Alerts(alkiraClient))
