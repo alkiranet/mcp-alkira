@@ -7,9 +7,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func PolicyTrafficRuleListGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PolicyTrafficRuleListGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// INIT
 		api := ak.NewTrafficPolicyRuleList(client)
@@ -26,9 +30,13 @@ func PolicyTrafficRuleListGetAll(client *ak.AlkiraClient) func(ctx context.Conte
 	}
 }
 
-func PolicyTrafficRuleListGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PolicyTrafficRuleListGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		ruleListId, err := request.RequireString("ruleListId")
 
@@ -51,9 +59,13 @@ func PolicyTrafficRuleListGetById(client *ak.AlkiraClient) func(ctx context.Cont
 	}
 }
 
-func PolicyTrafficRuleListGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func PolicyTrafficRuleListGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		ruleListName, err := request.RequireString("ruleListName")
 

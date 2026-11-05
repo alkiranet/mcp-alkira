@@ -3,13 +3,16 @@ package handlers
 import (
 	"context"
 
-	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func TenantResourceUsages(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func TenantResourceUsages(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		resourceCategory, err := request.RequireString("category")
 		if err != nil {
@@ -39,9 +42,13 @@ func TenantResourceUsages(client *ak.AlkiraClient) func(ctx context.Context, req
 	}
 }
 
-func TenantResourceLimits(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func TenantResourceLimits(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// Get resources
 		data, err := client.GetResourceLimits()
