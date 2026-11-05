@@ -15,6 +15,7 @@ func ConnectorArubaEdgeGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func ConnectorArubaEdgeGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func ConnectorArubaEdgeGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorArubaEdgeGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_aruba_edge_get_total",
 		mcp.WithDescription("Get total numbers of Aruba Edge Connect SD-WAN connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

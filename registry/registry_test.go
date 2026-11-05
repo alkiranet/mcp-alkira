@@ -241,3 +241,22 @@ func TestDesktopMain_UsesRegistry(t *testing.T) {
 		t.Fatal("main.go does not call registry.Register")
 	}
 }
+
+func TestRegister_ReadOnlyHint(t *testing.T) {
+	var res struct {
+		Tools []struct {
+			Name        string `json:"name"`
+			Annotations struct {
+				ReadOnlyHint *bool `json:"readOnlyHint"`
+			} `json:"annotations"`
+		} `json:"tools"`
+	}
+	if err := json.Unmarshal(call(t, newServer(noClient), "tools/list", nil), &res); err != nil {
+		t.Fatal(err)
+	}
+	for _, tool := range res.Tools {
+		if hint := tool.Annotations.ReadOnlyHint; hint == nil || !*hint {
+			t.Errorf("%s: readOnlyHint is not true", tool.Name)
+		}
+	}
+}

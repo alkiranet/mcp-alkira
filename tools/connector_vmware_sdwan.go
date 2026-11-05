@@ -15,6 +15,7 @@ func ConnectorVmwareSdwanGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func ConnectorVmwareSdwanGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func ConnectorVmwareSdwanGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorVmwareSdwanGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_vmware_sdwan_get_total",
 		mcp.WithDescription("Get total numbers of VMware SD-WAN (VeloCloud) connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

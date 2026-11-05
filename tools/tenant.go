@@ -16,11 +16,13 @@ func TenantResourceUsages() mcp.Tool {
 		mcp.WithString("scope",
 			mcp.Description("Resource scope"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func TenantResourceLimits() mcp.Tool {
 	return mcp.NewTool("tenant_resource_limits",
 		mcp.WithDescription("Get limits of all resources"),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
