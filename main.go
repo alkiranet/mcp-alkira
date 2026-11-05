@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -70,6 +71,8 @@ func main() {
 		logf("ERROR", "failed to initialize alkira client, please check your credential and portal URI.")
 		return
 	}
+
+	getClient := func(context.Context) (*ak.AlkiraClient, error) { return alkiraClient, nil }
 
 	// Create MCP server
 	srv := server.NewMCPServer(
@@ -163,108 +166,108 @@ func main() {
 	srv.AddTool(tools.ServiceZscalerGetTotal(), handlers.ServiceZscalerGetTotal(alkiraClient))
 
 	// Add Aruba Edge Connect SD-WAN connector tools
-	srv.AddTool(tools.ConnectorArubaEdgeGetAll(), handlers.ConnectorArubaEdgeGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorArubaEdgeGetById(), handlers.ConnectorArubaEdgeGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorArubaEdgeGetByName(), handlers.ConnectorArubaEdgeGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorArubaEdgeGetTotal(), handlers.ConnectorArubaEdgeGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorArubaEdgeGetAll(), handlers.ConnectorArubaEdgeGetAll(getClient))
+	srv.AddTool(tools.ConnectorArubaEdgeGetById(), handlers.ConnectorArubaEdgeGetById(getClient))
+	srv.AddTool(tools.ConnectorArubaEdgeGetByName(), handlers.ConnectorArubaEdgeGetByName(getClient))
+	srv.AddTool(tools.ConnectorArubaEdgeGetTotal(), handlers.ConnectorArubaEdgeGetTotal(getClient))
 
 	// Add AWS Direct Connect connector tools
-	srv.AddTool(tools.ConnectorAwsDirectConnectGetAll(), handlers.ConnectorAwsDirectConnectGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsDirectConnectGetById(), handlers.ConnectorAwsDirectConnectGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsDirectConnectGetByName(), handlers.ConnectorAwsDirectConnectGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsDirectConnectGetTotal(), handlers.ConnectorAwsDirectConnectGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorAwsDirectConnectGetAll(), handlers.ConnectorAwsDirectConnectGetAll(getClient))
+	srv.AddTool(tools.ConnectorAwsDirectConnectGetById(), handlers.ConnectorAwsDirectConnectGetById(getClient))
+	srv.AddTool(tools.ConnectorAwsDirectConnectGetByName(), handlers.ConnectorAwsDirectConnectGetByName(getClient))
+	srv.AddTool(tools.ConnectorAwsDirectConnectGetTotal(), handlers.ConnectorAwsDirectConnectGetTotal(getClient))
 
 	// Add AWS Transit Gateway connector tools
-	srv.AddTool(tools.ConnectorAwsTgwGetAll(), handlers.ConnectorAwsTgwGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsTgwGetById(), handlers.ConnectorAwsTgwGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsTgwGetByName(), handlers.ConnectorAwsTgwGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsTgwGetTotal(), handlers.ConnectorAwsTgwGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorAwsTgwGetAll(), handlers.ConnectorAwsTgwGetAll(getClient))
+	srv.AddTool(tools.ConnectorAwsTgwGetById(), handlers.ConnectorAwsTgwGetById(getClient))
+	srv.AddTool(tools.ConnectorAwsTgwGetByName(), handlers.ConnectorAwsTgwGetByName(getClient))
+	srv.AddTool(tools.ConnectorAwsTgwGetTotal(), handlers.ConnectorAwsTgwGetTotal(getClient))
 
 	// Add Azure ExpressRoute connector tools
-	srv.AddTool(tools.ConnectorAzureExpressRouteGetAll(), handlers.ConnectorAzureExpressRouteGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureExpressRouteGetById(), handlers.ConnectorAzureExpressRouteGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureExpressRouteGetByName(), handlers.ConnectorAzureExpressRouteGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureExpressRouteGetTotal(), handlers.ConnectorAzureExpressRouteGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorAzureExpressRouteGetAll(), handlers.ConnectorAzureExpressRouteGetAll(getClient))
+	srv.AddTool(tools.ConnectorAzureExpressRouteGetById(), handlers.ConnectorAzureExpressRouteGetById(getClient))
+	srv.AddTool(tools.ConnectorAzureExpressRouteGetByName(), handlers.ConnectorAzureExpressRouteGetByName(getClient))
+	srv.AddTool(tools.ConnectorAzureExpressRouteGetTotal(), handlers.ConnectorAzureExpressRouteGetTotal(getClient))
 
 	// Add Cisco SD-WAN connector tools
-	srv.AddTool(tools.ConnectorCiscoSdwanGetAll(), handlers.ConnectorCiscoSdwanGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorCiscoSdwanGetById(), handlers.ConnectorCiscoSdwanGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorCiscoSdwanGetByName(), handlers.ConnectorCiscoSdwanGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorCiscoSdwanGetTotal(), handlers.ConnectorCiscoSdwanGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorCiscoSdwanGetAll(), handlers.ConnectorCiscoSdwanGetAll(getClient))
+	srv.AddTool(tools.ConnectorCiscoSdwanGetById(), handlers.ConnectorCiscoSdwanGetById(getClient))
+	srv.AddTool(tools.ConnectorCiscoSdwanGetByName(), handlers.ConnectorCiscoSdwanGetByName(getClient))
+	srv.AddTool(tools.ConnectorCiscoSdwanGetTotal(), handlers.ConnectorCiscoSdwanGetTotal(getClient))
 
 	// Add Fortinet SD-WAN connector tools
-	srv.AddTool(tools.ConnectorFortinetSdwanGetAll(), handlers.ConnectorFortinetSdwanGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorFortinetSdwanGetById(), handlers.ConnectorFortinetSdwanGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorFortinetSdwanGetByName(), handlers.ConnectorFortinetSdwanGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorFortinetSdwanGetTotal(), handlers.ConnectorFortinetSdwanGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorFortinetSdwanGetAll(), handlers.ConnectorFortinetSdwanGetAll(getClient))
+	srv.AddTool(tools.ConnectorFortinetSdwanGetById(), handlers.ConnectorFortinetSdwanGetById(getClient))
+	srv.AddTool(tools.ConnectorFortinetSdwanGetByName(), handlers.ConnectorFortinetSdwanGetByName(getClient))
+	srv.AddTool(tools.ConnectorFortinetSdwanGetTotal(), handlers.ConnectorFortinetSdwanGetTotal(getClient))
 
 	// Add Google Cloud Interconnect connector tools
-	srv.AddTool(tools.ConnectorGcpInterconnectGetAll(), handlers.ConnectorGcpInterconnectGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpInterconnectGetById(), handlers.ConnectorGcpInterconnectGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpInterconnectGetByName(), handlers.ConnectorGcpInterconnectGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpInterconnectGetTotal(), handlers.ConnectorGcpInterconnectGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorGcpInterconnectGetAll(), handlers.ConnectorGcpInterconnectGetAll(getClient))
+	srv.AddTool(tools.ConnectorGcpInterconnectGetById(), handlers.ConnectorGcpInterconnectGetById(getClient))
+	srv.AddTool(tools.ConnectorGcpInterconnectGetByName(), handlers.ConnectorGcpInterconnectGetByName(getClient))
+	srv.AddTool(tools.ConnectorGcpInterconnectGetTotal(), handlers.ConnectorGcpInterconnectGetTotal(getClient))
 
 	// Add Google Cloud VPC connector tools
-	srv.AddTool(tools.ConnectorGcpVpcGetAll(), handlers.ConnectorGcpVpcGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpVpcGetById(), handlers.ConnectorGcpVpcGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpVpcGetByName(), handlers.ConnectorGcpVpcGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorGcpVpcGetTotal(), handlers.ConnectorGcpVpcGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorGcpVpcGetAll(), handlers.ConnectorGcpVpcGetAll(getClient))
+	srv.AddTool(tools.ConnectorGcpVpcGetById(), handlers.ConnectorGcpVpcGetById(getClient))
+	srv.AddTool(tools.ConnectorGcpVpcGetByName(), handlers.ConnectorGcpVpcGetByName(getClient))
+	srv.AddTool(tools.ConnectorGcpVpcGetTotal(), handlers.ConnectorGcpVpcGetTotal(getClient))
 
 	// Add Oracle Cloud Infrastructure VCN connector tools
-	srv.AddTool(tools.ConnectorOciVcnGetAll(), handlers.ConnectorOciVcnGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorOciVcnGetById(), handlers.ConnectorOciVcnGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorOciVcnGetByName(), handlers.ConnectorOciVcnGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorOciVcnGetTotal(), handlers.ConnectorOciVcnGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorOciVcnGetAll(), handlers.ConnectorOciVcnGetAll(getClient))
+	srv.AddTool(tools.ConnectorOciVcnGetById(), handlers.ConnectorOciVcnGetById(getClient))
+	srv.AddTool(tools.ConnectorOciVcnGetByName(), handlers.ConnectorOciVcnGetByName(getClient))
+	srv.AddTool(tools.ConnectorOciVcnGetTotal(), handlers.ConnectorOciVcnGetTotal(getClient))
 
 	// Add Remote Access Template connector tools
-	srv.AddTool(tools.ConnectorRemoteAccessGetAll(), handlers.ConnectorRemoteAccessGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorRemoteAccessGetById(), handlers.ConnectorRemoteAccessGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorRemoteAccessGetByName(), handlers.ConnectorRemoteAccessGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorRemoteAccessGetTotal(), handlers.ConnectorRemoteAccessGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorRemoteAccessGetAll(), handlers.ConnectorRemoteAccessGetAll(getClient))
+	srv.AddTool(tools.ConnectorRemoteAccessGetById(), handlers.ConnectorRemoteAccessGetById(getClient))
+	srv.AddTool(tools.ConnectorRemoteAccessGetByName(), handlers.ConnectorRemoteAccessGetByName(getClient))
+	srv.AddTool(tools.ConnectorRemoteAccessGetTotal(), handlers.ConnectorRemoteAccessGetTotal(getClient))
 
 	// Add Versa SD-WAN connector tools
-	srv.AddTool(tools.ConnectorVersaSdwanGetAll(), handlers.ConnectorVersaSdwanGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorVersaSdwanGetById(), handlers.ConnectorVersaSdwanGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorVersaSdwanGetByName(), handlers.ConnectorVersaSdwanGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorVersaSdwanGetTotal(), handlers.ConnectorVersaSdwanGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorVersaSdwanGetAll(), handlers.ConnectorVersaSdwanGetAll(getClient))
+	srv.AddTool(tools.ConnectorVersaSdwanGetById(), handlers.ConnectorVersaSdwanGetById(getClient))
+	srv.AddTool(tools.ConnectorVersaSdwanGetByName(), handlers.ConnectorVersaSdwanGetByName(getClient))
+	srv.AddTool(tools.ConnectorVersaSdwanGetTotal(), handlers.ConnectorVersaSdwanGetTotal(getClient))
 
 	// Add VMware SD-WAN (VeloCloud) connector tools
-	srv.AddTool(tools.ConnectorVmwareSdwanGetAll(), handlers.ConnectorVmwareSdwanGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorVmwareSdwanGetById(), handlers.ConnectorVmwareSdwanGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorVmwareSdwanGetByName(), handlers.ConnectorVmwareSdwanGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorVmwareSdwanGetTotal(), handlers.ConnectorVmwareSdwanGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorVmwareSdwanGetAll(), handlers.ConnectorVmwareSdwanGetAll(getClient))
+	srv.AddTool(tools.ConnectorVmwareSdwanGetById(), handlers.ConnectorVmwareSdwanGetById(getClient))
+	srv.AddTool(tools.ConnectorVmwareSdwanGetByName(), handlers.ConnectorVmwareSdwanGetByName(getClient))
+	srv.AddTool(tools.ConnectorVmwareSdwanGetTotal(), handlers.ConnectorVmwareSdwanGetTotal(getClient))
 
 	// Add internet connector tools
-	srv.AddTool(tools.ConnectorInternetGetAll(), handlers.ConnectorInternetGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorInternetGetById(), handlers.ConnectorInternetGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorInternetGetByName(), handlers.ConnectorInternetGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorInternetGetTotal(), handlers.ConnectorInternetGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorInternetGetAll(), handlers.ConnectorInternetGetAll(getClient))
+	srv.AddTool(tools.ConnectorInternetGetById(), handlers.ConnectorInternetGetById(getClient))
+	srv.AddTool(tools.ConnectorInternetGetByName(), handlers.ConnectorInternetGetByName(getClient))
+	srv.AddTool(tools.ConnectorInternetGetTotal(), handlers.ConnectorInternetGetTotal(getClient))
 
 	// Add AWS VPC connector tools
-	srv.AddTool(tools.ConnectorAwsVpcGetAll(), handlers.ConnectorAwsVpcGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsVpcGetById(), handlers.ConnectorAwsVpcGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsVpcGetByName(), handlers.ConnectorAwsVpcGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorAwsVpcGetTotal(), handlers.ConnectorAwsVpcGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorAwsVpcGetAll(), handlers.ConnectorAwsVpcGetAll(getClient))
+	srv.AddTool(tools.ConnectorAwsVpcGetById(), handlers.ConnectorAwsVpcGetById(getClient))
+	srv.AddTool(tools.ConnectorAwsVpcGetByName(), handlers.ConnectorAwsVpcGetByName(getClient))
+	srv.AddTool(tools.ConnectorAwsVpcGetTotal(), handlers.ConnectorAwsVpcGetTotal(getClient))
 
 	// Add Azure VNET connector tools
-	srv.AddTool(tools.ConnectorAzureVnetGetAll(), handlers.ConnectorAzureVnetGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureVnetGetById(), handlers.ConnectorAzureVnetGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureVnetGetByName(), handlers.ConnectorAzureVnetGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorAzureVnetGetTotal(), handlers.ConnectorAzureVnetGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorAzureVnetGetAll(), handlers.ConnectorAzureVnetGetAll(getClient))
+	srv.AddTool(tools.ConnectorAzureVnetGetById(), handlers.ConnectorAzureVnetGetById(getClient))
+	srv.AddTool(tools.ConnectorAzureVnetGetByName(), handlers.ConnectorAzureVnetGetByName(getClient))
+	srv.AddTool(tools.ConnectorAzureVnetGetTotal(), handlers.ConnectorAzureVnetGetTotal(getClient))
 
 	// Add IPSec connector tools
-	srv.AddTool(tools.ConnectorIPSecGetAll(), handlers.ConnectorIPSecGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecGetById(), handlers.ConnectorIPSecGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecGetByName(), handlers.ConnectorIPSecGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecGetTotal(), handlers.ConnectorIPSecGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorIPSecGetAll(), handlers.ConnectorIPSecGetAll(getClient))
+	srv.AddTool(tools.ConnectorIPSecGetById(), handlers.ConnectorIPSecGetById(getClient))
+	srv.AddTool(tools.ConnectorIPSecGetByName(), handlers.ConnectorIPSecGetByName(getClient))
+	srv.AddTool(tools.ConnectorIPSecGetTotal(), handlers.ConnectorIPSecGetTotal(getClient))
 
 	// Add IPSec Adv connector tools
-	srv.AddTool(tools.ConnectorIPSecAdvGetAll(), handlers.ConnectorIPSecAdvGetAll(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecAdvGetById(), handlers.ConnectorIPSecAdvGetById(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecAdvGetByName(), handlers.ConnectorIPSecAdvGetByName(alkiraClient))
-	srv.AddTool(tools.ConnectorIPSecAdvGetTotal(), handlers.ConnectorIPSecAdvGetTotal(alkiraClient))
+	srv.AddTool(tools.ConnectorIPSecAdvGetAll(), handlers.ConnectorIPSecAdvGetAll(getClient))
+	srv.AddTool(tools.ConnectorIPSecAdvGetById(), handlers.ConnectorIPSecAdvGetById(getClient))
+	srv.AddTool(tools.ConnectorIPSecAdvGetByName(), handlers.ConnectorIPSecAdvGetByName(getClient))
+	srv.AddTool(tools.ConnectorIPSecAdvGetTotal(), handlers.ConnectorIPSecAdvGetTotal(getClient))
 
-	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetAll(), handlers.ConnectorIPSecTunnelProfileGetAll(alkiraClient))
+	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetAll(), handlers.ConnectorIPSecTunnelProfileGetAll(getClient))
 
 	// Add internet application tools
 	srv.AddTool(tools.InternetApplicationGetAll(), handlers.InternetApplicationGetAll(alkiraClient))
