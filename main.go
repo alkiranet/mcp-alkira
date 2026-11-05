@@ -84,16 +84,16 @@ func main() {
 	srv.AddPrompt(prompts.Summary(), prompts.SummaryHandler())
 
 	// Add tenant network basic tools
-	srv.AddTool(tools.TenantNetworkSummary(), handlers.TenantNetworkSummary(alkiraClient))
-	srv.AddTool(tools.TenantNetworkFirewallZones(), handlers.TenantNetworkFirewallZones(alkiraClient))
+	srv.AddTool(tools.TenantNetworkSummary(), handlers.TenantNetworkSummary(getClient))
+	srv.AddTool(tools.TenantNetworkFirewallZones(), handlers.TenantNetworkFirewallZones(getClient))
 
 	// Add billing tag tools
-	srv.AddTool(tools.BillingTagGetAll(), handlers.BillingTagGetAll(alkiraClient))
-	srv.AddTool(tools.BillingTagGetById(), handlers.BillingTagGetById(alkiraClient))
-	srv.AddTool(tools.BillingTagGetByName(), handlers.BillingTagGetByName(alkiraClient))
-	srv.AddTool(tools.BillingTagGetTotal(), handlers.BillingTagGetTotal(alkiraClient))
+	srv.AddTool(tools.BillingTagGetAll(), handlers.BillingTagGetAll(getClient))
+	srv.AddTool(tools.BillingTagGetById(), handlers.BillingTagGetById(getClient))
+	srv.AddTool(tools.BillingTagGetByName(), handlers.BillingTagGetByName(getClient))
+	srv.AddTool(tools.BillingTagGetTotal(), handlers.BillingTagGetTotal(getClient))
 
-	srv.AddTool(tools.CxpGetAll(), handlers.CxpGetAll(alkiraClient))
+	srv.AddTool(tools.CxpGetAll(), handlers.CxpGetAll(getClient))
 
 	// Add segment tools
 	srv.AddTool(tools.SegmentGetAll(), handlers.SegmentGetAll(getClient))
@@ -101,15 +101,15 @@ func main() {
 	srv.AddTool(tools.SegmentGetByName(), handlers.SegmentGetByName(getClient))
 
 	// Add group tools
-	srv.AddTool(tools.GroupGetById(), handlers.GroupGetById(alkiraClient))
-	srv.AddTool(tools.GroupGetByName(), handlers.GroupGetByName(alkiraClient))
-	srv.AddTool(tools.GroupGetTotal(), handlers.GroupGetTotal(alkiraClient))
+	srv.AddTool(tools.GroupGetById(), handlers.GroupGetById(getClient))
+	srv.AddTool(tools.GroupGetByName(), handlers.GroupGetByName(getClient))
+	srv.AddTool(tools.GroupGetTotal(), handlers.GroupGetTotal(getClient))
 
 	// Add BYOIP tools
-	srv.AddTool(tools.ByoipGetAll(), handlers.ByoipGetAll(alkiraClient))
-	srv.AddTool(tools.ByoipGetById(), handlers.ByoipGetById(alkiraClient))
-	srv.AddTool(tools.ByoipGetByName(), handlers.ByoipGetByName(alkiraClient))
-	srv.AddTool(tools.ByoipGetTotal(), handlers.ByoipGetTotal(alkiraClient))
+	srv.AddTool(tools.ByoipGetAll(), handlers.ByoipGetAll(getClient))
+	srv.AddTool(tools.ByoipGetById(), handlers.ByoipGetById(getClient))
+	srv.AddTool(tools.ByoipGetByName(), handlers.ByoipGetByName(getClient))
+	srv.AddTool(tools.ByoipGetTotal(), handlers.ByoipGetTotal(getClient))
 
 	// Add segment resource tools
 	srv.AddTool(tools.SegmentResourceGetAll(), handlers.SegmentResourceGetAll(getClient))
@@ -124,46 +124,46 @@ func main() {
 	srv.AddTool(tools.SegmentResourceShareGetTotal(), handlers.SegmentResourceShareGetTotal(getClient))
 
 	// Add Check Point firewall service tools
-	srv.AddTool(tools.ServiceCheckPointGetAll(), handlers.ServiceCheckPointGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceCheckPointGetById(), handlers.ServiceCheckPointGetById(alkiraClient))
-	srv.AddTool(tools.ServiceCheckPointGetByName(), handlers.ServiceCheckPointGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceCheckPointGetTotal(), handlers.ServiceCheckPointGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceCheckPointGetAll(), handlers.ServiceCheckPointGetAll(getClient))
+	srv.AddTool(tools.ServiceCheckPointGetById(), handlers.ServiceCheckPointGetById(getClient))
+	srv.AddTool(tools.ServiceCheckPointGetByName(), handlers.ServiceCheckPointGetByName(getClient))
+	srv.AddTool(tools.ServiceCheckPointGetTotal(), handlers.ServiceCheckPointGetTotal(getClient))
 
 	// Add Cisco FTDV service tools
-	srv.AddTool(tools.ServiceCiscoFTDvGetAll(), handlers.ServiceCiscoFTDvGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceCiscoFTDvGetById(), handlers.ServiceCiscoFTDvGetById(alkiraClient))
-	srv.AddTool(tools.ServiceCiscoFTDvGetByName(), handlers.ServiceCiscoFTDvGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceCiscoFTDvGetTotal(), handlers.ServiceCiscoFTDvGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceCiscoFTDvGetAll(), handlers.ServiceCiscoFTDvGetAll(getClient))
+	srv.AddTool(tools.ServiceCiscoFTDvGetById(), handlers.ServiceCiscoFTDvGetById(getClient))
+	srv.AddTool(tools.ServiceCiscoFTDvGetByName(), handlers.ServiceCiscoFTDvGetByName(getClient))
+	srv.AddTool(tools.ServiceCiscoFTDvGetTotal(), handlers.ServiceCiscoFTDvGetTotal(getClient))
 
 	// Add F5 LB service tools
-	srv.AddTool(tools.ServiceF5LBGetAll(), handlers.ServiceF5LBGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceF5LBGetById(), handlers.ServiceF5LBGetById(alkiraClient))
-	srv.AddTool(tools.ServiceF5LBGetByName(), handlers.ServiceF5LBGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceF5LBGetTotal(), handlers.ServiceF5LBGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceF5LBGetAll(), handlers.ServiceF5LBGetAll(getClient))
+	srv.AddTool(tools.ServiceF5LBGetById(), handlers.ServiceF5LBGetById(getClient))
+	srv.AddTool(tools.ServiceF5LBGetByName(), handlers.ServiceF5LBGetByName(getClient))
+	srv.AddTool(tools.ServiceF5LBGetTotal(), handlers.ServiceF5LBGetTotal(getClient))
 
 	// Add Fortinet service tools
-	srv.AddTool(tools.ServiceFortinetGetAll(), handlers.ServiceFortinetGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceFortinetGetById(), handlers.ServiceFortinetGetById(alkiraClient))
-	srv.AddTool(tools.ServiceFortinetGetByName(), handlers.ServiceFortinetGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceFortinetGetTotal(), handlers.ServiceFortinetGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceFortinetGetAll(), handlers.ServiceFortinetGetAll(getClient))
+	srv.AddTool(tools.ServiceFortinetGetById(), handlers.ServiceFortinetGetById(getClient))
+	srv.AddTool(tools.ServiceFortinetGetByName(), handlers.ServiceFortinetGetByName(getClient))
+	srv.AddTool(tools.ServiceFortinetGetTotal(), handlers.ServiceFortinetGetTotal(getClient))
 
 	// Add Infoblox service tools
-	srv.AddTool(tools.ServiceInfobloxGetAll(), handlers.ServiceInfobloxGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceInfobloxGetById(), handlers.ServiceInfobloxGetById(alkiraClient))
-	srv.AddTool(tools.ServiceInfobloxGetByName(), handlers.ServiceInfobloxGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceInfobloxGetTotal(), handlers.ServiceInfobloxGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceInfobloxGetAll(), handlers.ServiceInfobloxGetAll(getClient))
+	srv.AddTool(tools.ServiceInfobloxGetById(), handlers.ServiceInfobloxGetById(getClient))
+	srv.AddTool(tools.ServiceInfobloxGetByName(), handlers.ServiceInfobloxGetByName(getClient))
+	srv.AddTool(tools.ServiceInfobloxGetTotal(), handlers.ServiceInfobloxGetTotal(getClient))
 
 	// Add PAN firewall service tools
-	srv.AddTool(tools.ServicePanGetAll(), handlers.ServicePanGetAll(alkiraClient))
-	srv.AddTool(tools.ServicePanGetById(), handlers.ServicePanGetById(alkiraClient))
-	srv.AddTool(tools.ServicePanGetByName(), handlers.ServicePanGetByName(alkiraClient))
-	srv.AddTool(tools.ServicePanGetTotal(), handlers.ServicePanGetTotal(alkiraClient))
+	srv.AddTool(tools.ServicePanGetAll(), handlers.ServicePanGetAll(getClient))
+	srv.AddTool(tools.ServicePanGetById(), handlers.ServicePanGetById(getClient))
+	srv.AddTool(tools.ServicePanGetByName(), handlers.ServicePanGetByName(getClient))
+	srv.AddTool(tools.ServicePanGetTotal(), handlers.ServicePanGetTotal(getClient))
 
 	// Add ZScaler service tools
-	srv.AddTool(tools.ServiceZscalerGetAll(), handlers.ServiceZscalerGetAll(alkiraClient))
-	srv.AddTool(tools.ServiceZscalerGetById(), handlers.ServiceZscalerGetById(alkiraClient))
-	srv.AddTool(tools.ServiceZscalerGetByName(), handlers.ServiceZscalerGetByName(alkiraClient))
-	srv.AddTool(tools.ServiceZscalerGetTotal(), handlers.ServiceZscalerGetTotal(alkiraClient))
+	srv.AddTool(tools.ServiceZscalerGetAll(), handlers.ServiceZscalerGetAll(getClient))
+	srv.AddTool(tools.ServiceZscalerGetById(), handlers.ServiceZscalerGetById(getClient))
+	srv.AddTool(tools.ServiceZscalerGetByName(), handlers.ServiceZscalerGetByName(getClient))
+	srv.AddTool(tools.ServiceZscalerGetTotal(), handlers.ServiceZscalerGetTotal(getClient))
 
 	// Add Aruba Edge Connect SD-WAN connector tools
 	srv.AddTool(tools.ConnectorArubaEdgeGetAll(), handlers.ConnectorArubaEdgeGetAll(getClient))
@@ -270,16 +270,16 @@ func main() {
 	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetAll(), handlers.ConnectorIPSecTunnelProfileGetAll(getClient))
 
 	// Add internet application tools
-	srv.AddTool(tools.InternetApplicationGetAll(), handlers.InternetApplicationGetAll(alkiraClient))
-	srv.AddTool(tools.InternetApplicationGetById(), handlers.InternetApplicationGetById(alkiraClient))
-	srv.AddTool(tools.InternetApplicationGetByName(), handlers.InternetApplicationGetByName(alkiraClient))
-	srv.AddTool(tools.InternetApplicationGetTotal(), handlers.InternetApplicationGetTotal(alkiraClient))
+	srv.AddTool(tools.InternetApplicationGetAll(), handlers.InternetApplicationGetAll(getClient))
+	srv.AddTool(tools.InternetApplicationGetById(), handlers.InternetApplicationGetById(getClient))
+	srv.AddTool(tools.InternetApplicationGetByName(), handlers.InternetApplicationGetByName(getClient))
+	srv.AddTool(tools.InternetApplicationGetTotal(), handlers.InternetApplicationGetTotal(getClient))
 
 	// Add routes tools
-	srv.AddTool(tools.GetRoutes(), handlers.RouteGet(alkiraClient))
-	srv.AddTool(tools.GetRouteCount(), handlers.RouteGetCount(alkiraClient))
-	srv.AddTool(tools.GetRouteSummary(), handlers.RouteSummaryGet(alkiraClient))
-	srv.AddTool(tools.GetAllRoutes(), handlers.AllRouteGet(alkiraClient))
+	srv.AddTool(tools.GetRoutes(), handlers.RouteGet(getClient))
+	srv.AddTool(tools.GetRouteCount(), handlers.RouteGetCount(getClient))
+	srv.AddTool(tools.GetRouteSummary(), handlers.RouteSummaryGet(getClient))
+	srv.AddTool(tools.GetAllRoutes(), handlers.AllRouteGet(getClient))
 
 	// Add NAT policy tools
 	srv.AddTool(tools.PolicyNatGetAll(), handlers.PolicyNatGetAll(getClient))
@@ -360,18 +360,18 @@ func main() {
 	srv.AddTool(tools.ListPolicyFqdnGetTotal(), handlers.ListPolicyFqdnGetTotal(getClient))
 
 	// Add monitoring tools
-	srv.AddTool(tools.Alerts(), handlers.Alerts(alkiraClient))
-	srv.AddTool(tools.AuditLogs(), handlers.AuditLogs(alkiraClient))
-	srv.AddTool(tools.Jobs(), handlers.Jobs(alkiraClient))
+	srv.AddTool(tools.Alerts(), handlers.Alerts(getClient))
+	srv.AddTool(tools.AuditLogs(), handlers.AuditLogs(getClient))
+	srv.AddTool(tools.Jobs(), handlers.Jobs(getClient))
 
-	srv.AddTool(tools.TenantResourceUsages(), handlers.TenantResourceUsages(alkiraClient))
-	srv.AddTool(tools.TenantResourceLimits(), handlers.TenantResourceLimits(alkiraClient))
+	srv.AddTool(tools.TenantResourceUsages(), handlers.TenantResourceUsages(getClient))
+	srv.AddTool(tools.TenantResourceLimits(), handlers.TenantResourceLimits(getClient))
 
 	// Add health tools
-	srv.AddTool(tools.HealthConnectorGetById(), handlers.HealthConnectorGetById(alkiraClient))
-	srv.AddTool(tools.HealthConnectorInstanceGetById(), handlers.HealthConnectorInstanceGetById(alkiraClient))
-	srv.AddTool(tools.HealthServiceGetById(), handlers.HealthServiceGetById(alkiraClient))
-	srv.AddTool(tools.HealthServiceInstanceGetById(), handlers.HealthServiceInstanceGetById(alkiraClient))
+	srv.AddTool(tools.HealthConnectorGetById(), handlers.HealthConnectorGetById(getClient))
+	srv.AddTool(tools.HealthConnectorInstanceGetById(), handlers.HealthConnectorInstanceGetById(getClient))
+	srv.AddTool(tools.HealthServiceGetById(), handlers.HealthServiceGetById(getClient))
+	srv.AddTool(tools.HealthServiceInstanceGetById(), handlers.HealthServiceInstanceGetById(getClient))
 
 	// Start server based on mode
 	switch mode {

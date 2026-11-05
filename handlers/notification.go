@@ -3,13 +3,16 @@ package handlers
 import (
 	"context"
 
-	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func Alerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Alerts(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, _ := request.RequireString("status")
 		t, _ := request.RequireString("type")
@@ -30,9 +33,13 @@ func Alerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallT
 	}
 }
 
-func AuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func AuditLogs(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, _ := request.RequireString("status")
 		t, _ := request.RequireString("type")
@@ -52,9 +59,13 @@ func AuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Ca
 	}
 }
 
-func Jobs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Jobs(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, err := request.RequireString("status")
 		if err != nil {

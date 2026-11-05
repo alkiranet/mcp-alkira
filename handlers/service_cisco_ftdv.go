@@ -7,9 +7,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ServiceCiscoFTDvGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceCiscoFTDvGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -29,9 +33,13 @@ func ServiceCiscoFTDvGetAll(client *ak.AlkiraClient) func(ctx context.Context, r
 	}
 }
 
-func ServiceCiscoFTDvGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceCiscoFTDvGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		serviceId, err := request.RequireString("serviceId")
 
@@ -54,9 +62,13 @@ func ServiceCiscoFTDvGetById(client *ak.AlkiraClient) func(ctx context.Context, 
 	}
 }
 
-func ServiceCiscoFTDvGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceCiscoFTDvGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		serviceName, err := request.RequireString("serviceName")
 
@@ -79,9 +91,13 @@ func ServiceCiscoFTDvGetByName(client *ak.AlkiraClient) func(ctx context.Context
 	}
 }
 
-func ServiceCiscoFTDvGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceCiscoFTDvGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// INIT
 		api := ak.NewServiceCiscoFTDv(client)

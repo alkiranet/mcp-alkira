@@ -3,13 +3,16 @@ package handlers
 import (
 	"context"
 
-	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func AlertGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func AlertGet(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, _ := request.RequireString("status")
 		t, _ := request.RequireString("type")
@@ -30,9 +33,13 @@ func AlertGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Cal
 	}
 }
 
-func AuditLogGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func AuditLogGet(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, _ := request.RequireString("status")
 		t, _ := request.RequireString("type")
@@ -52,9 +59,13 @@ func AuditLogGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.
 	}
 }
 
-func JobGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func JobGet(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		s, err := request.RequireString("status")
 		if err != nil {
@@ -81,9 +92,13 @@ func JobGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallT
 	}
 }
 
-func ResourceUsageGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ResourceUsageGet(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		resourceCategory, err := request.RequireString("category")
 		if err != nil {
@@ -113,9 +128,13 @@ func ResourceUsageGet(client *ak.AlkiraClient) func(ctx context.Context, request
 	}
 }
 
-func ResourceLimitGet(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ResourceLimitGet(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// Get resources
 		data, err := client.GetResourceLimits()
