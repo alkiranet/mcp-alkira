@@ -15,6 +15,8 @@ func ByoipGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func ByoipGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("BYOIP ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,11 +39,15 @@ func ByoipGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("BYOIP Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ByoipGetTotal() mcp.Tool {
 	return mcp.NewTool("byoip_get_total",
 		mcp.WithDescription("Get total numbers of BYOIPs."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

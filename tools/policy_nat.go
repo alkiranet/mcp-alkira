@@ -16,6 +16,8 @@ func PolicyNatGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -26,6 +28,8 @@ func PolicyNatGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Policy ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -36,6 +40,8 @@ func PolicyNatGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Policy Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -51,6 +57,8 @@ func PolicyNatRuleGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -61,6 +69,8 @@ func PolicyNatRuleGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Rule ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -71,17 +81,23 @@ func PolicyNatRuleGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Rule Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func PolicyNatGetTotal() mcp.Tool {
 	return mcp.NewTool("policy_nat_get_total",
 		mcp.WithDescription("Get total numbers of NAT policies."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func PolicyNatRuleGetTotal() mcp.Tool {
 	return mcp.NewTool("policy_nat_rule_get_total",
 		mcp.WithDescription("Get total numbers of NAT policy rules."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

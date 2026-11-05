@@ -26,6 +26,8 @@ func GroupGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Group ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -36,11 +38,15 @@ func GroupGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Group Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func GroupGetTotal() mcp.Tool {
 	return mcp.NewTool("group_get_total",
 		mcp.WithDescription("Get total numbers of groups."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

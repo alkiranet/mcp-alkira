@@ -15,6 +15,8 @@ func InternetApplicationGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -22,6 +24,8 @@ func InternetApplicationGetById() mcp.Tool {
 	return mcp.NewTool("internet_application_get_by_id",
 		mcp.WithDescription("Get Internet Application by ID"),
 		mcp.WithString("applicationId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -29,11 +33,15 @@ func InternetApplicationGetByName() mcp.Tool {
 	return mcp.NewTool("internet_application_get_by_name",
 		mcp.WithDescription("Get Internet Application by name"),
 		mcp.WithString("applicationName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func InternetApplicationGetTotal() mcp.Tool {
 	return mcp.NewTool("internet_application_get_total",
 		mcp.WithDescription("Get total number of Internet Application"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

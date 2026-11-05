@@ -7,9 +7,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ListPrefixGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListPrefixGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		listId, err := request.RequireString("listId")
 
@@ -32,9 +36,13 @@ func ListPrefixGetById(client *ak.AlkiraClient) func(ctx context.Context, reques
 	}
 }
 
-func ListPrefixGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListPrefixGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		listName, err := request.RequireString("listName")
 
@@ -57,35 +65,19 @@ func ListPrefixGetByName(client *ak.AlkiraClient) func(ctx context.Context, requ
 	}
 }
 
-func ListPrefixGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListPrefixGetByPrefix(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewPrefixLists(client)
-
-		// Get resources
-		data, err := api.GetCount()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
 		}
-
-		// Return response
-		return mcp.NewToolResultText(data), nil
-	}
-}
-
-func ListPrefixGetByPrefix(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 		prefix, err := request.RequireString("prefix")
 
 		if err != nil {
 			return mcp.NewToolResultError(err.Error()), nil
 		}
-
 
 		// INIT
 		api := ak.NewPrefixLists(client)

@@ -15,6 +15,8 @@ func ListAsPathGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -22,6 +24,8 @@ func ListAsPathGetById() mcp.Tool {
 	return mcp.NewTool("list_as_path_get_by_id",
 		mcp.WithDescription("Get AS Path list by ID"),
 		mcp.WithString("listId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -29,11 +33,15 @@ func ListAsPathGetByName() mcp.Tool {
 	return mcp.NewTool("list_as_path_get_by_name",
 		mcp.WithDescription("Get AS Path list by name"),
 		mcp.WithString("listName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ListAsPathGetTotal() mcp.Tool {
 	return mcp.NewTool("list_as_path_get_total",
 		mcp.WithDescription("Get total numbers of AS Path lists."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

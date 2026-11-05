@@ -9,5 +9,7 @@ func TenantNetworkSummary() mcp.Tool {
 		mcp.WithDescription("Get tenant network summary of the tenant that "+
 			"contains some basic infos of the tenant network, especially the "+
 			"number of connectors and services of the tenant network."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
