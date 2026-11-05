@@ -15,6 +15,7 @@ func ListDnsServerGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -22,6 +23,7 @@ func ListDnsServerGetById() mcp.Tool {
 	return mcp.NewTool("list_dns_server_get_by_id",
 		mcp.WithDescription("Get DNS Server list by ID"),
 		mcp.WithString("listId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -29,11 +31,13 @@ func ListDnsServerGetByName() mcp.Tool {
 	return mcp.NewTool("list_dns_server_get_by_name",
 		mcp.WithDescription("Get DNS Server list by name"),
 		mcp.WithString("listName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ListDnsServerGetTotal() mcp.Tool {
 	return mcp.NewTool("list_dns_server_get_total",
 		mcp.WithDescription("Get total numbers of DNS Server lists."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

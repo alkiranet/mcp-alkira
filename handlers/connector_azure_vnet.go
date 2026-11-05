@@ -7,9 +7,13 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ConnectorAzureVnetGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAzureVnetGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -29,9 +33,13 @@ func ConnectorAzureVnetGetAll(client *ak.AlkiraClient) func(ctx context.Context,
 	}
 }
 
-func ConnectorAzureVnetGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAzureVnetGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		connectorId, err := request.RequireString("connectorId")
 
@@ -54,9 +62,13 @@ func ConnectorAzureVnetGetById(client *ak.AlkiraClient) func(ctx context.Context
 	}
 }
 
-func ConnectorAzureVnetGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAzureVnetGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		connectorName, err := request.RequireString("connectorName")
 
@@ -79,9 +91,13 @@ func ConnectorAzureVnetGetByName(client *ak.AlkiraClient) func(ctx context.Conte
 	}
 }
 
-func ConnectorAzureVnetGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorAzureVnetGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		client, errResult := resolve(ctx, get)
+		if errResult != nil {
+			return errResult, nil
+		}
 
 		// INIT
 		api := ak.NewConnectorAzureVnet(client)

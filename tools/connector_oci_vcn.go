@@ -15,6 +15,7 @@ func ConnectorOciVcnGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func ConnectorOciVcnGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func ConnectorOciVcnGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorOciVcnGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_oci_vcn_get_total",
 		mcp.WithDescription("Get total numbers of Oracle Cloud Infrastructure VCN connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

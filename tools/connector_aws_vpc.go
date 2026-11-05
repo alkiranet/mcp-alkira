@@ -15,6 +15,7 @@ func ConnectorAwsVpcGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func ConnectorAwsVpcGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func ConnectorAwsVpcGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ConnectorAwsVpcGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_aws_vpc_get_total",
 		mcp.WithDescription("Get total numbers of AWS VPC connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

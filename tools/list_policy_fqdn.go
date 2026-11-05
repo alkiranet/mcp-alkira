@@ -15,6 +15,7 @@ func ListPolicyFqdnGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -22,6 +23,7 @@ func ListPolicyFqdnGetById() mcp.Tool {
 	return mcp.NewTool("list_policy_fqdn_get_by_id",
 		mcp.WithDescription("Get Policy FQDN list by ID"),
 		mcp.WithString("listId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -29,11 +31,13 @@ func ListPolicyFqdnGetByName() mcp.Tool {
 	return mcp.NewTool("list_policy_fqdn_get_by_name",
 		mcp.WithDescription("Get Policy FQDN list by name"),
 		mcp.WithString("listName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func ListPolicyFqdnGetTotal() mcp.Tool {
 	return mcp.NewTool("list_policy_fqdn_get_total",
 		mcp.WithDescription("Get total numbers of Policy FQDN lists."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }

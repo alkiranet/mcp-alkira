@@ -15,6 +15,7 @@ func SegmentResourceShareGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("20"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -25,6 +26,7 @@ func SegmentResourceShareGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Segment Resource Share ID"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
@@ -35,11 +37,13 @@ func SegmentResourceShareGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Segment Resource Name"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
 
 func SegmentResourceShareGetTotal() mcp.Tool {
 	return mcp.NewTool("segment_resource_share_get_total",
 		mcp.WithDescription("Get total numbers of segment resource shares."),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 }
