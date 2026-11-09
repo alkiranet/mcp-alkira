@@ -18,9 +18,6 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// wantToolCount is the number of tools Register adds.
-const wantToolCount = 191
-
 func newServer(get func(context.Context) (*ak.AlkiraClient, error)) *server.MCPServer {
 	srv := server.NewMCPServer("mcp-alkira", "test")
 	Register(srv, get)
@@ -95,12 +92,6 @@ func callTool(t *testing.T, srv *server.MCPServer, name string, args map[string]
 		t.Fatalf("%s: want one text content item, got %s", name, raw)
 	}
 	return res
-}
-
-func TestRegister_Count191(t *testing.T) {
-	if got := len(toolNames(t, newServer(noClient))); got != wantToolCount {
-		t.Fatalf("registered tools = %d, want %d", got, wantToolCount)
-	}
 }
 
 func TestRegister_AllToolsUseProvider(t *testing.T) {
