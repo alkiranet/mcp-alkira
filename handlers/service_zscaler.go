@@ -7,13 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ServiceZscalerGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceZscalerGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -33,13 +29,9 @@ func ServiceZscalerGetAll(get ClientProvider) func(ctx context.Context, request 
 	}
 }
 
-func ServiceZscalerGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceZscalerGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		serviceId, err := request.RequireString("serviceId")
 
@@ -62,13 +54,9 @@ func ServiceZscalerGetById(get ClientProvider) func(ctx context.Context, request
 	}
 }
 
-func ServiceZscalerGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceZscalerGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		serviceName, err := request.RequireString("serviceName")
 
@@ -91,13 +79,9 @@ func ServiceZscalerGetByName(get ClientProvider) func(ctx context.Context, reque
 	}
 }
 
-func ServiceZscalerGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ServiceZscalerGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		// INIT
 		api := ak.NewServiceZscaler(client)

@@ -7,13 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func GroupGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GroupGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		groupId, err := request.RequireString("groupId")
 
@@ -36,13 +32,9 @@ func GroupGetById(get ClientProvider) func(ctx context.Context, request mcp.Call
 	}
 }
 
-func GroupGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GroupGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		groupName, err := request.RequireString("groupName")
 
@@ -65,13 +57,9 @@ func GroupGetByName(get ClientProvider) func(ctx context.Context, request mcp.Ca
 	}
 }
 
-func GroupGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GroupGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		// INIT
 		api := ak.NewGroup(client)

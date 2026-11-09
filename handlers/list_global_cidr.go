@@ -7,13 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ListGlobalCidrGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -33,13 +29,9 @@ func ListGlobalCidrGetAll(get ClientProvider) func(ctx context.Context, request 
 	}
 }
 
-func ListGlobalCidrGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		listId, err := request.RequireString("listId")
 
@@ -62,13 +54,9 @@ func ListGlobalCidrGetById(get ClientProvider) func(ctx context.Context, request
 	}
 }
 
-func ListGlobalCidrGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		listName, err := request.RequireString("listName")
 
@@ -91,13 +79,9 @@ func ListGlobalCidrGetByName(get ClientProvider) func(ctx context.Context, reque
 	}
 }
 
-func ListGlobalCidrGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ListGlobalCidrGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		// INIT
 		api := ak.NewGlobalCidrList(client)

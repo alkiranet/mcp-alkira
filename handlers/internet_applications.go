@@ -7,13 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func InternetApplicationGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -33,13 +29,9 @@ func InternetApplicationGetAll(get ClientProvider) func(ctx context.Context, req
 	}
 }
 
-func InternetApplicationGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		applicationId, err := request.RequireString("applicationId")
 
@@ -62,13 +54,9 @@ func InternetApplicationGetById(get ClientProvider) func(ctx context.Context, re
 	}
 }
 
-func InternetApplicationGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		applicationName, err := request.RequireString("applicationName")
 
@@ -91,13 +79,9 @@ func InternetApplicationGetByName(get ClientProvider) func(ctx context.Context, 
 	}
 }
 
-func InternetApplicationGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func InternetApplicationGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		// INIT
 		api := ak.NewInternetApplication(client)

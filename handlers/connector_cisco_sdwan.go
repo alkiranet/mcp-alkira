@@ -7,13 +7,9 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-func ConnectorCiscoSdwanGetAll(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorCiscoSdwanGetAll(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		offset, _ := request.RequireString("offset")
 		limit, _ := request.RequireString("limit")
@@ -33,13 +29,9 @@ func ConnectorCiscoSdwanGetAll(get ClientProvider) func(ctx context.Context, req
 	}
 }
 
-func ConnectorCiscoSdwanGetById(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorCiscoSdwanGetById(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		connectorId, err := request.RequireString("connectorId")
 
@@ -62,13 +54,9 @@ func ConnectorCiscoSdwanGetById(get ClientProvider) func(ctx context.Context, re
 	}
 }
 
-func ConnectorCiscoSdwanGetByName(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorCiscoSdwanGetByName(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		connectorName, err := request.RequireString("connectorName")
 
@@ -91,13 +79,9 @@ func ConnectorCiscoSdwanGetByName(get ClientProvider) func(ctx context.Context, 
 	}
 }
 
-func ConnectorCiscoSdwanGetTotal(get ClientProvider) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func ConnectorCiscoSdwanGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, errResult := resolve(ctx, get)
-		if errResult != nil {
-			return errResult, nil
-		}
 
 		// INIT
 		api := ak.NewConnectorCiscoSdwan(client)

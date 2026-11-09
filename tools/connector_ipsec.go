@@ -119,9 +119,3 @@ func ConnectorIPSecTunnelProfileGetAll() mcp.Tool {
 		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
-
-func ConnectorIPSecTunnelProfileGetTotal() mcp.Tool {
-	return mcp.NewTool("connector_ipsec_tunnel_profile_get_total",
-		mcp.WithDescription("Get total numbers of IPSec Tunnel Profiles."),
-	)
-}

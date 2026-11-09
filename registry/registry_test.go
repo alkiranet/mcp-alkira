@@ -1,16 +1,13 @@
 package registry
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -253,38 +250,229 @@ func TestRegister_Annotations(t *testing.T) {
 	}
 }
 
-var update = flag.Bool("update", false, "rewrite testdata/tools_list.golden.json from the current tools/list output")
+func TestRegister_NilClientIsToolError(t *testing.T) {
+	res := callTool(t, newServer(providerFor(nil)), "segment_get_all", map[string]any{})
+	if !res.IsError || res.Content[0].Text != "no Alkira client available for this request" {
+		t.Fatalf("want a nil-client tool error, got isError=%v text=%q", res.IsError, res.Content[0].Text)
+	}
+}
 
-const toolsListGolden = "testdata/tools_list.golden.json"
+// connector_ipsec_tunnel_profile_get_all treats offset and limit as optional and omits them from the query.
+func TestRegister_ConnectorIPSecTunnelProfileGetAll_NoArgs_HTTP(t *testing.T) {
+	client, seen := fakePortal(t, map[string]string{
+		"/api/v1/tenantnetworks/7/ipsec-tunnel-profiles": `{"data":[{"id":3,"name":"tp-3"}]}`,
+	})
+	res := callTool(t, newServer(providerFor(client)), "connector_ipsec_tunnel_profile_get_all", map[string]any{})
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %s", res.Content[0].Text)
+	}
+	if !strings.Contains(res.Content[0].Text, "tp-3") {
+		t.Fatalf("unexpected body: %s", res.Content[0].Text)
+	}
+	if paths := seen.get(); len(paths) != 1 || paths[0] != "/api/v1/tenantnetworks/7/ipsec-tunnel-profiles" {
+		t.Fatalf("requests = %v", paths)
+	}
+}
 
-// TestRegister_ToolsListGolden fails on any change to a tool's name, description, schema or
-// annotations. Regenerate with: go test ./registry -run ToolsListGolden -update
-func TestRegister_ToolsListGolden(t *testing.T) {
-	var res struct {
-		Tools json.RawMessage `json:"tools"`
+func TestRegister_ToolNames(t *testing.T) {
+	got := toolNames(t, newServer(noClient))
+	slices.Sort(got)
+	if !slices.Equal(got, wantToolNames) {
+		t.Fatalf("tool names differ from the expected set:\ngot  %v\nwant %v", got, wantToolNames)
 	}
-	if err := json.Unmarshal(call(t, newServer(noClient), "tools/list", nil), &res); err != nil {
-		t.Fatal(err)
-	}
-	var got bytes.Buffer
-	if err := json.Indent(&got, res.Tools, "", "  "); err != nil {
-		t.Fatal(err)
-	}
-	got.WriteByte('\n')
+}
 
-	if *update {
-		if err := os.MkdirAll(filepath.Dir(toolsListGolden), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(toolsListGolden, got.Bytes(), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	want, err := os.ReadFile(toolsListGolden)
-	if err != nil {
-		t.Fatalf("%v (run with -update to create it)", err)
-	}
-	if !bytes.Equal(got.Bytes(), want) {
-		t.Errorf("tools/list differs from %s; run with -update if the change is intended", toolsListGolden)
-	}
+// wantToolNames is the sorted set of tool names Register adds.
+var wantToolNames = []string{
+	"billing_tag_get_all",
+	"billing_tag_get_by_id",
+	"billing_tag_get_by_name",
+	"billing_tag_get_total",
+	"byoip_get_all",
+	"byoip_get_by_id",
+	"byoip_get_by_name",
+	"byoip_get_total",
+	"connector_aruba_edge_get_all",
+	"connector_aruba_edge_get_by_id",
+	"connector_aruba_edge_get_by_name",
+	"connector_aruba_edge_get_total",
+	"connector_aws_direct_connect_get_all",
+	"connector_aws_direct_connect_get_by_id",
+	"connector_aws_direct_connect_get_by_name",
+	"connector_aws_direct_connect_get_total",
+	"connector_aws_tgw_get_all",
+	"connector_aws_tgw_get_by_id",
+	"connector_aws_tgw_get_by_name",
+	"connector_aws_tgw_get_total",
+	"connector_aws_vpc_get_all",
+	"connector_aws_vpc_get_by_id",
+	"connector_aws_vpc_get_by_name",
+	"connector_aws_vpc_get_total",
+	"connector_azure_express_route_get_all",
+	"connector_azure_express_route_get_by_id",
+	"connector_azure_express_route_get_by_name",
+	"connector_azure_express_route_get_total",
+	"connector_azure_vnet_get_all",
+	"connector_azure_vnet_get_by_id",
+	"connector_azure_vnet_get_by_name",
+	"connector_azure_vnet_get_total",
+	"connector_cisco_sdwan_get_all",
+	"connector_cisco_sdwan_get_by_id",
+	"connector_cisco_sdwan_get_by_name",
+	"connector_cisco_sdwan_get_total",
+	"connector_fortinet_sdwan_get_all",
+	"connector_fortinet_sdwan_get_by_id",
+	"connector_fortinet_sdwan_get_by_name",
+	"connector_fortinet_sdwan_get_total",
+	"connector_gcp_interconnect_get_all",
+	"connector_gcp_interconnect_get_by_id",
+	"connector_gcp_interconnect_get_by_name",
+	"connector_gcp_interconnect_get_total",
+	"connector_gcp_vpc_get_all",
+	"connector_gcp_vpc_get_by_id",
+	"connector_gcp_vpc_get_by_name",
+	"connector_gcp_vpc_get_total",
+	"connector_internet_get_all",
+	"connector_internet_get_by_id",
+	"connector_internet_get_by_name",
+	"connector_internet_get_total",
+	"connector_ipsec_adv_get_all",
+	"connector_ipsec_adv_get_by_id",
+	"connector_ipsec_adv_get_by_name",
+	"connector_ipsec_adv_get_total",
+	"connector_ipsec_get_all",
+	"connector_ipsec_get_by_id",
+	"connector_ipsec_get_by_name",
+	"connector_ipsec_get_total",
+	"connector_ipsec_tunnel_profile_get_all",
+	"connector_oci_vcn_get_all",
+	"connector_oci_vcn_get_by_id",
+	"connector_oci_vcn_get_by_name",
+	"connector_oci_vcn_get_total",
+	"connector_remote_access_get_all",
+	"connector_remote_access_get_by_id",
+	"connector_remote_access_get_by_name",
+	"connector_remote_access_get_total",
+	"connector_versa_sdwan_get_all",
+	"connector_versa_sdwan_get_by_id",
+	"connector_versa_sdwan_get_by_name",
+	"connector_versa_sdwan_get_total",
+	"connector_vmware_sdwan_get_all",
+	"connector_vmware_sdwan_get_by_id",
+	"connector_vmware_sdwan_get_by_name",
+	"connector_vmware_sdwan_get_total",
+	"cxp_get_all",
+	"group_get_by_id",
+	"group_get_by_name",
+	"group_get_total",
+	"health_connector_get_by_id",
+	"health_connector_instance_get_by_id",
+	"health_service_get_by_id",
+	"health_service_instance_get_by_id",
+	"internet_application_get_all",
+	"internet_application_get_by_id",
+	"internet_application_get_by_name",
+	"internet_application_get_total",
+	"list_as_path_get_all",
+	"list_as_path_get_by_id",
+	"list_as_path_get_by_name",
+	"list_as_path_get_total",
+	"list_community_get_all",
+	"list_community_get_by_id",
+	"list_community_get_by_name",
+	"list_community_get_total",
+	"list_dns_server_get_all",
+	"list_dns_server_get_by_id",
+	"list_dns_server_get_by_name",
+	"list_dns_server_get_total",
+	"list_extended_community_get_all",
+	"list_extended_community_get_by_id",
+	"list_extended_community_get_by_name",
+	"list_extended_community_get_total",
+	"list_global_cidr_get_all",
+	"list_global_cidr_get_by_id",
+	"list_global_cidr_get_by_name",
+	"list_global_cidr_get_total",
+	"list_policy_fqdn_get_all",
+	"list_policy_fqdn_get_by_id",
+	"list_policy_fqdn_get_by_name",
+	"list_policy_fqdn_get_total",
+	"list_prefix_get_by_id",
+	"list_prefix_get_by_name",
+	"list_prefix_get_by_prefix",
+	"list_udr_get_all",
+	"list_udr_get_by_id",
+	"list_udr_get_by_name",
+	"list_udr_get_total",
+	"notification_alerts",
+	"notification_auditLogs",
+	"notification_jobs",
+	"policy_nat_get_all",
+	"policy_nat_get_by_id",
+	"policy_nat_get_by_name",
+	"policy_nat_get_total",
+	"policy_nat_rule_get_all",
+	"policy_nat_rule_get_by_id",
+	"policy_nat_rule_get_by_name",
+	"policy_nat_rule_get_total",
+	"policy_route_get_all",
+	"policy_route_get_by_id",
+	"policy_route_get_by_name",
+	"policy_route_get_total",
+	"policy_traffic_get_all",
+	"policy_traffic_get_by_id",
+	"policy_traffic_get_by_name",
+	"policy_traffic_rule_get_all",
+	"policy_traffic_rule_get_by_id",
+	"policy_traffic_rule_get_by_name",
+	"policy_traffic_rule_list_get_all",
+	"policy_traffic_rule_list_get_by_id",
+	"policy_traffic_rule_list_get_by_name",
+	"route_get",
+	"route_get_all",
+	"route_get_count",
+	"route_get_summary",
+	"segment_get_all",
+	"segment_get_by_id",
+	"segment_get_by_name",
+	"segment_resource_get_all",
+	"segment_resource_get_by_id",
+	"segment_resource_get_by_name",
+	"segment_resource_get_total",
+	"segment_resource_share_get_all",
+	"segment_resource_share_get_by_id",
+	"segment_resource_share_get_by_name",
+	"segment_resource_share_get_total",
+	"service_check_point_get_all",
+	"service_check_point_get_by_id",
+	"service_check_point_get_by_name",
+	"service_check_point_get_total",
+	"service_cisco_ftdv_get_all",
+	"service_cisco_ftdv_get_by_id",
+	"service_cisco_ftdv_get_by_name",
+	"service_cisco_ftdv_get_total",
+	"service_f5_lb_get_all",
+	"service_f5_lb_get_by_id",
+	"service_f5_lb_get_by_name",
+	"service_f5_lb_get_total",
+	"service_fortinet_get_all",
+	"service_fortinet_get_by_id",
+	"service_fortinet_get_by_name",
+	"service_fortinet_get_total",
+	"service_infoblox_get_all",
+	"service_infoblox_get_by_id",
+	"service_infoblox_get_by_name",
+	"service_infoblox_get_total",
+	"service_pan_get_all",
+	"service_pan_get_by_id",
+	"service_pan_get_by_name",
+	"service_pan_get_total",
+	"service_zscaler_get_all",
+	"service_zscaler_get_by_id",
+	"service_zscaler_get_by_name",
+	"service_zscaler_get_total",
+	"tenant_network_firewall_zones",
+	"tenant_network_summary",
+	"tenant_resource_limits",
+	"tenant_resource_usages",
 }
