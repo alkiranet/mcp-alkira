@@ -3,7 +3,7 @@ module github.com/alkiranet/mcp-alkira
 go 1.25.3
 
 require (
-	github.com/alkiranet/client-go v0.5.4
+	github.com/alkiranet/client-go v0.5.6
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/mark3labs/mcp-go v0.34.0
 )

@@ -21,7 +21,7 @@ func (ac *AlkiraClient) GetHealthOfConnector(connectorId string) (string, error)
 		return "", fmt.Errorf("Invalid connector ID %s.", connectorId)
 	}
 
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s", ac.URI, ac.TenantNetworkId, connectorId)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s", ac.URI, ac.TenantNetworkId, pathSegment(connectorId))
 	data, err := ac.Get(uri)
 
 	return string(data), err
@@ -35,7 +35,7 @@ func (ac *AlkiraClient) GetHealthOfConnectorInstance(connectorId string, instanc
 		return "", fmt.Errorf("Invalid connector ID %s or instance ID %s.", connectorId, instanceId)
 	}
 
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s/instance/%s", ac.URI, ac.TenantNetworkId, connectorId, instanceId)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/connector/%s/instance/%s", ac.URI, ac.TenantNetworkId, pathSegment(connectorId), pathSegment(instanceId))
 	data, err := ac.Get(uri)
 
 	return string(data), err
@@ -48,7 +48,7 @@ func (ac *AlkiraClient) GetHealthOfService(serviceId string) (string, error) {
 		return "", fmt.Errorf("Invalid service ID %s.", serviceId)
 	}
 
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s", ac.URI, ac.TenantNetworkId, serviceId)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s", ac.URI, ac.TenantNetworkId, pathSegment(serviceId))
 	data, err := ac.Get(uri)
 
 	return string(data), err
@@ -62,7 +62,7 @@ func (ac *AlkiraClient) GetHealthOfServiceInstance(serviceId string, instanceId 
 		return "", fmt.Errorf("Invalid service ID %s or instance ID %s.", serviceId, instanceId)
 	}
 
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s/instance/%s", ac.URI, ac.TenantNetworkId, serviceId, instanceId)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/health/service/%s/instance/%s", ac.URI, ac.TenantNetworkId, pathSegment(serviceId), pathSegment(instanceId))
 	data, err := ac.Get(uri)
 
 	return string(data), err

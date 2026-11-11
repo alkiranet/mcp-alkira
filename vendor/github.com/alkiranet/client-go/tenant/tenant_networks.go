@@ -86,6 +86,10 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 		return "", fmt.Errorf("GetTenantNetworkId: failed to unmarshal: %v", err)
 	}
 
+	if len(result) == 0 {
+		return "", ErrNoTenantNetwork
+	}
+
 	return strconv.Itoa(result[0].Id), nil
 }
 
@@ -120,7 +124,7 @@ type TenantNetworkConnectorState struct {
 
 // GetTenantNetworkConnectorState get the tenant network connector state by its Id
 func (ac *AlkiraClient) GetTenantNetworkConnectorState(id string) (string, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/connectors/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/connectors/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 
@@ -145,7 +149,7 @@ type TenantNetworkServiceState struct {
 
 // GetTenantNetworkServiceState get the tenant network service state by its Id
 func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 
@@ -170,7 +174,7 @@ type TenantNetworkProvisionRequest struct {
 
 // GetTenantNetworkProvisionRequest get the tenant network provision request
 func (ac *AlkiraClient) GetTenantNetworkProvisionRequest(id string) (*TenantNetworkProvisionRequest, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision-requests/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision-requests/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 
