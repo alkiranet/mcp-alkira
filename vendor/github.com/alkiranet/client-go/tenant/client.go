@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -125,8 +126,14 @@ func NewAlkiraClient(uri string, apiKey string, maxToken int, compression string
 
 // Get retrieve resources by sending a HTTP GET request
 func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
-	if ac.configErr != nil {
-		return nil, ac.configErr
+	return ac.get(uri, 0)
+}
+
+// get is Get that, when maxBody > 0, reads at most maxBody+1 bytes of a 200
+// body, so the caller can reject a larger one without buffering it.
+func (ac *AlkiraClient) get(uri string, maxBody int64) ([]byte, error) {
+	if err := ac.check(uri); err != nil {
+		return nil, err
 	}
 	logf("DEBUG", "client-get URI: %s\n", uri)
 
@@ -153,7 +160,11 @@ func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 	}
 
 	defer response.Body.Close()
-	data, _ := ioutil.ReadAll(response.Body)
+	body := io.Reader(response.Body)
+	if maxBody > 0 && response.StatusCode == 200 {
+		body = io.LimitReader(body, maxBody+1)
+	}
+	data, _ := ioutil.ReadAll(body)
 	logf("DEBUG", "client-get(%s) %d RSP: %s", requestId, response.StatusCode, string(data))
 
 	if response.StatusCode != 200 {
@@ -165,8 +176,8 @@ func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 
 // Create send a HTTP POST request to create resource
 func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
-	if ac.configErr != nil {
-		return nil, ac.configErr
+	if err := ac.check(uri); err != nil {
+		return nil, err
 	}
 
 	logf("DEBUG", "client-create REQ: %s", string(body))
@@ -207,8 +218,8 @@ func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 
 // delete send a DELETE request to delete a resource
 func (ac *AlkiraClient) Delete(uri string) error {
-	if ac.configErr != nil {
-		return ac.configErr
+	if err := ac.check(uri); err != nil {
+		return err
 	}
 	logf("DEBUG", "client-delete: URI %s\n", uri)
 
@@ -253,8 +264,8 @@ func (ac *AlkiraClient) Delete(uri string) error {
 
 // Update send a PUT API request to update a resource
 func (ac *AlkiraClient) Update(uri string, body []byte) (string, error) {
-	if ac.configErr != nil {
-		return "", ac.configErr
+	if err := ac.check(uri); err != nil {
+		return "", err
 	}
 
 	logf("DEBUG", "client-update: REQ: %s\n", string(body))

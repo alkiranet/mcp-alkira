@@ -30,20 +30,24 @@ var ErrNoTenantNetwork = errors.New("tenant has no tenant network")
 var ErrEmptyToken = errors.New("empty bearer token")
 
 // ErrInvalidTenantNetworkId is returned, without sending a request, by every
-// call on a client built by NewAlkiraClientWithToken with a tenantNetworkId
-// that is neither empty nor a positive integer.
+// call on a client whose TenantNetworkId is neither empty nor a positive integer.
 var ErrInvalidTenantNetworkId = errors.New("invalid tenant network id")
+
+// ErrMissingTenantNetworkId is returned, without sending a request, by a call
+// whose path was built while TenantNetworkId was empty. Set TenantNetworkId
+// before building the API value that makes the call.
+var ErrMissingTenantNetworkId = errors.New("tenant network id is not set")
 
 // ErrNilHTTPClient is returned, without sending a request, by every call on a
 // client built by NewAlkiraClientWithToken with a nil httpClient.
 var ErrNilHTTPClient = errors.New("nil http client")
 
 // ErrInvalidHostHeader is returned, without sending a request, by every call on
-// a client built by NewAlkiraClientWithToken with a hostHeader that is not a
-// valid Host header value.
+// a client whose HostHeader is not a valid Host header value.
 var ErrInvalidHostHeader = errors.New("invalid host header")
 
-// ErrInvalidTenantNetworkResponse is wrapped by LookupTenantNetworkId errors for
+// ErrInvalidTenantNetworkResponse is wrapped by LookupTenantNetworkId and
+// GetTenantNetworkId errors for
 // a 2xx response that is not valid JSON, exceeds 1 MiB, or whose first entry has
 // a missing or non-positive id.
 var ErrInvalidTenantNetworkResponse = errors.New("invalid tenant network response")
@@ -97,7 +101,8 @@ func responseError(op string, resp *http.Response, err error, text string) *HTTP
 // integer; any other value makes every call return ErrInvalidTenantNetworkId.
 // A nil httpClient makes every call return ErrNilHTTPClient, and a hostHeader
 // with characters not allowed in a Host header makes every call return
-// ErrInvalidHostHeader.
+// ErrInvalidHostHeader. HostHeader and TenantNetworkId are validated on every
+// call, so the same errors apply to values assigned after construction.
 //
 // Get, Create, Update and Delete take no context, so httpClient's transport
 // must enforce request deadlines. Set httpClient.ErrorHandler to
@@ -146,6 +151,25 @@ func validHostHeader(h string) bool {
 	return true
 }
 
+// check returns the error that blocks a request to uri before it is sent: the
+// constructor error, an invalid HostHeader or TenantNetworkId, or a path
+// formatted with an empty tenant network id.
+func (ac *AlkiraClient) check(uri string) error {
+	switch {
+	case ac.configErr != nil:
+		return ac.configErr
+	case !validTenantNetworkId(ac.TenantNetworkId):
+		return ErrInvalidTenantNetworkId
+	case !validHostHeader(ac.HostHeader):
+		return ErrInvalidHostHeader
+	// The id is formatted into the path when the API value is built, so the
+	// path, not the current field, shows whether it was set in time.
+	case strings.Contains(uri, "/tenantnetworks//") || strings.HasSuffix(uri, "/tenantnetworks/"):
+		return ErrMissingTenantNetworkId
+	}
+	return nil
+}
+
 // validTenantNetworkId reports whether id is empty or a positive decimal
 // integer, the only values safe to place in a URL path unescaped.
 func validTenantNetworkId(id string) bool {
@@ -168,6 +192,10 @@ func validTenantNetworkId(id string) bool {
 // them through the constructor. The header map is copied on each call, so a
 // copy of the struct can be configured independently. Not safe to call
 // concurrently with requests on the same client.
+//
+// A value set here is sent unchanged on every request the client makes,
+// LookupTenantNetworkId included, so overriding x-ak-request-id suits a client
+// built for one inbound request.
 func (ac *AlkiraClient) WithHeader(name, value string) *AlkiraClient {
 	headers := make(map[string]string, len(ac.extraHeaders)+1)
 	for k, v := range ac.extraHeaders {
@@ -197,8 +225,8 @@ func (ac *AlkiraClient) decorate(req *retryablehttp.Request) {
 // ErrNoTenantNetwork for an empty list, ErrInvalidTenantNetworkResponse for a
 // malformed 2xx response, otherwise the constructor or transport error.
 func (ac *AlkiraClient) LookupTenantNetworkId(ctx context.Context) (string, error) {
-	if ac.configErr != nil {
-		return "", ac.configErr
+	if err := ac.check(""); err != nil {
+		return "", err
 	}
 
 	req, err := retryablehttp.NewRequestWithContext(ctx, "GET", ac.URI+"/tenantnetworksummaries", nil)

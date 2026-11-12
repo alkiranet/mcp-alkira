@@ -69,14 +69,22 @@ type TenantNetworkId struct {
 }
 
 // GetTenantNetworkId get the tenant network Id of the current tenant
+//
+// It keeps the v0.5.5 request (GET /tenantnetworks through Get) and error
+// text, which differ from LookupTenantNetworkId, and applies the same body
+// limit and id > 0 check.
 func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 
 	uri := fmt.Sprintf("%s/tenantnetworks", ac.URI)
 
-	data, err := ac.Get(uri)
+	data, err := ac.get(uri, maxLookupBody)
 
 	if err != nil {
 		return "", err
+	}
+
+	if len(data) > maxLookupBody {
+		return "", fmt.Errorf("%w: body exceeds %d bytes", ErrInvalidTenantNetworkResponse, maxLookupBody)
 	}
 
 	var result []TenantNetworkId
@@ -88,6 +96,10 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 
 	if len(result) == 0 {
 		return "", ErrNoTenantNetwork
+	}
+
+	if result[0].Id <= 0 {
+		return "", fmt.Errorf("%w: id %d", ErrInvalidTenantNetworkResponse, result[0].Id)
 	}
 
 	return strconv.Itoa(result[0].Id), nil
