@@ -11,8 +11,8 @@ func ConnectorIPSecTunnelProfileGetAll(client *ak.AlkiraClient) func(ctx context
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		offset, err := request.RequireString("offset")
-		limit, err := request.RequireString("limit")
+		offset := request.GetString("offset", "")
+		limit := request.GetString("limit", "")
 
 		// INIT
 		api := ak.NewConnectorIPSecTunnelProfile(client)
