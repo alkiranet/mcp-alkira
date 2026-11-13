@@ -22,7 +22,8 @@
 ## Project Structure
 - `handlers/` - MCP tool implementations
 - `tools/` - Mirror of handlers (likely generated)
-- `main.go` - Server entry point with MCP registration
+- `main.go` - Desktop server entry point
+- `registry/registry.go` - Registers every tool with a per-call client provider
 - Use `github.com/alkiranet/client-go` for Alkira API
 - Use `github.com/mark3labs/mcp-go` for MCP framework
 

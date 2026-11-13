@@ -69,14 +69,22 @@ type TenantNetworkId struct {
 }
 
 // GetTenantNetworkId get the tenant network Id of the current tenant
+//
+// It keeps the v0.5.5 request (GET /tenantnetworks through Get) and error
+// text, which differ from LookupTenantNetworkId, and applies the same body
+// limit and id > 0 check.
 func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 
 	uri := fmt.Sprintf("%s/tenantnetworks", ac.URI)
 
-	data, err := ac.Get(uri)
+	data, err := ac.get(uri, maxLookupBody)
 
 	if err != nil {
 		return "", err
+	}
+
+	if len(data) > maxLookupBody {
+		return "", fmt.Errorf("%w: body exceeds %d bytes", ErrInvalidTenantNetworkResponse, maxLookupBody)
 	}
 
 	var result []TenantNetworkId
@@ -84,6 +92,14 @@ func (ac *AlkiraClient) GetTenantNetworkId() (string, error) {
 
 	if err != nil {
 		return "", fmt.Errorf("GetTenantNetworkId: failed to unmarshal: %v", err)
+	}
+
+	if len(result) == 0 {
+		return "", ErrNoTenantNetwork
+	}
+
+	if result[0].Id <= 0 {
+		return "", fmt.Errorf("%w: id %d", ErrInvalidTenantNetworkResponse, result[0].Id)
 	}
 
 	return strconv.Itoa(result[0].Id), nil
@@ -120,7 +136,7 @@ type TenantNetworkConnectorState struct {
 
 // GetTenantNetworkConnectorState get the tenant network connector state by its Id
 func (ac *AlkiraClient) GetTenantNetworkConnectorState(id string) (string, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/connectors/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/connectors/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 
@@ -145,7 +161,7 @@ type TenantNetworkServiceState struct {
 
 // GetTenantNetworkServiceState get the tenant network service state by its Id
 func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/services/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 
@@ -170,7 +186,7 @@ type TenantNetworkProvisionRequest struct {
 
 // GetTenantNetworkProvisionRequest get the tenant network provision request
 func (ac *AlkiraClient) GetTenantNetworkProvisionRequest(id string) (*TenantNetworkProvisionRequest, error) {
-	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision-requests/%s", ac.URI, ac.TenantNetworkId, id)
+	uri := fmt.Sprintf("%s/tenantnetworks/%s/provision-requests/%s", ac.URI, ac.TenantNetworkId, pathSegment(id))
 
 	data, err := ac.Get(uri)
 

@@ -15,6 +15,8 @@ func ServiceCheckPointGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -26,6 +28,8 @@ func ServiceCheckPointGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -37,11 +41,15 @@ func ServiceCheckPointGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ServiceCheckPointGetTotal() mcp.Tool {
 	return mcp.NewTool("service_check_point_get_total",
 		mcp.WithDescription("Get total number of Check Point firewall services"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

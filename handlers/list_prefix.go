@@ -57,25 +57,6 @@ func ListPrefixGetByName(client *ak.AlkiraClient) func(ctx context.Context, requ
 	}
 }
 
-func ListPrefixGetTotal(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-
-		// INIT
-		api := ak.NewPrefixLists(client)
-
-		// Get resources
-		data, err := api.GetCount()
-
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-
-		// Return response
-		return mcp.NewToolResultText(data), nil
-	}
-}
-
 func ListPrefixGetByPrefix(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
