@@ -1,12 +1,16 @@
 package registry
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -238,6 +242,42 @@ func TestRegister_Annotations(t *testing.T) {
 		if hint := tool.Annotations.DestructiveHint; hint == nil || *hint {
 			t.Errorf("%s: destructiveHint is not false", tool.Name)
 		}
+	}
+}
+
+var update = flag.Bool("update", false, "rewrite testdata/tools_list.golden.json from the current tools/list output")
+
+const toolsListGolden = "testdata/tools_list.golden.json"
+
+// TestRegister_ToolsListGolden fails on any change to a tool's name, description, schema or
+// annotations. Regenerate with: go test ./registry -run ToolsListGolden -update
+func TestRegister_ToolsListGolden(t *testing.T) {
+	var res struct {
+		Tools json.RawMessage `json:"tools"`
+	}
+	if err := json.Unmarshal(call(t, newServer(noClient), "tools/list", nil), &res); err != nil {
+		t.Fatal(err)
+	}
+	var got bytes.Buffer
+	if err := json.Indent(&got, res.Tools, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	got.WriteByte('\n')
+
+	if *update {
+		if err := os.MkdirAll(filepath.Dir(toolsListGolden), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(toolsListGolden, got.Bytes(), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want, err := os.ReadFile(toolsListGolden)
+	if err != nil {
+		t.Fatalf("%v (run with -update to create it)", err)
+	}
+	if !bytes.Equal(got.Bytes(), want) {
+		t.Errorf("tools/list differs from %s; run with -update if the change is intended", toolsListGolden)
 	}
 }
 
