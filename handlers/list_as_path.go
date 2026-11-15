@@ -11,8 +11,10 @@ func ListAsPathGetAll(client *ak.AlkiraClient) func(ctx context.Context, request
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
+		offset, limit, err := pagingArgs(request, "0", "50")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// INIT
 		api := ak.NewListAsPath(client)

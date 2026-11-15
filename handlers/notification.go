@@ -15,8 +15,10 @@ func Alerts(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallT
 		t, _ := request.RequireString("type")
 		p, _ := request.RequireString("priority")
 
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
+		offset, limit, err := pagingArgs(request, "", "")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// Get resources
 		alerts, err := client.GetAlertsSummary(s, t, p, offset, limit)
@@ -37,8 +39,10 @@ func AuditLogs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.Ca
 		s, _ := request.RequireString("status")
 		t, _ := request.RequireString("type")
 
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
+		offset, limit, err := pagingArgs(request, "", "")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// Get resources
 		auditLogs, err := client.GetAuditLogSummary(s, t, offset, limit)
@@ -66,8 +70,10 @@ func Jobs(client *ak.AlkiraClient) func(ctx context.Context, request mcp.CallToo
 			t = ""
 		}
 
-		offset, _ := request.RequireString("offset")
-		limit, _ := request.RequireString("limit")
+		offset, limit, err := pagingArgs(request, "", "")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// Get resources
 		jobs, err := client.GetJobs(s, t, offset, limit)

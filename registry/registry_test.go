@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -124,14 +125,16 @@ func TestRegister_AllToolsUseProvider(t *testing.T) {
 }
 
 type requestLog struct {
-	mu    sync.Mutex
-	paths []string
+	mu      sync.Mutex
+	paths   []string
+	queries []url.Values
 }
 
-func (l *requestLog) add(path string) {
+func (l *requestLog) add(r *http.Request) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	l.paths = append(l.paths, path)
+	l.paths = append(l.paths, r.URL.Path)
+	l.queries = append(l.queries, r.URL.Query())
 }
 
 func (l *requestLog) get() []string {
@@ -140,16 +143,26 @@ func (l *requestLog) get() []string {
 	return append([]string(nil), l.paths...)
 }
 
-// fakePortal serves canned JSON for the given paths and records each request path.
+func (l *requestLog) getQueries() []url.Values {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return append([]url.Values(nil), l.queries...)
+}
+
+// fakePortal serves canned JSON for the given paths and records each request. With nil
+// routes it answers every path with an empty data page.
 func fakePortal(t *testing.T, routes map[string]string) (*ak.AlkiraClient, *requestLog) {
 	t.Helper()
 	seen := &requestLog{}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		seen.add(r.URL.Path)
+		seen.add(r)
 		if got := r.Header.Get("Authorization"); got != "api-key test" {
 			t.Errorf("Authorization = %q", got)
 		}
 		body, ok := routes[r.URL.Path]
+		if routes == nil {
+			body, ok = `{"data":[]}`, true
+		}
 		if !ok {
 			http.NotFound(w, r)
 			return
@@ -288,7 +301,7 @@ func TestRegister_NilClientIsToolError(t *testing.T) {
 	}
 }
 
-// connector_ipsec_tunnel_profile_get_all treats offset and limit as optional and omits them from the query.
+// connector_ipsec_tunnel_profile_get_all succeeds without arguments.
 func TestRegister_ConnectorIPSecTunnelProfileGetAll_NoArgs_HTTP(t *testing.T) {
 	client, seen := fakePortal(t, map[string]string{
 		"/api/v1/tenantnetworks/7/ipsec-tunnel-profiles": `{"data":[{"id":3,"name":"tp-3"}]}`,
@@ -302,6 +315,110 @@ func TestRegister_ConnectorIPSecTunnelProfileGetAll_NoArgs_HTTP(t *testing.T) {
 	}
 	if paths := seen.get(); len(paths) != 1 || paths[0] != "/api/v1/tenantnetworks/7/ipsec-tunnel-profiles" {
 		t.Fatalf("requests = %v", paths)
+	}
+}
+
+// pagingDefaults returns each tool's declared offset and limit defaults from tools/list.
+func pagingDefaults(t *testing.T) map[string][2]string {
+	t.Helper()
+	type prop struct {
+		Default *string `json:"default"`
+	}
+	var res struct {
+		Tools []struct {
+			Name        string `json:"name"`
+			InputSchema struct {
+				Properties map[string]prop `json:"properties"`
+			} `json:"inputSchema"`
+		} `json:"tools"`
+	}
+	if err := json.Unmarshal(call(t, newServer(noClient), "tools/list", nil), &res); err != nil {
+		t.Fatal(err)
+	}
+	defaults := map[string][2]string{}
+	for _, tool := range res.Tools {
+		offset, limit := tool.InputSchema.Properties["offset"].Default, tool.InputSchema.Properties["limit"].Default
+		if offset != nil && limit != nil {
+			defaults[tool.Name] = [2]string{*offset, *limit}
+		}
+	}
+	return defaults
+}
+
+// pagingQuery calls a tool against a fake portal and returns the query of the one backend request.
+func pagingQuery(t *testing.T, name string, args map[string]any) (toolResult, url.Values) {
+	t.Helper()
+	client, seen := fakePortal(t, nil)
+	res := callTool(t, newServer(providerFor(client)), name, args)
+	queries := seen.getQueries()
+	if len(queries) != 1 {
+		t.Fatalf("%s: want one backend request, got %d", name, len(queries))
+	}
+	return res, queries[0]
+}
+
+func TestRegister_PagingDefaults_HTTP(t *testing.T) {
+	defaults := pagingDefaults(t)
+	if len(defaults) < 40 {
+		t.Fatalf("found %d tools declaring paging defaults, want at least 40", len(defaults))
+	}
+	for name, def := range defaults {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			_, q := pagingQuery(t, name, map[string]any{})
+			if q.Get("offset") != def[0] || q.Get("limit") != def[1] {
+				t.Fatalf("query = %v, want offset=%s limit=%s", q, def[0], def[1])
+			}
+		})
+	}
+}
+
+func TestRegister_PagingArgs_HTTP(t *testing.T) {
+	for _, tc := range []struct {
+		tool, defLimit string
+	}{
+		{"connector_ipsec_get_all", "50"},
+		{"segment_resource_share_get_all", "20"},
+	} {
+		t.Run(tc.tool, func(t *testing.T) {
+			for _, ok := range []struct {
+				name      string
+				args      map[string]any
+				wantLimit string
+			}{
+				{"absent", map[string]any{}, tc.defLimit},
+				{"number", map[string]any{"limit": 100}, "100"},
+				{"string", map[string]any{"limit": "100"}, "100"},
+			} {
+				t.Run(ok.name, func(t *testing.T) {
+					res, q := pagingQuery(t, tc.tool, ok.args)
+					if res.IsError {
+						t.Fatalf("unexpected tool error: %s", res.Content[0].Text)
+					}
+					if q.Get("limit") != ok.wantLimit || q.Get("offset") != "0" {
+						t.Fatalf("query = %v, want offset=0 limit=%s", q, ok.wantLimit)
+					}
+				})
+			}
+			for _, bad := range []map[string]any{
+				{"limit": "abc"},
+				{"limit": 1.5},
+				{"limit": -1},
+				{"offset": "-5"},
+				{"offset": true},
+			} {
+				t.Run(fmt.Sprint(bad), func(t *testing.T) {
+					client, seen := fakePortal(t, nil)
+					res := callTool(t, newServer(providerFor(client)), tc.tool, bad)
+					if !res.IsError || !strings.Contains(res.Content[0].Text, "must be a non-negative integer") {
+						t.Fatalf("want a paging tool error, got isError=%v text=%q", res.IsError, res.Content[0].Text)
+					}
+					if paths := seen.get(); len(paths) != 0 {
+						t.Fatalf("requests = %v, want none", paths)
+					}
+				})
+			}
+		})
 	}
 }
 
