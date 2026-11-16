@@ -11,8 +11,10 @@ func ConnectorIPSecAdvGetAll(client *ak.AlkiraClient) func(ctx context.Context, 
 
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 
-		offset, err := request.RequireString("offset")
-		limit, err := request.RequireString("limit")
+		offset, limit, err := pagingArgs(request, "0", "50")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
 
 		// INIT
 		api := ak.NewConnectorAdvIPSec(client)
