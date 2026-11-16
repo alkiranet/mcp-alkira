@@ -29,6 +29,7 @@ const (
 	CredentialTypeInfobloxInstance         CredentialType = "infoblox-instance"
 	CredentialTypeKeyPair                  CredentialType = "keypair"
 	CredentialTypeLdap                     CredentialType = "ldap"
+	CredentialTypeMerakiSdwanInstance      CredentialType = "meraki-sdwan-connector-instance"
 	CredentialTypeOciVcn                   CredentialType = "ocivcn"
 	CredentialTypePan                      CredentialType = "pan"
 	CredentialTypePanInstance              CredentialType = "paninstance"
@@ -222,7 +223,7 @@ type CredentialApiKey struct {
 
 // CreateCredential create new credential
 func (ac *AlkiraClient) CreateCredential(name string, ctype CredentialType, credential interface{}, expires int64) (string, error) {
-	uri := fmt.Sprintf("%s/api/credentials/%s", ac.URI, ctype)
+	uri := fmt.Sprintf("%s/api/credentials/%s", ac.URI, pathSegment(string(ctype)))
 
 	// This body is not the normal JSON format...
 	body, err := json.Marshal(Credentials{
@@ -249,7 +250,7 @@ func (ac *AlkiraClient) CreateCredential(name string, ctype CredentialType, cred
 
 // DeleteCredential delete credential by its Id
 func (ac *AlkiraClient) DeleteCredential(id string, ctype CredentialType) error {
-	uri := fmt.Sprintf("%s/api/credentials/%s/%s", ac.URI, ctype, id)
+	uri := fmt.Sprintf("%s/api/credentials/%s/%s", ac.URI, pathSegment(string(ctype)), pathSegment(id))
 	return ac.Delete(uri)
 }
 
@@ -259,7 +260,7 @@ func (ac *AlkiraClient) UpdateCredential(id string, name string, ctype Credentia
 		return fmt.Errorf("UpdateCredential: not supported for the credential type")
 	}
 
-	uri := fmt.Sprintf("%s/api/credentials/%s/%s", ac.URI, ctype, id)
+	uri := fmt.Sprintf("%s/api/credentials/%s/%s", ac.URI, pathSegment(string(ctype)), pathSegment(id))
 
 	// This body is not the normal JSON format...
 	body, err := json.Marshal(Credentials{
@@ -286,7 +287,7 @@ func (ac *AlkiraClient) GetCredentials() (string, error) {
 
 // GetCredentialById get one credential by its Id
 func (ac *AlkiraClient) GetCredentialById(id string) (CredentialResponseDetail, error) {
-	uri := fmt.Sprintf("%s/api/credentials/%s", ac.URI, id)
+	uri := fmt.Sprintf("%s/api/credentials/%s", ac.URI, pathSegment(id))
 
 	var credential CredentialResponseDetail
 

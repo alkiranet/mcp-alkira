@@ -11,6 +11,8 @@ func HealthConnectorGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func HealthConnectorInstanceGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Instance ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,6 +39,8 @@ func HealthServiceGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Service ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -49,5 +55,7 @@ func HealthServiceInstanceGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Instance ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

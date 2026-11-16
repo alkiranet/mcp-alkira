@@ -34,6 +34,8 @@ func GetRoutes() mcp.Tool {
 		mcp.WithBoolean("includeSharedRoutes", mcp.Description("Include segment resource shared routes (default: true)")),
 		mcp.WithBoolean("includeTranslatedRoutes", mcp.Description("Include NAT translated routes (default: true)")),
 		mcp.WithString("routeStatus", mcp.Description("Filter by route status: active, suppressed, overlap")),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -63,6 +65,8 @@ func GetRouteCount() mcp.Tool {
 		mcp.WithString("connectorTypes", mcp.Description("Comma-separated list of connector types (e.g., 'AWS_VPC,AZURE_VNET,IP_SEC')")),
 		mcp.WithBoolean("includeSharedRoutes", mcp.Description("Include segment resource shared routes (default: true)")),
 		mcp.WithBoolean("includeTranslatedRoutes", mcp.Description("Include NAT translated routes (default: true)")),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -74,6 +78,8 @@ func GetRouteSummary() mcp.Tool {
 		mcp.WithString("groupBy", mcp.Description("Group routes by: connectorType, segment, cxp, connectorName, prefixRange (default: connectorType)")),
 		mcp.WithBoolean("includeDetails", mcp.Description("Include detailed breakdown (default: false)")),
 		mcp.WithBoolean("includePrefixAnalysis", mcp.Description("Include IP prefix range analysis (default: false)")),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -88,6 +94,8 @@ func GetAllRoutes() mcp.Tool {
 		mcp.WithString("segmentName", mcp.Description("Filter by segment name")),
 		mcp.WithString("connectorType", mcp.Description("Filter by connector type (SAAS, REMOTE_ACCESS, AWS_VPC, etc.)")),
 		mcp.WithString("cxp", mcp.Description("Filter by Cloud Exchange Point")),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 

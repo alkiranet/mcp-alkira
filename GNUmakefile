@@ -1,11 +1,13 @@
 VERSION := $(shell git describe --tags --dirty)
 
+LDFLAGS := -ldflags "-X main.version=$(VERSION)"
+
 RELEASE_DIR := releases/$(VERSION)
 RELEASE_BIN := releases/$(VERSION)/bin
 
 build:
 	go fmt
-	go build -o bin/mcp-alkira
+	go build $(LDFLAGS) -o bin/mcp-alkira
 
 fmt:
 	go fmt
@@ -16,11 +18,11 @@ vendor:
 	go mod vendor
 
 release:
-	GOOS=windows GOARCH=amd64 go build -o $(RELEASE_BIN)/windows-amd64/mcp-alkira_$(VERSION)
-	GOOS=linux GOARCH=amd64 go build -o $(RELEASE_BIN)/linux-amd64/mcp-alkira_$(VERSION)
-	GOOS=linux GOARCH=arm64 go build -o $(RELEASE_BIN)/linux-arm64/mcp-alkira_$(VERSION)
-	GOOS=darwin GOARCH=amd64 go build -o $(RELEASE_BIN)/darwin-amd64/mcp-alkira_$(VERSION)
-	GOOS=darwin GOARCH=arm64 go build -o $(RELEASE_BIN)/darwin-arm64/mcp-alkira_$(VERSION)
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(RELEASE_BIN)/windows-amd64/mcp-alkira_$(VERSION)
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(RELEASE_BIN)/linux-amd64/mcp-alkira_$(VERSION)
+	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o $(RELEASE_BIN)/linux-arm64/mcp-alkira_$(VERSION)
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(RELEASE_BIN)/darwin-amd64/mcp-alkira_$(VERSION)
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(RELEASE_BIN)/darwin-arm64/mcp-alkira_$(VERSION)
 	tar czf $(RELEASE_DIR)/mcp-alkira-$(VERSION)-linux-amd64.tar.gz -C $(RELEASE_BIN)/linux-amd64 mcp-alkira_$(VERSION)
 	tar czf $(RELEASE_DIR)/mcp-alkira-$(VERSION)-linux-arm64.tar.gz -C $(RELEASE_BIN)/linux-arm64 mcp-alkira_$(VERSION)
 	tar czf $(RELEASE_DIR)/mcp-alkira-$(VERSION)-darwin-amd64.tar.gz -C $(RELEASE_BIN)/darwin-amd64 mcp-alkira_$(VERSION)

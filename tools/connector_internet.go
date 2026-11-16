@@ -15,6 +15,8 @@ func ConnectorInternetGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func ConnectorInternetGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,11 +39,15 @@ func ConnectorInternetGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ConnectorInternetGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_internet_get_total",
 		mcp.WithDescription("Get total number of internet connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

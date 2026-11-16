@@ -7,8 +7,8 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -22,6 +22,9 @@ import (
 const defaultRetryInterval time.Duration = 5 * time.Second
 const defaultRetryTimeout time.Duration = 10 * time.Second
 
+// portalScheme prefixes the uri passed to NewAlkiraClient; tests point it at plain HTTP.
+var portalScheme = "https://"
+
 // This structure defines an Alkira Client.
 //
 // Client        - An retryable HTTP client.
@@ -30,6 +33,10 @@ const defaultRetryTimeout time.Duration = 10 * time.Second
 // Authorization - Authorization header.
 // MaxToken      - Max tokens for LLM usages.
 // Compression   - Compression method for optimizting output for LLMs.
+// HostHeader    - Host header sent when non-empty; TLS SNI and verification are unchanged.
+//
+// Hold it by pointer. A value copy stored in an unexported field of another
+// struct bypasses the String and GoString redaction under %+v.
 type AlkiraClient struct {
 	Client          *retryablehttp.Client
 	URI             string
@@ -38,6 +45,9 @@ type AlkiraClient struct {
 	Authorization   string
 	MaxToken        int
 	Compression     string
+	HostHeader      string
+	extraHeaders    map[string]string
+	configErr       error
 }
 
 // NewAlkiraClient creates a new alkira client
@@ -55,7 +65,7 @@ func NewAlkiraClient(uri string, apiKey string, maxToken int, compression string
 	logf("DEBUG", "Creating new Alkira Client")
 
 	// Construct portal URLs
-	url := "https://" + uri
+	url := portalScheme + uri
 	apiUrl := url + "/api"
 
 	// Generate Authorization header string
@@ -96,75 +106,69 @@ func NewAlkiraClient(uri string, apiKey string, maxToken int, compression string
 		return shouldRetry, e
 	}
 
-	// Get the tenant network ID
-	var result []TenantNetworkId
-	tenantNetworkUrl := apiUrl + "/tenantnetworksummaries"
-
-	tenantNetworkRequest, _ := retryablehttp.NewRequest("GET", tenantNetworkUrl, nil)
-	tenantNetworkRequest.Header.Set("Content-Type", "application/json")
-	tenantNetworkRequest.Header.Set("Authorization", auth)
-	tenantNetworkResponse, err := retryClient.Do(tenantNetworkRequest)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to make tenant network request, %v", err)
-	}
-
-	defer tenantNetworkResponse.Body.Close()
-
-	data, _ := ioutil.ReadAll(tenantNetworkResponse.Body)
-	logf("TRACE", "Tenant Network Summary: %s\n", string(data))
-
-	if tenantNetworkResponse.StatusCode != 200 {
-		return nil, fmt.Errorf("failed to get tenant network (%d)", tenantNetworkResponse.StatusCode)
-	}
-
-	json.Unmarshal([]byte(data), &result)
-
-	tenantNetworkId := 0
-
-	if len(result) > 0 {
-		tenantNetworkId = result[0].Id
-	} else {
-		return nil, fmt.Errorf("failed to get tenant network ID")
-	}
-
-	// Construct our client with all information
 	client := &AlkiraClient{
-		Client:          retryClient,
-		URI:             apiUrl,
-		ApiKey:          apiKey,
-		TenantNetworkId: strconv.Itoa(tenantNetworkId),
-		Authorization:   auth,
-		MaxToken:        maxToken,
-		Compression:     compression,
+		Client:        retryClient,
+		URI:           apiUrl,
+		ApiKey:        apiKey,
+		Authorization: auth,
+		MaxToken:      maxToken,
+		Compression:   compression,
 	}
+
+	tenantNetworkId, err := client.LookupTenantNetworkId(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenant network ID: %w", err)
+	}
+	client.TenantNetworkId = tenantNetworkId
 
 	return client, nil
 }
 
 // Get retrieve resources by sending a HTTP GET request
 func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
+	return ac.get(uri, 0)
+}
+
+// get is Get that, when maxBody > 0, reads at most maxBody+1 bytes of a 200
+// body, so the caller can reject a larger one without buffering it.
+func (ac *AlkiraClient) get(uri string, maxBody int64) ([]byte, error) {
+	if err := ac.check(uri); err != nil {
+		return nil, err
+	}
 	logf("DEBUG", "client-get URI: %s\n", uri)
 
 	requestId := "client-" + uuid.New().String()
-	request, _ := retryablehttp.NewRequest("GET", uri, nil)
+	request, err := retryablehttp.NewRequest("GET", uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("client-get: invalid request: %w", err)
+	}
 
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", ac.Authorization)
 	request.Header.Set("x-ak-request-id", requestId)
+	ac.decorate(request)
+	requestId = request.Header.Get("x-ak-request-id")
 
 	response, err := ac.Client.Do(request)
 
 	if err != nil {
-		return nil, fmt.Errorf("client-get(%s) failed to send request, %v", requestId, err)
+		if response != nil {
+			return nil, responseError("client-get("+requestId+")", response, err,
+				fmt.Sprintf("client-get(%s) failed to send request, %v", requestId, err))
+		}
+		return nil, fmt.Errorf("client-get(%s) failed to send request, %w", requestId, err)
 	}
 
 	defer response.Body.Close()
-	data, _ := ioutil.ReadAll(response.Body)
+	body := io.Reader(response.Body)
+	if maxBody > 0 && response.StatusCode == 200 {
+		body = io.LimitReader(body, maxBody+1)
+	}
+	data, _ := ioutil.ReadAll(body)
 	logf("DEBUG", "client-get(%s) %d RSP: %s", requestId, response.StatusCode, string(data))
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("client-get(%s): %d %s", requestId, response.StatusCode, string(data))
+		return nil, newHTTPError("client-get("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-get(%s): %d %s", requestId, response.StatusCode, string(data)))
 	}
 
 	return data, nil
@@ -172,20 +176,32 @@ func (ac *AlkiraClient) Get(uri string) ([]byte, error) {
 
 // Create send a HTTP POST request to create resource
 func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
+	if err := ac.check(uri); err != nil {
+		return nil, err
+	}
 
 	logf("DEBUG", "client-create REQ: %s", string(body))
 
 	requestId := "client-" + uuid.New().String()
-	request, _ := retryablehttp.NewRequest("POST", uri, bytes.NewBuffer(body))
+	request, err := retryablehttp.NewRequest("POST", uri, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("client-create: invalid request: %w", err)
+	}
 
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", ac.Authorization)
 	request.Header.Set("x-ak-request-id", requestId)
+	ac.decorate(request)
+	requestId = request.Header.Get("x-ak-request-id")
 
 	response, err := ac.Client.Do(request)
 
 	if err != nil {
-		return nil, fmt.Errorf("client-create(%s): failed to send request, %v", requestId, err)
+		if response != nil {
+			return nil, responseError("client-create("+requestId+")", response, err,
+				fmt.Sprintf("client-create(%s): failed to send request, %v", requestId, err))
+		}
+		return nil, fmt.Errorf("client-create(%s): failed to send request, %w", requestId, err)
 	}
 
 	defer response.Body.Close()
@@ -194,7 +210,7 @@ func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 	logf("DEBUG", "client-create(%s) %d RSP: %s", requestId, response.StatusCode, string(data))
 
 	if response.StatusCode != 201 && response.StatusCode != 200 {
-		return nil, fmt.Errorf("client-create(%s): %d %s.", requestId, response.StatusCode, string(data))
+		return nil, newHTTPError("client-create("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-create(%s): %d %s.", requestId, response.StatusCode, string(data)))
 	}
 
 	return data, nil
@@ -202,19 +218,31 @@ func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 
 // delete send a DELETE request to delete a resource
 func (ac *AlkiraClient) Delete(uri string) error {
+	if err := ac.check(uri); err != nil {
+		return err
+	}
 	logf("DEBUG", "client-delete: URI %s\n", uri)
 
 	requestId := "client-" + uuid.New().String()
-	request, _ := retryablehttp.NewRequest("DELETE", uri, nil)
+	request, err := retryablehttp.NewRequest("DELETE", uri, nil)
+	if err != nil {
+		return fmt.Errorf("client-delete: invalid request: %w", err)
+	}
 
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", ac.Authorization)
 	request.Header.Set("x-ak-request-id", requestId)
+	ac.decorate(request)
+	requestId = request.Header.Get("x-ak-request-id")
 
 	response, err := ac.Client.Do(request)
 
 	if err != nil {
-		return fmt.Errorf("client-delete(%s): failed to send request, %v", requestId, err)
+		if response != nil {
+			return responseError("client-delete("+requestId+")", response, err,
+				fmt.Sprintf("client-delete(%s): failed to send request, %v", requestId, err))
+		}
+		return fmt.Errorf("client-delete(%s): failed to send request, %w", requestId, err)
 	}
 
 	defer response.Body.Close()
@@ -228,7 +256,7 @@ func (ac *AlkiraClient) Delete(uri string) error {
 			return nil
 		}
 
-		return fmt.Errorf("client-delete(%s): %d %s", requestId, response.StatusCode, string(data))
+		return newHTTPError("client-delete("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-delete(%s): %d %s", requestId, response.StatusCode, string(data)))
 	}
 
 	return nil
@@ -236,20 +264,32 @@ func (ac *AlkiraClient) Delete(uri string) error {
 
 // Update send a PUT API request to update a resource
 func (ac *AlkiraClient) Update(uri string, body []byte) (string, error) {
+	if err := ac.check(uri); err != nil {
+		return "", err
+	}
 
 	logf("DEBUG", "client-update: REQ: %s\n", string(body))
 
 	requestId := "client-" + uuid.New().String()
-	request, _ := retryablehttp.NewRequest("PUT", uri, bytes.NewBuffer(body))
+	request, err := retryablehttp.NewRequest("PUT", uri, bytes.NewBuffer(body))
+	if err != nil {
+		return "", fmt.Errorf("client-update: invalid request: %w", err)
+	}
 
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", ac.Authorization)
 	request.Header.Set("x-ak-request-id", requestId)
+	ac.decorate(request)
+	requestId = request.Header.Get("x-ak-request-id")
 
 	response, err := ac.Client.Do(request)
 
 	if err != nil {
-		return "", fmt.Errorf("client-update(%s): failed to send request, %v", requestId, err)
+		if response != nil {
+			return "", responseError("client-update("+requestId+")", response, err,
+				fmt.Sprintf("client-update(%s): failed to send request, %v", requestId, err))
+		}
+		return "", fmt.Errorf("client-update(%s): failed to send request, %w", requestId, err)
 	}
 
 	defer response.Body.Close()
@@ -258,7 +298,7 @@ func (ac *AlkiraClient) Update(uri string, body []byte) (string, error) {
 	logf("DEBUG", "client-update(%s): %d RSP: %v\n", requestId, response.StatusCode, data)
 
 	if response.StatusCode != 200 && response.StatusCode != 202 {
-		return "", fmt.Errorf("client-update(%s): %d %s", requestId, response.StatusCode, string(data))
+		return "", newHTTPError("client-update("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-update(%s): %d %s", requestId, response.StatusCode, string(data)))
 	}
 
 	return "", nil

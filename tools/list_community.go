@@ -15,6 +15,8 @@ func ListCommunityGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -22,6 +24,8 @@ func ListCommunityGetById() mcp.Tool {
 	return mcp.NewTool("list_community_get_by_id",
 		mcp.WithDescription("Get BGP Community list by ID"),
 		mcp.WithString("listId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -29,11 +33,15 @@ func ListCommunityGetByName() mcp.Tool {
 	return mcp.NewTool("list_community_get_by_name",
 		mcp.WithDescription("Get BGP Community list by name"),
 		mcp.WithString("listName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ListCommunityGetTotal() mcp.Tool {
 	return mcp.NewTool("list_community_get_total",
 		mcp.WithDescription("Get total numbers of BGP Community lists."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

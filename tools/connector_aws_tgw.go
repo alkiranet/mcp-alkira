@@ -15,6 +15,8 @@ func ConnectorAwsTgwGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func ConnectorAwsTgwGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,11 +39,15 @@ func ConnectorAwsTgwGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ConnectorAwsTgwGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_aws_tgw_get_total",
 		mcp.WithDescription("Get total numbers of AWS Transit Gateway connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

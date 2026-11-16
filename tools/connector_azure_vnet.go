@@ -15,6 +15,8 @@ func ConnectorAzureVnetGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func ConnectorAzureVnetGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,11 +39,15 @@ func ConnectorAzureVnetGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ConnectorAzureVnetGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_azure_vnet_get_total",
 		mcp.WithDescription("Get total numbers of Azure VNET connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

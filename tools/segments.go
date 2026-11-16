@@ -7,6 +7,8 @@ import (
 func SegmentGetAll() mcp.Tool {
 	return mcp.NewTool("segment_get_all",
 		mcp.WithDescription("Get all segments."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -17,6 +19,8 @@ func SegmentGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Segment ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -27,5 +31,7 @@ func SegmentGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Segment Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

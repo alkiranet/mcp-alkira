@@ -9,5 +9,7 @@ func CxpGetAll() mcp.Tool {
 		mcp.WithDescription("Get all CXPs (Cloud Exchange Point). "+
 			"Each CXP is uniquely defined by cloud provider (`provider` field) " +
 			"and cloud provider region (`providerRegion` field)."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

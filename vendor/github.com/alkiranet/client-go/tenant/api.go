@@ -74,15 +74,21 @@ func (a *AlkiraApi[T]) Create(resource *T) (*T, error) {
 
 // Delete delete a resource by its ID
 func (a *AlkiraApi[T]) Delete(id string) error {
-	uri := fmt.Sprintf("%s/%s", a.Uri, id)
+	if len(id) == 0 {
+		return fmt.Errorf("Delete: Invalid resource ID")
+	}
+	uri := fmt.Sprintf("%s/%s", a.Uri, pathSegment(id))
 	return a.Client.Delete(uri)
 }
 
 // Update update a resource by its ID
 func (a *AlkiraApi[T]) Update(id string, resource *T) (string, error) {
+	if len(id) == 0 {
+		return "", fmt.Errorf("Update: Invalid resource ID")
+	}
 
 	// Construct single resource URI
-	uri := fmt.Sprintf("%s/%s", a.Uri, id)
+	uri := fmt.Sprintf("%s/%s", a.Uri, pathSegment(id))
 
 	// Construct the request
 	body, err := json.Marshal(resource)
@@ -229,7 +235,7 @@ func (a *AlkiraApi[T]) GetById(id string) (string, error) {
 	}
 
 	// Construct single resource URI
-	uri := fmt.Sprintf("%s/%s?includeMarkedForDeletion=true", a.Uri, id)
+	uri := fmt.Sprintf("%s/%s?includeMarkedForDeletion=true", a.Uri, pathSegment(id))
 
 	data, err := a.Client.Get(uri)
 
@@ -248,7 +254,7 @@ func (a *AlkiraApi[T]) GetByName(name string) (string, error) {
 	}
 
 	// Construct single resource URI
-	uri := fmt.Sprintf("%s?name=%s&paginated=false", a.Uri, name)
+	uri := fmt.Sprintf("%s?name=%s&paginated=false", a.Uri, url.QueryEscape(name))
 
 	data, err := a.Client.Get(uri)
 

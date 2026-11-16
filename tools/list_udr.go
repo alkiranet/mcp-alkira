@@ -15,6 +15,8 @@ func ListUdrGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -22,6 +24,8 @@ func ListUdrGetById() mcp.Tool {
 	return mcp.NewTool("list_udr_get_by_id",
 		mcp.WithDescription("Get User Defined Route (UDR) list by ID"),
 		mcp.WithString("listId", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -29,11 +33,15 @@ func ListUdrGetByName() mcp.Tool {
 	return mcp.NewTool("list_udr_get_by_name",
 		mcp.WithDescription("Get User Defined Route (UDR) list by name"),
 		mcp.WithString("listName", mcp.Required()),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ListUdrGetTotal() mcp.Tool {
 	return mcp.NewTool("list_udr_get_total",
 		mcp.WithDescription("Get total numbers of User Defined Route (UDR) lists."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }

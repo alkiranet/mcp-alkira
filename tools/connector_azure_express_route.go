@@ -15,6 +15,8 @@ func ConnectorAzureExpressRouteGetAll() mcp.Tool {
 			mcp.Description("Pagination limit"),
 			mcp.DefaultString("50"),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -25,6 +27,8 @@ func ConnectorAzureExpressRouteGetById() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector ID."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
@@ -35,11 +39,15 @@ func ConnectorAzureExpressRouteGetByName() mcp.Tool {
 			mcp.Required(),
 			mcp.Description("Connector Name."),
 		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
 
 func ConnectorAzureExpressRouteGetTotal() mcp.Tool {
 	return mcp.NewTool("connector_azure_express_route_get_total",
 		mcp.WithDescription("Get total numbers of Azure ExpressRoute connectors."),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
