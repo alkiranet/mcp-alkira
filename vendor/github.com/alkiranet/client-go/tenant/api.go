@@ -199,9 +199,9 @@ func (a *AlkiraApi[T]) GetSummary(offset string, limit string) (string, error) {
 
 	if a.Client.Compression == "toon" {
 		if a.Pagination == PaginationOn {
-			summary, err = gotoon.Encode(map[string]interface{}{"data": resultPaginated})
+			summary, err = toonEncode(map[string]interface{}{"data": resultPaginated})
 		} else {
-			summary, err = gotoon.Encode(map[string]interface{}{"data": result})
+			summary, err = toonEncode(map[string]interface{}{"data": result})
 		}
 
 		if err != nil {
@@ -316,4 +316,21 @@ func (a *AlkiraApi[T]) GetCount() (string, error) {
 	}
 
 	return string(count), nil
+}
+
+// toonEncode encodes v in TOON format. v goes through encoding/json first so
+// the output uses JSON field names and honors omitempty; gotoon reads struct
+// tags verbatim.
+func toonEncode(v interface{}) (string, error) {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	var normalized interface{}
+	if err := json.Unmarshal(data, &normalized); err != nil {
+		return "", err
+	}
+
+	return gotoon.Encode(normalized)
 }
