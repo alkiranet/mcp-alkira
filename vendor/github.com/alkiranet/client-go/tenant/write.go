@@ -35,6 +35,9 @@ var (
 	ErrRateLimited    = errors.New("rate limited")
 	ErrLimitExceeded  = errors.New("tenant limit reached")
 	ErrInvalidInput   = errors.New("invalid input")
+	// ErrValidationPending: TPS refuses a change while an async validation
+	// of the entity is still running.
+	ErrValidationPending = errors.New("validation still running")
 	// ErrPostSend wraps a transport failure after the request was sent
 	// (connection closed, reset or EOF); the write may have been applied.
 	ErrPostSend = errors.New("connection closed after the request was sent")
@@ -96,12 +99,36 @@ type WriteResult struct {
 	Previous []byte
 	// Absent maps each list field to the removed items it did not hold (Update only).
 	Absent map[string][]any
-	// FlagsUnavailable reports that the enabled-features read failed, so the
-	// kill switch could not be checked.
-	FlagsUnavailable bool
 	// Unchanged reports an update whose list edits left every list as stored;
 	// no PUT was sent and Body is the stored object.
 	Unchanged bool
+	// Saved reports a create or update the backend stored, including one
+	// whose async validation FAILED.
+	Saved bool
+	// FlagsApplied names the feature flags that changed the request.
+	FlagsApplied []string
+	// FieldsDropped names the fields left out because their flag is off.
+	FieldsDropped []string
+	// FieldsCleared names the stored fields an update sent empty because of
+	// a FlagClearField or ClearStored rule.
+	FieldsCleared []string
+	// ValidationStateID is the x-ak-validation-state-id of an async write.
+	ValidationStateID string
+	// ValidationState is ValidationRunning while the async validation has
+	// not finished within the poll, ValidationUnknown when the validation
+	// state id was lost with the response, else its terminal state.
+	ValidationState string
+	// ValidationErrors holds the errors of a FAILED async validation.
+	ValidationErrors *ValidationErrorDetails
+	// ValidationReadError is the validation state read error that ended the
+	// poll early because a retry would not change it (not found, or a 4xx
+	// other than 408 and 429). ValidationState then stays ValidationRunning;
+	// the save stands.
+	ValidationReadError error
+	// ProvisionRequestID is the x-provision-request-id of a provision.
+	ProvisionRequestID string
+	// ValidationRequestID is the x-validation-request-id of a dry-run validation request.
+	ValidationRequestID string
 }
 
 // FieldError is one errors[] entry of a backend ErrorDetails body.
@@ -168,6 +195,9 @@ func (e *APIError) matches(sigs []Signature) bool {
 		if s.FieldCode != "" && !e.hasFieldCode(s.FieldCode) {
 			continue
 		}
+		if s.Message != "" && !strings.Contains(e.Message, s.Message) {
+			continue
+		}
 		return true
 	}
 	return false
@@ -206,6 +236,10 @@ func newAPIError(method, uri, requestId string, resp *http.Response, body []byte
 	}
 
 	switch {
+	// AbstractConnectorService, AbstractBaseService, ConnectorServiceImpl,
+	// ServiceLogicImpl: "... cannot be updated|deleted until the validation completes".
+	case e.Status == 403 && strings.Contains(e.Message, "until the validation completes"):
+		e.kind = ErrValidationPending
 	case e.Status == 429:
 		e.kind = ErrRateLimited
 	// ProvisionedEntityValidatorImpl: "Cannot modify|delete <type> ... at this time (network state ...)".
@@ -214,6 +248,10 @@ func newAPIError(method, uri, requestId string, resp *http.Response, body []byte
 		e.kind = ErrStateRefused
 	// tenant-billing answers its tag-count limit with 404 on create and update (TagServiceImpl.java:95-108).
 	case e.Status == 404 && strings.HasPrefix(e.Message, "Cannot create more than"):
+		e.kind = ErrLimitExceeded
+	// TPS "Cannot create a new <type>, limit = N": 400 from ResourceLimitsValidatorImpl.java:157,
+	// 403 from TenantLimitsValidatorImpl.java:84-145.
+	case (e.Status == 400 || e.Status == 403) && strings.HasPrefix(e.Message, "Cannot create a new ") && strings.Contains(e.Message, ", limit = "):
 		e.kind = ErrLimitExceeded
 	}
 	return e
@@ -401,7 +439,10 @@ func (ac *AlkiraClient) doWrite(ctx context.Context, method, uri string, body []
 	if rerr != nil {
 		return nil, fmt.Errorf("%s %s (request id %s): %d response: %w: %w", method, uri, requestId, resp.StatusCode, ErrPostSend, rerr)
 	}
-	res := &WriteResult{Body: data, Status: resp.StatusCode, RequestID: requestId}
+	res := &WriteResult{Body: data, Status: resp.StatusCode, RequestID: requestId,
+		ValidationStateID:   resp.Header.Get("x-ak-validation-state-id"),
+		ProvisionRequestID:  resp.Header.Get("x-provision-request-id"),
+		ValidationRequestID: resp.Header.Get("x-validation-request-id")}
 	var cs struct {
 		ConfigStatus *ConfigStatus `json:"configStatus"`
 	}
