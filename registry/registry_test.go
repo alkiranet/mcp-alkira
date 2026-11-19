@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"sync"
@@ -417,6 +418,123 @@ func TestRegister_PagingArgs_HTTP(t *testing.T) {
 						t.Fatalf("requests = %v, want none", paths)
 					}
 				})
+			}
+		})
+	}
+}
+
+func TestRegister_AuditLogs_HTTP(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		args map[string]any
+		want url.Values
+	}{
+		{
+			name: "defaults page newest first",
+			args: map[string]any{},
+			want: url.Values{"paginated": {"true"}, "offset": {"0"}, "limit": {"50"}, "sortBy": {"createdAt:desc"}},
+		},
+		{
+			name: "empty sortBy keeps newest first",
+			args: map[string]any{"sortBy": ""},
+			want: url.Values{"paginated": {"true"}, "offset": {"0"}, "limit": {"50"}, "sortBy": {"createdAt:desc"}},
+		},
+		{
+			name: "numbers",
+			args: map[string]any{"offset": 100, "limit": 10, "startTime": 1700000000, "endTime": 1700086400},
+			want: url.Values{
+				"paginated": {"true"}, "offset": {"100"}, "limit": {"10"}, "sortBy": {"createdAt:desc"},
+				"startTime": {"1700000000"}, "endTime": {"1700086400"},
+			},
+		},
+		{
+			name: "strings and filters",
+			args: map[string]any{
+				"offset": "5", "limit": "1", "sortBy": "createdAt:asc", "startTime": "1700000000",
+				"status": "FAILED", "type": "USER_ACCESS",
+			},
+			want: url.Values{
+				"paginated": {"true"}, "offset": {"5"}, "limit": {"1"}, "sortBy": {"createdAt:asc"},
+				"startTime": {"1700000000"}, "status": {"FAILED"}, "type": {"USER_ACCESS"},
+			},
+		},
+		{
+			name: "deepest page and a one-second window",
+			args: map[string]any{"offset": 9950, "limit": "50", "startTime": 1700000000, "endTime": "1700000000"},
+			want: url.Values{
+				"paginated": {"true"}, "offset": {"9950"}, "limit": {"50"}, "sortBy": {"createdAt:desc"},
+				"startTime": {"1700000000"}, "endTime": {"1700000000"},
+			},
+		},
+		{
+			name: "largest Unix seconds as number and string",
+			args: map[string]any{"startTime": 99999999999, "endTime": "100000000000"},
+			want: url.Values{
+				"paginated": {"true"}, "offset": {"0"}, "limit": {"50"}, "sortBy": {"createdAt:desc"},
+				"startTime": {"99999999999"}, "endTime": {"100000000000"},
+			},
+		},
+		{
+			name: "several sort fields, direction optional",
+			args: map[string]any{"sortBy": "type:asc|createdAt"},
+			want: url.Values{"paginated": {"true"}, "offset": {"0"}, "limit": {"50"}, "sortBy": {"type:asc|createdAt"}},
+		},
+		{
+			name: "every supported sort field",
+			args: map[string]any{"sortBy": "createdAt:desc|type:desc|initiator:asc|ipAddress:asc"},
+			want: url.Values{
+				"paginated": {"true"}, "offset": {"0"}, "limit": {"50"},
+				"sortBy": {"createdAt:desc|type:desc|initiator:asc|ipAddress:asc"},
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			client, seen := fakePortal(t, nil)
+			res := callTool(t, newServer(providerFor(client)), "notification_auditLogs", tc.args)
+			if res.IsError {
+				t.Fatalf("unexpected tool error: %s", res.Content[0].Text)
+			}
+			if paths := seen.get(); len(paths) != 1 || paths[0] != "/api/api/auditlogs" {
+				t.Fatalf("requests = %v", paths)
+			}
+			if q := seen.getQueries()[0]; !reflect.DeepEqual(q, tc.want) {
+				t.Fatalf("query = %v, want %v", q, tc.want)
+			}
+		})
+	}
+
+	for _, bad := range []struct {
+		args map[string]any
+		want string
+	}{
+		{map[string]any{"limit": -1}, "must be a non-negative integer"},
+		{map[string]any{"offset": -1}, "must be a non-negative integer"},
+		{map[string]any{"offset": "x"}, "must be a non-negative integer"},
+		{map[string]any{"startTime": -1}, "startTime must be a whole number of Unix seconds from 0 to 100000000000, got -1"},
+		{map[string]any{"startTime": "yesterday"}, `startTime must be a whole number of Unix seconds from 0 to 100000000000, got "yesterday"`},
+		{map[string]any{"endTime": 1.5}, "endTime must be a whole number of Unix seconds from 0 to 100000000000, got 1.5"},
+		{map[string]any{"startTime": 1700000000000}, "startTime must be a whole number of Unix seconds from 0 to 100000000000, got 1700000000000; divide a millisecond timestamp by 1000"},
+		{map[string]any{"endTime": "1700000000000"}, `endTime must be a whole number of Unix seconds from 0 to 100000000000, got "1700000000000"; divide a millisecond timestamp by 1000`},
+		{map[string]any{"endTime": "100000000001"}, "Unix seconds"},
+		{map[string]any{"startTime": true}, "startTime must be a whole number of Unix seconds"},
+		{map[string]any{"sortBy": "time:desc"}, `sortBy field "time" is not supported; use one of createdAt, type, initiator, ipAddress (case-sensitive)`},
+		{map[string]any{"sortBy": "createdat:desc"}, `sortBy field "createdat" is not supported`},
+		{map[string]any{"sortBy": "createdAt:desc|"}, `sortBy field "" is not supported`},
+		{map[string]any{"sortBy": "createdAt:newest"}, `sortBy direction "newest" for createdAt must be asc or desc`},
+		{map[string]any{"limit": "0"}, "limit must be at least 1, got 0"},
+		{map[string]any{"limit": 0}, "limit must be at least 1, got 0"},
+		{map[string]any{"offset": 9951, "limit": 50}, "offset + limit must be at most 10000, got 10001"},
+		{map[string]any{"limit": "10001"}, "offset + limit must be at most 10000, got 10001"},
+		{map[string]any{"startTime": 1700086400, "endTime": "1700000000"}, "startTime 1700086400 is after endTime 1700000000"},
+	} {
+		t.Run(fmt.Sprint(bad.args), func(t *testing.T) {
+			client, seen := fakePortal(t, nil)
+			res := callTool(t, newServer(providerFor(client)), "notification_auditLogs", bad.args)
+			if !res.IsError || !strings.Contains(res.Content[0].Text, bad.want) {
+				t.Fatalf("want an argument error, got isError=%v text=%q", res.IsError, res.Content[0].Text)
+			}
+			if paths := seen.get(); len(paths) != 0 {
+				t.Fatalf("requests = %v, want none", paths)
 			}
 		})
 	}
