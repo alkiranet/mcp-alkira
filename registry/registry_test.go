@@ -624,3 +624,43 @@ var wantToolNames = []string{
 	"tenant_resource_limits",
 	"tenant_resource_usages",
 }
+
+func TestRegister_HealthInstanceGetById_HTTP(t *testing.T) {
+	routes := map[string]string{
+		"/api/tenantnetworks/7/connectors/11":                   `{"id":11,"instances":[{"id":12}]}`,
+		"/api/tenantnetworks/7/services/21":                     `{"id":21,"instances":[{"id":22}]}`,
+		"/api/tenantnetworks/7/health/connector/11/instance/12": `[{"id":12,"status":1}]`,
+		"/api/tenantnetworks/7/health/service/21/instance/22":   `[{"id":22,"status":1}]`,
+	}
+	cases := []struct {
+		tool, owner, ownerKey, instance string
+		wantErr                         string
+		wantPaths                       []string
+	}{
+		{"health_connector_instance_get_by_id", "11", "connectorId", "12", "",
+			[]string{"/api/tenantnetworks/7/connectors/11", "/api/tenantnetworks/7/health/connector/11/instance/12"}},
+		{"health_service_instance_get_by_id", "21", "serviceId", "22", "",
+			[]string{"/api/tenantnetworks/7/services/21", "/api/tenantnetworks/7/health/service/21/instance/22"}},
+		{"health_connector_instance_get_by_id", "11", "connectorId", "999999", ak.ErrHealthInstanceNotFound.Error(),
+			[]string{"/api/tenantnetworks/7/connectors/11"}},
+		{"health_service_instance_get_by_id", "21", "serviceId", "999999", ak.ErrHealthInstanceNotFound.Error(),
+			[]string{"/api/tenantnetworks/7/services/21"}},
+		{"health_connector_instance_get_by_id", "999999", "connectorId", "12", ": 404 ",
+			[]string{"/api/tenantnetworks/7/connectors/999999"}},
+	}
+	for _, c := range cases {
+		client, seen := fakePortal(t, routes)
+		res := callTool(t, newServer(providerFor(client)), c.tool,
+			map[string]any{c.ownerKey: c.owner, "instanceId": c.instance})
+		text := res.Content[0].Text
+		switch {
+		case c.wantErr == "" && res.IsError:
+			t.Errorf("%s %s/%s: unexpected tool error: %s", c.tool, c.owner, c.instance, text)
+		case c.wantErr != "" && (!res.IsError || !strings.Contains(text, c.wantErr)):
+			t.Errorf("%s %s/%s: result %q (error %v), want error containing %q", c.tool, c.owner, c.instance, text, res.IsError, c.wantErr)
+		}
+		if paths := seen.get(); !slices.Equal(paths, c.wantPaths) {
+			t.Errorf("%s %s/%s: requests = %v, want %v", c.tool, c.owner, c.instance, paths, c.wantPaths)
+		}
+	}
+}

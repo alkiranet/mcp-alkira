@@ -3,9 +3,13 @@
 package tenant
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
+	"sync"
 )
 
 const redacted = "[REDACTED]"
@@ -54,4 +58,75 @@ func (ac AlkiraClient) LogValue() slog.Value {
 		slog.Int("maxToken", ac.MaxToken),
 		slog.String("compression", ac.Compression),
 	)
+}
+
+// secretKeys holds, lower-cased, the JSON keys whose values DEBUG logs
+// replace, matched without regard to case (TPS spells presharedKey both
+// ways): the
+// credential and inline secret fields of the write API, plus every field
+// tagged ak:"secret" on a type passed to FieldRules.
+var secretKeys sync.Map
+
+func init() {
+	for _, k := range []string{
+		// Credential payloads.
+		"ec2SecretKey", "ec2ExternalId", "secretKey", "private_key", "private_key_id", "key",
+		"adminPassword", "sicKey", "password", "fmcRegistrationKey", "alkiraAdminPassword",
+		"licenseKey", "ionToken", "ionSecret", "authToken", "sharedSecret", "joinToken",
+		"activationKey", "configData", "privateKey", "bindPassword", "authKey", "authCode",
+		"registrationKey", "masterKey", "registrationPinValue", "activationCode",
+		"bgpAuthenticationKey", "accountKey", "apiKey",
+		// Secrets carried inline in resource bodies.
+		"presharedKeys", "preSharedKey", "localAuthValue", "remoteAuthValue",
+		"bgpAuthKeyAlkira", "bgpAuthKey", "localPublicSharedKey", "remotePublicSharedKey",
+		"awsBgpAuthKey", "underlayBgpAuthKey", "customerSecret", "gcpBgpAuthKey", "akAdminPassword",
+	} {
+		secretKeys.Store(strings.ToLower(k), true)
+	}
+}
+
+// redactBody returns body for logging with the value of every secret key
+// replaced, at any depth. A body that is not JSON is replaced whole when it
+// mentions a secret key. It returns "" unless AK_LOG is DEBUG, the only level
+// that logs bodies, so other levels skip the parse.
+func redactBody(body []byte) string {
+	if len(body) == 0 || os.Getenv("AK_LOG") != "DEBUG" {
+		return ""
+	}
+	var v any
+	if err := json.Unmarshal(body, &v); err != nil {
+		found := false
+		lower := bytes.ToLower(body)
+		secretKeys.Range(func(k, _ any) bool {
+			found = bytes.Contains(lower, []byte(k.(string)))
+			return !found
+		})
+		if found {
+			return redacted
+		}
+		return string(body)
+	}
+	out, err := json.Marshal(redactValue(v))
+	if err != nil {
+		return redacted
+	}
+	return string(out)
+}
+
+func redactValue(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		for k, e := range t {
+			if _, ok := secretKeys.Load(strings.ToLower(k)); ok && e != nil {
+				t[k] = redacted
+				continue
+			}
+			t[k] = redactValue(e)
+		}
+	case []any:
+		for i, e := range t {
+			t[i] = redactValue(e)
+		}
+	}
+	return v
 }
