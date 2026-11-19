@@ -1,4 +1,4 @@
-# github.com/alkiranet/client-go v0.6.1-0.20261119153215-6028f66cc3d3
+# github.com/alkiranet/client-go v0.6.1-0.20261120030627-f1748dc09f7c
 ## explicit; go 1.25.3
 github.com/alkiranet/client-go/tenant
 # github.com/alpkeskin/gotoon v0.1.0

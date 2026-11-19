@@ -619,8 +619,13 @@ var wantToolNames = []string{
 	"service_zscaler_get_by_id",
 	"service_zscaler_get_by_name",
 	"service_zscaler_get_total",
+	"tenant_network_changes_get",
 	"tenant_network_firewall_zones",
+	"tenant_network_provision_preview",
+	"tenant_network_provision_request_get",
 	"tenant_network_summary",
+	"tenant_network_validation_request_get",
+	"tenant_network_validation_state_get",
 	"tenant_resource_limits",
 	"tenant_resource_usages",
 }

@@ -179,9 +179,16 @@ func (ac *AlkiraClient) GetTenantNetworkServiceState(id string) (string, error) 
 	return result.State, nil
 }
 
+// TenantNetworkProvisionRequest is one provision request. State is empty on
+// an INITIALIZING row read with SELECTIVE-PROV-TRACK-PR-STATE off.
 type TenantNetworkProvisionRequest struct {
-	Id    string `json:"id"`
-	State string `json:"state"`
+	Id                         string                 `json:"id"`
+	State                      string                 `json:"state"`
+	BufferedProvisionRequestId *int64                 `json:"bufferedProvisionRequestId,omitempty"`
+	CreatedAt                  int64                  `json:"createdAt,omitempty"`
+	Description                string                 `json:"description,omitempty"`
+	Type                       string                 `json:"type,omitempty"`
+	ErrorDetails               *ProvisionErrorDetails `json:"errorDetails,omitempty"`
 }
 
 // GetTenantNetworkProvisionRequest get the tenant network provision request
