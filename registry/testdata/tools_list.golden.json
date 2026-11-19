@@ -4178,5 +4178,52 @@
       "type": "object"
     },
     "name": "tenant_resource_usages"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get all zero trust access profiles of the tenant. A traffic policy names profiles in ztaProfileIds.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": "50",
+          "description": "Pagination limit",
+          "type": "string"
+        },
+        "offset": {
+          "default": "0",
+          "description": "Pagination offset",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "zta_profile_get_all"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get details of one zero trust access profile by its ID (a UUID).",
+    "inputSchema": {
+      "properties": {
+        "profileId": {
+          "description": "Zero trust access profile ID.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profileId"
+      ],
+      "type": "object"
+    },
+    "name": "zta_profile_get_by_id"
   }
 ]
