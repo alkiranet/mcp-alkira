@@ -10,6 +10,9 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"slices"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -48,11 +51,34 @@ func NewCore[T any](ac *AlkiraClient, d Descriptor) (*Core[T], error) {
 	if err != nil {
 		return nil, err
 	}
+	// A gated field whose zero value is marshalled would count as set on every create.
+	zero, err := json.Marshal(new(T))
+	if err != nil {
+		return nil, err
+	}
+	zm, err := decodeObject(zero)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range d.Flags {
+		if f.Effect != FlagIncludeField {
+			continue
+		}
+		i := slices.IndexFunc(rules, func(r FieldRule) bool { return r.Name == f.Field })
+		switch {
+		case i < 0:
+			return nil, fmt.Errorf("descriptor %s: flag rule field %q is not a field of the type", d.Collection, f.Field)
+		case zm[f.Field] != nil:
+			return nil, fmt.Errorf("descriptor %s: flag rule field %q must be a pointer or omitempty", d.Collection, f.Field)
+		case f.ClearStored && !slices.Contains([]reflect.Kind{reflect.Slice, reflect.Bool}, indirect(rules[i].Type).Kind()):
+			return nil, fmt.Errorf("descriptor %s: ClearStored field %q is not a list or bool", d.Collection, f.Field)
+		}
+	}
 	return &Core[T]{ac: ac, d: d, rules: rules}, nil
 }
 
 // Descriptor returns the descriptor the core was built with.
-func (c *Core[T]) Descriptor() Descriptor { return c.d }
+func (c *Core[T]) Descriptor() Descriptor { return c.d.clone() }
 
 // StateError refuses a write because of the stored state: a soft-deleted
 // row (DocState), or an entity or network state the state guard rejects.
@@ -82,9 +108,13 @@ type DuplicateError struct {
 	Value string
 	ID    string // id of the existing object
 	Type  string // connector type, for the connector name space
+	Group bool   // the existing object is the group named by Uniqueness.GroupSuffix
 }
 
 func (e *DuplicateError) Error() string {
+	if e.Group {
+		return fmt.Sprintf("group %q already exists (id %s)", e.Value, e.ID)
+	}
 	if e.Type != "" {
 		return fmt.Sprintf("%s %q already exists (%s id %s)", e.Key, e.Value, e.Type, e.ID)
 	}
@@ -129,8 +159,12 @@ type OutcomeError struct {
 	Outcome Outcome
 	Current []byte // body of the confirming read, when it returned one
 	Err     error  // the write error
-	// FlagsUnavailable reports that the kill switch could not be checked.
-	FlagsUnavailable bool
+	// FlagsApplied, FieldsDropped and FieldsCleared are those of the lost
+	// POST or PUT, as in WriteResult; FlagsApplied names AsyncValidationFlag when the
+	// request asked for async validation.
+	FlagsApplied  []string
+	FieldsDropped []string
+	FieldsCleared []string
 }
 
 func (e *OutcomeError) Error() string {
@@ -177,13 +211,24 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		return nil, nil, fmt.Errorf("create: %w", err)
 	}
 	stripReadOnly(c.rules, m, false)
+	flags, err := c.ac.WriteFeatures(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	sh, err := c.shape(flags, func(f string) bool { return m[f] != nil }, func(f string) { delete(m, f) })
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := c.refuseCleared(m, flags); err != nil {
+		return nil, nil, err
+	}
+	c.applyDefaults(m, flags, &sh)
+	if err := c.crossCheck(m); err != nil {
+		return nil, nil, err
+	}
 	body, err := json.Marshal(m)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create: %w", err)
-	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
-	if err != nil {
-		return nil, nil, err
 	}
 
 	key := c.keyValue(m)
@@ -197,36 +242,46 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		}
 	}
 
-	res, err := c.ac.doWrite(ctx, "POST", c.d.collectionURI(c.ac), body)
+	res, err := c.ac.doWrite(ctx, "POST", withQuery(c.d.collectionURI(c.ac), sh.query()), body)
 	if err != nil {
 		if !lostResponse(err, "POST") {
 			return nil, nil, c.classify("POST", err)
 		}
-		oe := &OutcomeError{Method: "POST", Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "POST", Outcome: OutcomeUnknown, Err: err,
+			FlagsApplied: sh.flags(true), FieldsDropped: sh.dropped, FieldsCleared: sh.cleared}
 		if key == "" {
 			return nil, nil, oe
 		}
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
-		dup, lerr := c.lookup(cctx, key)
+		dup, lerr := c.confirmLookup(cctx, key)
 		switch {
 		case lerr != nil:
 		case dup != nil:
 			oe.Outcome, oe.ID = OutcomeCreated, dup.ID
-			return nil, &WriteResult{ID: dup.ID, RequestID: requestIdOf(err), FlagsUnavailable: flagsUnavailable}, oe
+			res := &WriteResult{ID: dup.ID, RequestID: requestIdOf(err), Saved: true}
+			sh.report(res, true)
+			if sh.async {
+				res.ValidationState = ValidationUnknown
+			}
+			return nil, res, oe
 		default:
 			oe.Outcome = OutcomeMayStillBeCreated
 		}
 		return nil, nil, oe
 	}
-	res.FlagsUnavailable = flagsUnavailable
+	res.Saved = true
+	sh.report(res, true)
 	res.ID = idOf(res.Body)
 	if res.ID == "" && key != "" {
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
-		if dup, lerr := c.lookup(cctx, key); lerr == nil && dup != nil {
+		if dup, lerr := c.confirmLookup(cctx, key); lerr == nil && dup != nil {
 			res.ID = dup.ID
 		}
+	}
+	if res.ValidationStateID != "" {
+		c.ac.awaitValidation(ctx, res)
 	}
 	return decodeEntity[T](res.Body), res, nil
 }
@@ -238,7 +293,7 @@ func (c *Core[T]) Get(ctx context.Context, id string) (*T, []byte, error) {
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
-	raw, _, err := c.preGet(ctx, id)
+	raw, _, err := c.preGet(ctx, id, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -279,21 +334,39 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	if id == "" {
 		return nil, nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
 	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
+	flags, err := c.ac.WriteFeatures(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	raw, stored, err := c.preGet(ctx, id)
+	if err := c.refuseClearedPatch(pm, flags); err != nil {
+		return nil, nil, err
+	}
+	// Flag rules see only the fields the patch names, explicit null
+	// included since it removes the stored value, and the items the list
+	// edits add (a `set` field changes through add only); a flag-gated
+	// field held in the stored body is resent unchanged unless its rule
+	// clears it.
+	sh, err := c.shape(flags,
+		func(f string) bool {
+			_, ok := pm[f]
+			return ok || len(le.add[f]) > 0
+		},
+		func(f string) { delete(pm, f); delete(le.add, f) })
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := c.stateGuard(ctx, id, stored); err != nil {
+	raw, stored, err := c.preGet(ctx, id, true)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := c.stateGuard(ctx, id, stored, contains(flags, SelectiveProvFlag)); err != nil {
 		return nil, nil, err
 	}
 	merged, absent, err := c.merge(stored, pm, le)
 	if err != nil {
 		return nil, nil, err
 	}
+	c.clearFlagged(merged, flags, &sh)
 	// Elements removed by id are the only stored elements merged may lack.
 	before := stored
 	if len(le.remove) > 0 {
@@ -310,22 +383,28 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	if p := changedField(c.rules, before, merged, "", func(r FieldRule) bool { return r.Secret }); p != "" {
 		return nil, nil, fmt.Errorf("%w: the update would change or drop the stored secret %s", ErrInvalidInput, p)
 	}
+	if err := c.crossCheck(merged); err != nil {
+		return nil, nil, err
+	}
 	// List edits that change nothing send no PUT: a PUT can move the entity
 	// back to PENDING.
 	if len(pm) == 0 && c.editsUnchanged(stored, merged, le) {
-		return decodeEntity[T](raw), &WriteResult{Body: raw, Previous: raw, Absent: absent, Unchanged: true, FlagsUnavailable: flagsUnavailable}, nil
+		res := &WriteResult{Body: raw, Previous: raw, Absent: absent, Unchanged: true}
+		sh.report(res, false)
+		return decodeEntity[T](raw), res, nil
 	}
 	body, err := json.Marshal(merged)
 	if err != nil {
 		return nil, nil, fmt.Errorf("update: %w", err)
 	}
 
-	res, err := c.ac.doWrite(ctx, "PUT", c.d.entityURI(c.ac, id), body)
+	res, err := c.ac.doWrite(ctx, "PUT", withQuery(c.d.entityURI(c.ac, id), sh.query()), body)
 	if err != nil {
 		if !lostResponse(err, "PUT") {
 			return nil, nil, c.classify("PUT", err)
 		}
-		oe := &OutcomeError{Method: "PUT", ID: id, Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "PUT", ID: id, Outcome: OutcomeUnknown, Err: err,
+			FlagsApplied: sh.flags(true), FieldsDropped: sh.dropped, FieldsCleared: sh.cleared}
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
 		if exists, cur, cerr := c.Confirm(cctx, id); cerr == nil && exists {
@@ -339,7 +418,11 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	}
 	res.Previous = raw
 	res.Absent = absent
-	res.FlagsUnavailable = flagsUnavailable
+	res.Saved = true
+	sh.report(res, true)
+	if res.ValidationStateID != "" {
+		c.ac.awaitValidation(ctx, res)
+	}
 	return decodeEntity[T](res.Body), res, nil
 }
 
@@ -351,8 +434,8 @@ type DeleteOptions struct {
 }
 
 // Delete deletes one object after a GET that refuses another family's id
-// and a soft-deleted row. A 404 counts as deleted only when it matches the
-// family's DELETE not-found signature.
+// and a soft-deleted row. An answer that matches the family's DELETE
+// not-found signature counts as deleted, whatever its status.
 func (c *Core[T]) Delete(ctx context.Context, id string) (*WriteResult, error) {
 	return c.DeleteWith(ctx, id, DeleteOptions{})
 }
@@ -365,11 +448,15 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 	if id == "" {
 		return nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
 	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
+	flags, err := c.ac.WriteFeatures(ctx)
 	if err != nil {
 		return nil, err
 	}
-	raw, _, err := c.preGet(ctx, id)
+	// A family behind a FlagTypeAvailable flag cannot be deleted either.
+	if _, err := c.shape(flags, func(string) bool { return false }, func(string) {}); err != nil {
+		return nil, err
+	}
+	raw, _, err := c.preGet(ctx, id, true)
 	if err != nil {
 		return nil, err
 	}
@@ -381,13 +468,13 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 	res, err := c.ac.doWrite(ctx, "DELETE", c.d.entityURI(c.ac, id), nil)
 	if err != nil {
 		var ae *APIError
-		if errors.As(err, &ae) && ae.Status == 404 && ae.matches(c.d.notFound("DELETE")) {
-			return &WriteResult{Body: []byte(ae.Body), Status: 404, RequestID: ae.RequestID, Previous: raw, FlagsUnavailable: flagsUnavailable}, nil
+		if errors.As(err, &ae) && ae.kind == nil && ae.matches(c.d.notFound("DELETE")) {
+			return &WriteResult{Body: []byte(ae.Body), Status: ae.Status, RequestID: ae.RequestID, Previous: raw}, nil
 		}
 		if !lostResponse(err, "DELETE") {
 			return nil, c.classify("DELETE", err)
 		}
-		oe := &OutcomeError{Method: "DELETE", ID: id, Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "DELETE", ID: id, Outcome: OutcomeUnknown, Err: err}
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
 		if exists, cur, cerr := c.Confirm(cctx, id); cerr == nil {
@@ -399,17 +486,16 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 		return nil, oe
 	}
 	res.Previous = raw
-	res.FlagsUnavailable = flagsUnavailable
 	return res, nil
 }
 
 // ListPaged reads the whole collection with ?paginated=true&limit=100,
-// paging by offset until pagination.hits.
+// paging by offset until the end that the descriptor's Paging mode reads.
 func (c *Core[T]) ListPaged(ctx context.Context) ([]T, error) {
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
-	rows, err := c.ac.listPaged(ctx, c.d.collectionURI(c.ac))
+	rows, err := c.ac.listPaged(ctx, c.d.collectionURI(c.ac), c.d.Paging)
 	if err != nil {
 		return nil, err
 	}
@@ -429,7 +515,7 @@ func (c *Core[T]) Confirm(ctx context.Context, id string) (exists bool, body []b
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
-	raw, _, err := c.preGet(ctx, id)
+	raw, _, err := c.preGet(ctx, id, false)
 	var se *StateError
 	switch {
 	case errors.Is(err, ErrNotFound):
@@ -443,7 +529,8 @@ func (c *Core[T]) Confirm(ctx context.Context, id string) (exists bool, body []b
 }
 
 // preGet reads one entity and runs the family and docState checks (D4, BC-R2).
-func (c *Core[T]) preGet(ctx context.Context, id string) ([]byte, map[string]any, error) {
+// The FamilyCheck value is checked only before a write.
+func (c *Core[T]) preGet(ctx context.Context, id string, write bool) ([]byte, map[string]any, error) {
 	if id == "" {
 		return nil, nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
 	}
@@ -469,8 +556,13 @@ func (c *Core[T]) preGet(ctx context.Context, id string) ([]byte, map[string]any
 	}
 	if f := c.d.FamilyType; f.Field != "" {
 		v, ok := m[f.Field]
-		if !ok || (f.Value != "" && fmt.Sprint(v) != f.Value) {
-			return nil, nil, fmt.Errorf("%w: id %s is not a %s object", ErrFamilyMismatch, id, c.d.Collection)
+		if !ok || (write && f.Value != "" && fmt.Sprint(v) != f.Value) {
+			return nil, nil, &FamilyError{ID: id, Collection: c.d.Collection, Field: f.Field, Got: v, Want: f.Value}
+		}
+	}
+	if c.d.ConnectorType != "" {
+		if raw, err = c.connectorRow(ctx, id, m); err != nil {
+			return nil, nil, err
 		}
 	}
 	if c.d.DocState != DocStatePlainGet {
@@ -488,10 +580,44 @@ func (c *Core[T]) preGet(ctx context.Context, id string) ([]byte, map[string]any
 	return raw, m, nil
 }
 
+// connectorRow checks id against its GET /connectors/{id} row and copies
+// the row's state and previousState into m. It returns m encoded again. The
+// single GET reads the database; the GET /connectors list answers from a
+// cached network view by default (staleOk), which can miss a just-created
+// row or carry an old state.
+func (c *Core[T]) connectorRow(ctx context.Context, id string, m map[string]any) ([]byte, error) {
+	data, err := c.ac.doGet(ctx, c.ac.URI+"/tenantnetworks/"+c.ac.TenantNetworkId+"/connectors/"+pathSegment(id))
+	var ae *APIError
+	switch {
+	case errors.As(err, &ae) && ae.Status == 404:
+		return nil, fmt.Errorf("%w: id %s is not a connector", ErrFamilyMismatch, id)
+	case err != nil:
+		return nil, fmt.Errorf("connector type: %w", c.classify("GET", err))
+	}
+	var r ConnectorRef
+	if err := json.Unmarshal(data, &r); err != nil {
+		return nil, fmt.Errorf("GET connector %s: %w", id, err)
+	}
+	if r.Type != c.d.ConnectorType {
+		return nil, fmt.Errorf("%w: id %s is a %s connector, not %s", ErrFamilyMismatch, id, r.Type, c.d.ConnectorType)
+	}
+	for k, v := range map[string]string{"state": r.State, "previousState": r.PreviousState} {
+		if v != "" {
+			m[k] = v
+		}
+	}
+	raw, err := json.Marshal(m)
+	if err != nil {
+		return nil, fmt.Errorf("GET id %s: %w", id, err)
+	}
+	return raw, nil
+}
+
 // stateGuard runs the descriptor's state guard on the pre-GET body. The
 // network state is read only when the entity state alone does not decide
-// (BC-R10).
-func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]any) error {
+// (BC-R10). With selectiveProv false the D13 guard also refuses an
+// IN_PROGRESS network, as TPS does with SELECTIVE-PROV off.
+func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]any, selectiveProv bool) error {
 	if c.d.StateGuard == StateGuardNone {
 		return nil
 	}
@@ -522,18 +648,215 @@ func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]a
 		if err := json.Unmarshal(raw, &nw); err != nil {
 			return fmt.Errorf("%w: network state: %v", ErrStateRefused, err)
 		}
-		if nw.State == "FAILED" {
+		if nw.State == "FAILED" || nw.State == "IN_PROGRESS" && !selectiveProv {
 			return &StateError{ID: id, State: state, NetworkState: nw.State}
 		}
 	}
 	return nil
 }
 
+// shaping is what the flag rules did to one create or update.
+type shaping struct {
+	applied, dropped, cleared []string
+	async                     bool
+}
+
+func (s shaping) query() url.Values {
+	if !s.async {
+		return nil
+	}
+	return url.Values{"async": {"true"}}
+}
+
+// flags names the flags that changed the request; async validation changes
+// it only when the request is sent.
+func (s shaping) flags(sent bool) []string {
+	if s.async && sent && !contains(s.applied, AsyncValidationFlag) {
+		return append(slices.Clone(s.applied), AsyncValidationFlag)
+	}
+	return s.applied
+}
+
+func (s shaping) report(res *WriteResult, sent bool) {
+	res.FlagsApplied, res.FieldsDropped, res.FieldsCleared = s.flags(sent), s.dropped, s.cleared
+}
+
+func (s *shaping) mark(flags ...string) {
+	for _, f := range flags {
+		if !contains(s.applied, f) {
+			s.applied = append(s.applied, f)
+		}
+	}
+}
+
+// shape applies the descriptor's flag rules: it refuses a type or a refused
+// field whose flag is off (ErrNotEnabled), drops the other gated fields set
+// while their flag is off, and selects async validation.
+func (c *Core[T]) shape(flags []string, sets func(field string) bool, drop func(field string)) (shaping, error) {
+	var s shaping
+	refuse := func(what string, r FlagRule) error {
+		return fmt.Errorf("%s: %w (needs %s)", what, ErrNotEnabled, r.needs())
+	}
+	for _, r := range c.d.Flags {
+		on := r.on(flags)
+		switch {
+		case r.Effect == FlagTypeAvailable && !on:
+			return s, refuse(c.d.Collection, r)
+		case r.Effect != FlagIncludeField || !sets(r.Field):
+		case on:
+			s.mark(r.deciding(flags)...)
+		case r.Refuse:
+			return s, refuse(r.Field, r)
+		default:
+			drop(r.Field)
+			s.dropped = append(s.dropped, r.Field)
+			s.mark(r.deciding(flags)...)
+		}
+	}
+	s.async = c.d.AsyncCapable && contains(flags, AsyncValidationFlag)
+	return s, nil
+}
+
+// atPath returns the object holding the last element of a dotted JSON path
+// in m, and that element's key; parent is nil when the path stops early.
+func atPath(m map[string]any, path string) (parent map[string]any, key string) {
+	parts := strings.Split(path, ".")
+	parent = m
+	for _, p := range parts[:len(parts)-1] {
+		parent, _ = parent[p].(map[string]any)
+	}
+	return parent, parts[len(parts)-1]
+}
+
+// refuseCleared refuses a request body m that sets a FlagClearField list
+// non-empty while the rule is on: the backend refuses the list, and sending
+// it empty would widen what the request asks for.
+func (c *Core[T]) refuseCleared(m map[string]any, flags []string) error {
+	for _, r := range c.d.Flags {
+		if r.Effect != FlagClearField || !r.on(flags) {
+			continue
+		}
+		parent, key := atPath(m, r.Field)
+		if l, ok := parent[key].([]any); ok && len(l) > 0 {
+			return fmt.Errorf("%w: %s must be empty while the tenant feature %s is on", ErrInvalidInput, r.Field, r.needs())
+		}
+	}
+	return nil
+}
+
+// refuseClearedPatch is refuseCleared for a merge patch.
+func (c *Core[T]) refuseClearedPatch(pm map[string]json.RawMessage, flags []string) error {
+	m := make(map[string]any, len(pm))
+	for k, raw := range pm {
+		if v, err := decodeAny(raw); err == nil {
+			m[k] = v
+		}
+	}
+	return c.refuseCleared(m, flags)
+}
+
+// clearFlagged runs on a merged update body, whose gated values the request
+// cannot set (refuseCleared and shape keep them out): it sends empty every
+// FlagClearField list whose rule is on and every ClearStored field whose
+// rule is off that the stored body carries non-empty, and records the
+// rule's flags in sh.applied and the field in sh.cleared.
+func (c *Core[T]) clearFlagged(m map[string]any, flags []string, sh *shaping) {
+	for _, r := range c.d.Flags {
+		on := r.on(flags)
+		if !(r.Effect == FlagClearField && on || r.ClearStored && !on) {
+			continue
+		}
+		parent, key := atPath(m, r.Field)
+		switch v := parent[key].(type) {
+		case []any:
+			if len(v) == 0 {
+				continue
+			}
+			parent[key] = []any{}
+		case bool:
+			if !v {
+				continue
+			}
+			parent[key] = false
+		default:
+			continue
+		}
+		sh.mark(r.deciding(flags)...)
+		sh.cleared = append(sh.cleared, r.Field)
+	}
+}
+
+// applyDefaults fills the unset fields of a create body that carry default=,
+// nested struct fields included, so a create sends what the portal sends. A
+// field that a FlagIncludeField rule gates stays unset while its flag is off;
+// while the flag is on, a default sent into it adds the flag to sh.applied.
+func (c *Core[T]) applyDefaults(m map[string]any, flags []string, sh *shaping) {
+	gatedOff := map[string]bool{}
+	var gatedOn []FlagRule
+	for _, f := range c.d.Flags {
+		switch {
+		case f.Effect != FlagIncludeField:
+		case !f.on(flags):
+			gatedOff[f.Field] = true
+		case m[f.Field] == nil:
+			gatedOn = append(gatedOn, f)
+		}
+	}
+	fillDefaults(c.rules, m, gatedOff)
+	for _, f := range gatedOn {
+		if m[f.Field] != nil {
+			sh.mark(f.deciding(flags)...)
+		}
+	}
+}
+
+func fillDefaults(rules []FieldRule, m map[string]any, skip map[string]bool) {
+	for _, r := range rules {
+		t := indirect(r.Type)
+		switch {
+		case r.ReadOnly || skip[r.Name] || t.Kind() == reflect.Slice || t.Kind() == reflect.Map:
+		case r.HasDefault:
+			if m[r.Name] == nil {
+				m[r.Name] = defaultValue(r.Default, t.Kind())
+			}
+		case r.Fields != nil && t.Kind() == reflect.Struct:
+			child, ok := m[r.Name].(map[string]any)
+			if !ok {
+				if m[r.Name] != nil {
+					continue
+				}
+				child = map[string]any{}
+			}
+			fillDefaults(r.Fields, child, nil)
+			if len(child) > 0 {
+				m[r.Name] = child
+			}
+		}
+	}
+}
+
+// defaultValue is a default= value as JSON of kind k; parseTag checked it.
+func defaultValue(v string, k reflect.Kind) any {
+	switch {
+	case k == reflect.Bool:
+		b, _ := strconv.ParseBool(v)
+		return b
+	case isInt(k), k == reflect.Float32, k == reflect.Float64:
+		return json.Number(v)
+	}
+	return v
+}
+
 // merge builds the PUT body from the stored body, the patch and the list
 // edits. It returns the removed items the stored lists did not hold.
 func (c *Core[T]) merge(stored map[string]any, pm map[string]json.RawMessage, le listEdits) (map[string]any, map[string][]any, error) {
 	base := cloneJSON(stored).(map[string]any)
-	stripReadOnly(c.rules, base, false)
+	stripStored(c.rules, base)
+	for _, r := range c.rules {
+		if r.expired() {
+			delete(base, r.Name)
+		}
+	}
 	for _, f := range c.d.RoutingProvenance {
 		if _, set := pm[f]; !set && allDefaultRouting(base[f]) {
 			delete(base, f)
@@ -876,10 +1199,10 @@ func mergeByID(target any, patch []any, path string, idPaths map[string]bool) (a
 }
 
 // changedField returns the path of the first field that pick selects whose
-// merged value differs from the stored one, or "". Read-only fields are
-// skipped, since the merge strips them. Array elements pair by id, or by
-// position when the stored element has no id; a stored element with no pair
-// compares against nothing. A merged element with no stored pair is new and
+// merged value differs from the stored one, or "". Read-only and expired
+// fields are skipped, since the merge strips them. Array elements pair by
+// id, or by position when the stored element has no id; a stored element
+// with no pair compares against nothing. A merged element with no stored pair is new and
 // has nothing to compare.
 func changedField(rules []FieldRule, stored, merged any, path string, pick func(FieldRule) bool) string {
 	switch s := stored.(type) {
@@ -905,7 +1228,7 @@ func changedField(rules []FieldRule, stored, merged any, path string, pick func(
 	case map[string]any:
 		m, _ := merged.(map[string]any)
 		for _, r := range rules {
-			if r.ReadOnly {
+			if r.ReadOnly || r.expired() {
 				continue
 			}
 			sv, mv, p := s[r.Name], m[r.Name], joinPath(path, r.Name)
@@ -1071,6 +1394,30 @@ func patchHolds(cur, p any, path string, idPaths map[string]bool) bool {
 	return jsonEqual(cur, p)
 }
 
+// confirmLookup finds the object a POST created by its uniqueness key. A
+// group found through Uniqueness.GroupSuffix is the created object's
+// implicit group, not the object, so it does not count.
+func (c *Core[T]) confirmLookup(ctx context.Context, value string) (*DuplicateError, error) {
+	dup, err := c.lookup(ctx, value)
+	if dup != nil && dup.Group {
+		return nil, err
+	}
+	return dup, err
+}
+
+// crossCheck runs the descriptor's CrossCheck on a request body. An error
+// that is not already ErrInvalidInput is wrapped as one.
+func (c *Core[T]) crossCheck(body map[string]any) error {
+	if c.d.CrossCheck == nil {
+		return nil
+	}
+	err := c.d.CrossCheck(body)
+	if err == nil || errors.Is(err, ErrInvalidInput) {
+		return err
+	}
+	return fmt.Errorf("%w: %w", ErrInvalidInput, err)
+}
+
 // classify sets the descriptor's classification on an *APIError that the
 // transport left unclassified.
 func (c *Core[T]) classify(method string, err error) error {
@@ -1126,8 +1473,8 @@ func (c *Core[T]) keyValue(m map[string]any) string {
 // paged reads and GET /connectors, never ?name= (D15).
 func (c *Core[T]) lookup(ctx context.Context, value string) (*DuplicateError, error) {
 	key := c.d.Uniqueness.Key
-	pagedMatch := func(uri string) (*DuplicateError, error) {
-		rows, err := c.ac.listPaged(ctx, uri)
+	pagedMatch := func(uri string, paging Paging) (*DuplicateError, error) {
+		rows, err := c.ac.listPaged(ctx, uri, paging)
 		if err != nil {
 			return nil, err
 		}
@@ -1145,14 +1492,23 @@ func (c *Core[T]) lookup(ctx context.Context, value string) (*DuplicateError, er
 	groups := c.ac.URI + "/tenantnetworks/" + c.ac.TenantNetworkId + "/groups"
 	switch c.d.Uniqueness.Scope {
 	case ScopeCollection:
-		return pagedMatch(c.d.collectionURI(c.ac))
+		dup, err := pagedMatch(c.d.collectionURI(c.ac), c.d.Paging)
+		if dup != nil || err != nil || c.d.Uniqueness.GroupSuffix == "" {
+			return dup, err
+		}
+		key, value = "name", value+c.d.Uniqueness.GroupSuffix
+		dup, err = pagedMatch(groups, PagingTotalHits)
+		if dup != nil {
+			dup.Group = true
+		}
+		return dup, err
 	case ScopeConnectorsGroups:
 		if dup, err := c.connectorMatch(ctx, value); dup != nil || err != nil {
 			return dup, err
 		}
-		return pagedMatch(groups)
+		return pagedMatch(groups, PagingTotalHits)
 	case ScopeGroupsConnectors:
-		if dup, err := pagedMatch(c.d.collectionURI(c.ac)); dup != nil || err != nil {
+		if dup, err := pagedMatch(c.d.collectionURI(c.ac), c.d.Paging); dup != nil || err != nil {
 			return dup, err
 		}
 		return c.connectorMatch(ctx, value)
@@ -1253,33 +1609,59 @@ func stringField(m map[string]any, k string) (string, error) {
 // maxPages bounds a paged read; 1000 pages of 100 rows exceed every tenant limit.
 const maxPages = 1000
 
-// listPaged reads uri with ?paginated=true&limit=100 and offset until
-// pagination.hits or an empty page.
-func (ac *AlkiraClient) listPaged(ctx context.Context, uri string) ([]json.RawMessage, error) {
+// pageLimit is the page size of a paged read; services cap limit at 100.
+const pageLimit = 100
+
+// listPaged reads uri with ?paginated=true&limit=100 and offset until an
+// empty page, or until pagination.hits (PagingTotalHits) or a short page
+// (PagingPageRows).
+func (ac *AlkiraClient) listPaged(ctx context.Context, uri string, paging Paging) ([]json.RawMessage, error) {
+	return ac.listPagedWith(ctx, uri, paging, nil)
+}
+
+// listPagedWith is listPaged with filter added to every page query.
+func (ac *AlkiraClient) listPagedWith(ctx context.Context, uri string, paging Paging, filter url.Values) ([]json.RawMessage, error) {
 	var rows []json.RawMessage
 	offset := 0
 	for page := 0; page < maxPages; page++ {
-		q := url.Values{"paginated": {"true"}, "limit": {"100"}, "offset": {fmt.Sprint(offset)}}
-		raw, err := ac.doGet(ctx, withQuery(uri, q))
+		data, hits, err := ac.listPage(ctx, uri, offset, pageLimit, filter)
 		if err != nil {
 			return nil, err
 		}
-		var p struct {
-			Data       []json.RawMessage `json:"data"`
-			Pagination struct {
-				Hits int `json:"hits"`
-			} `json:"pagination"`
+		rows = append(rows, data...)
+		offset += len(data)
+		end := offset >= hits
+		if paging == PagingPageRows {
+			end = len(data) < pageLimit
 		}
-		if err := json.Unmarshal(raw, &p); err != nil {
-			return nil, fmt.Errorf("GET %s: page at offset %d: %w", uri, offset, err)
-		}
-		rows = append(rows, p.Data...)
-		offset += len(p.Data)
-		if len(p.Data) == 0 || offset >= p.Pagination.Hits {
+		if len(data) == 0 || end {
 			return rows, nil
 		}
 	}
 	return nil, fmt.Errorf("GET %s: more than %d pages", uri, maxPages)
+}
+
+// listPage reads the page of at most limit rows at offset, with filter added
+// to the query; hits is pagination.hits.
+func (ac *AlkiraClient) listPage(ctx context.Context, uri string, offset, limit int, filter url.Values) ([]json.RawMessage, int, error) {
+	q := url.Values{"paginated": {"true"}, "limit": {fmt.Sprint(limit)}, "offset": {fmt.Sprint(offset)}}
+	for k, v := range filter {
+		q[k] = v
+	}
+	raw, err := ac.doGet(ctx, withQuery(uri, q))
+	if err != nil {
+		return nil, 0, err
+	}
+	var p struct {
+		Data       []json.RawMessage `json:"data"`
+		Pagination struct {
+			Hits int `json:"hits"`
+		} `json:"pagination"`
+	}
+	if err := json.Unmarshal(raw, &p); err != nil {
+		return nil, 0, fmt.Errorf("GET %s: page at offset %d: %w", uri, offset, err)
+	}
+	return p.Data, p.Pagination.Hits, nil
 }
 
 func decodeAny(raw []byte) (any, error) {
