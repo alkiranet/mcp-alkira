@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/alkiranet/mcp-alkira/handlers"
+	"github.com/alkiranet/mcp-alkira/internal/confirm"
 	"github.com/alkiranet/mcp-alkira/prompts"
 	"github.com/alkiranet/mcp-alkira/registry"
 
@@ -37,12 +38,33 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
-// newServer builds the MCP server with the summary prompt and every registered tool.
-func newServer(get handlers.ClientProvider) *server.MCPServer {
+// newServer builds the MCP server with the summary prompt and the read tools,
+// plus the write tools when allowWrite is set.
+func newServer(get handlers.ClientProvider, allowWrite bool) *server.MCPServer {
 	srv := server.NewMCPServer("mcp-alkira", version)
 	srv.AddPrompt(prompts.Summary(), prompts.SummaryHandler())
-	registry.Register(srv, get)
+	// One key per process signs every confirmation code, so the write tools
+	// accept the codes a read tool issues.
+	key := handlers.WithConfirmKey(confirm.RandomKey())
+	// A 32-byte key cannot fail.
+	if err := registry.Register(srv, get, key); err != nil {
+		panic(err)
+	}
+	if allowWrite {
+		if err := registry.RegisterWrite(srv, get, key); err != nil {
+			panic(err)
+		}
+	}
 	return srv
+}
+
+// checkWriteMode refuses write tools outside stdio: the SSE server listens
+// on every interface without authentication.
+func checkWriteMode(allowWrite bool, mode string) error {
+	if allowWrite && mode != "stdio" {
+		return fmt.Errorf("-allowWrite requires -mode stdio; mode %q serves without authentication", mode)
+	}
+	return nil
 }
 
 func main() {
@@ -56,6 +78,7 @@ func main() {
 	var portal string
 	var key string
 	var maxToken int
+	var allowWrite bool
 
 	flag.StringVar(&port, "port", getEnvOrDefault("SERVER_PORT", "8081"), "Server port")
 	flag.StringVar(&mode, "mode", getEnvOrDefault("SERVER_MODE", "stdio"), "Server mode: 'stdio' or 'sse'")
@@ -63,7 +86,14 @@ func main() {
 	flag.StringVar(&portal, "portal", "", "Alkira Portal URL")
 	flag.StringVar(&key, "key", "", "Alkira API Key")
 	flag.IntVar(&maxToken, "maxToken", 0, "Max Token of payload")
+	flag.BoolVar(&allowWrite, "allowWrite", os.Getenv("AK_MCP_ALLOW_WRITE") == "true", "Serve create, update and delete tools (stdio only)")
 	flag.Parse()
+
+	if err := checkWriteMode(allowWrite, mode); err != nil {
+		fmt.Fprintln(os.Stderr, "mcp-alkira:", err)
+		os.Exit(2)
+	}
+	ak.WriteUserAgent = "mcp-alkira/" + version
 
 	// Create Alkira Client
 	if portal == "" || key == "" {
@@ -85,7 +115,12 @@ func main() {
 
 	srv := newServer(func(context.Context) (*ak.AlkiraClient, error) {
 		return alkiraClient, nil
-	})
+	}, allowWrite)
+	if allowWrite {
+		logf("INFO", "Serving read and write tools")
+	} else {
+		logf("INFO", "Serving read tools only; start with -allowWrite to add write tools")
+	}
 
 	// Start server based on mode
 	switch mode {
