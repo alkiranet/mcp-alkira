@@ -12,6 +12,9 @@ build:
 fmt:
 	go fmt
 
+test:
+	go test -race -count=1 ./...
+
 vendor: GOPRIVATE=github.com/alkiranet
 vendor:
 	go mod tidy
