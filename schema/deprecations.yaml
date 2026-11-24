@@ -1,0 +1,5 @@
+# Breaking tool schema changes accepted against the baseline goldens in
+# registry/testdata/baseline (the mcp-alkira commit mcp-alkira-hosted pins).
+# One entry per change: "- <tool> <field path> <removed|type|required|tool-removed>".
+# Remove the entries when the baseline moves past them.
+[]

@@ -63,8 +63,9 @@ const (
 	StateGuardFailedOnly
 	// StateGuardD13 refuses an update of a FAILED, SCHEDULED or IN_PROGRESS
 	// entity, and of a non-PENDING entity on a FAILED network. With
-	// SELECTIVE-PROV off, TPS also refuses a non-PENDING entity while the
-	// network is IN_PROGRESS; that 400 classifies as ErrStateRefused.
+	// SELECTIVE-PROV off in the write's flag list (the cached list when the
+	// flag read fails) it also refuses a non-PENDING entity while the network
+	// is IN_PROGRESS, as TPS does.
 	StateGuardD13
 )
 
@@ -83,6 +84,31 @@ const (
 type FamilyCheck struct {
 	Field string
 	Value string
+}
+
+// FlagEffect is what a feature flag changes in a create or update.
+type FlagEffect int
+
+const (
+	// FlagIncludeField: Field is sent only while the flag is on. With the flag
+	// off a value the request sets is dropped, or refused when Refuse is set.
+	FlagIncludeField FlagEffect = iota + 1
+	// FlagTypeAvailable: the family can be written only while the flag is on.
+	FlagTypeAvailable
+)
+
+// FlagRule is one way a feature flag shapes a family's writes, as the portal does.
+type FlagRule struct {
+	Flag   string
+	Effect FlagEffect
+	// Field is the top-level JSON field of a FlagIncludeField rule. Its zero
+	// value must be left out of the JSON body (a pointer or omitempty). On a
+	// `set` field the rule gates the items an update adds.
+	Field string
+	// Refuse refuses, rather than drops, a FlagIncludeField value set while the flag is off.
+	Refuse bool
+	// UISource is the portal file:line that branches on the flag.
+	UISource string
 }
 
 // Descriptor describes one writable family for Core.
@@ -119,6 +145,11 @@ type Descriptor struct {
 	// stored entry has defaultRouting=true and the patch does not set them.
 	RoutingProvenance []string
 	Service           Service
+	// Flags lists the feature flags that shape creates and updates.
+	Flags []FlagRule
+	// AsyncCapable: with AsyncValidationFlag on, creates and updates send
+	// ?async=true and wait for the validation state.
+	AsyncCapable bool
 }
 
 var defaultNotFound = []Signature{{Status: 404, Code: "AK000003"}}
@@ -143,6 +174,14 @@ func (d *Descriptor) validate() error {
 	for _, p := range d.IDMatchedArrays {
 		if i := strings.LastIndex(p, "[]."); i >= 0 && !listed[p[:i]] {
 			return fmt.Errorf("descriptor %s: id-matched path %q needs its parent %q listed", d.Collection, p, p[:i])
+		}
+	}
+	for _, f := range d.Flags {
+		switch {
+		case f.Flag == "" || f.Effect < FlagIncludeField || f.Effect > FlagTypeAvailable:
+			return fmt.Errorf("descriptor %s: flag rule %+v needs a flag and an effect", d.Collection, f)
+		case (f.Effect == FlagIncludeField) != (f.Field != ""):
+			return fmt.Errorf("descriptor %s: flag rule %+v: a field goes with FlagIncludeField only", d.Collection, f)
 		}
 	}
 	for _, list := range [][]Signature{d.NotFound, d.DeleteNotFound, d.InUse, d.Duplicate} {
