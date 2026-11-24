@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"slices"
 	"time"
 )
 
@@ -47,6 +48,24 @@ func NewCore[T any](ac *AlkiraClient, d Descriptor) (*Core[T], error) {
 	rules, err := FieldRules[T]()
 	if err != nil {
 		return nil, err
+	}
+	// A gated field whose zero value is marshalled would count as set on every create.
+	zero, err := json.Marshal(new(T))
+	if err != nil {
+		return nil, err
+	}
+	zm, err := decodeObject(zero)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range d.Flags {
+		switch {
+		case f.Effect != FlagIncludeField:
+		case !slices.ContainsFunc(rules, func(r FieldRule) bool { return r.Name == f.Field }):
+			return nil, fmt.Errorf("descriptor %s: flag rule field %q is not a field of the type", d.Collection, f.Field)
+		case zm[f.Field] != nil:
+			return nil, fmt.Errorf("descriptor %s: flag rule field %q must be a pointer or omitempty", d.Collection, f.Field)
+		}
 	}
 	return &Core[T]{ac: ac, d: d, rules: rules}, nil
 }
@@ -129,8 +148,11 @@ type OutcomeError struct {
 	Outcome Outcome
 	Current []byte // body of the confirming read, when it returned one
 	Err     error  // the write error
-	// FlagsUnavailable reports that the kill switch could not be checked.
-	FlagsUnavailable bool
+	// FlagsApplied and FieldsDropped are those of the lost POST or PUT, as
+	// in WriteResult; FlagsApplied names AsyncValidationFlag when the
+	// request asked for async validation.
+	FlagsApplied  []string
+	FieldsDropped []string
 }
 
 func (e *OutcomeError) Error() string {
@@ -177,13 +199,17 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		return nil, nil, fmt.Errorf("create: %w", err)
 	}
 	stripReadOnly(c.rules, m, false)
+	flags, err := c.ac.WriteFeatures(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	sh, err := c.shape(flags, func(f string) bool { return m[f] != nil }, func(f string) { delete(m, f) })
+	if err != nil {
+		return nil, nil, err
+	}
 	body, err := json.Marshal(m)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create: %w", err)
-	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
-	if err != nil {
-		return nil, nil, err
 	}
 
 	key := c.keyValue(m)
@@ -197,12 +223,13 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		}
 	}
 
-	res, err := c.ac.doWrite(ctx, "POST", c.d.collectionURI(c.ac), body)
+	res, err := c.ac.doWrite(ctx, "POST", withQuery(c.d.collectionURI(c.ac), sh.query()), body)
 	if err != nil {
 		if !lostResponse(err, "POST") {
 			return nil, nil, c.classify("POST", err)
 		}
-		oe := &OutcomeError{Method: "POST", Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "POST", Outcome: OutcomeUnknown, Err: err,
+			FlagsApplied: sh.flags(true), FieldsDropped: sh.dropped}
 		if key == "" {
 			return nil, nil, oe
 		}
@@ -213,13 +240,19 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		case lerr != nil:
 		case dup != nil:
 			oe.Outcome, oe.ID = OutcomeCreated, dup.ID
-			return nil, &WriteResult{ID: dup.ID, RequestID: requestIdOf(err), FlagsUnavailable: flagsUnavailable}, oe
+			res := &WriteResult{ID: dup.ID, RequestID: requestIdOf(err), Saved: true}
+			sh.report(res, true)
+			if sh.async {
+				res.ValidationState = ValidationUnknown
+			}
+			return nil, res, oe
 		default:
 			oe.Outcome = OutcomeMayStillBeCreated
 		}
 		return nil, nil, oe
 	}
-	res.FlagsUnavailable = flagsUnavailable
+	res.Saved = true
+	sh.report(res, true)
 	res.ID = idOf(res.Body)
 	if res.ID == "" && key != "" {
 		cctx, ccancel := confirmContext(ctx)
@@ -227,6 +260,9 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		if dup, lerr := c.lookup(cctx, key); lerr == nil && dup != nil {
 			res.ID = dup.ID
 		}
+	}
+	if res.ValidationStateID != "" {
+		c.ac.awaitValidation(ctx, res)
 	}
 	return decodeEntity[T](res.Body), res, nil
 }
@@ -279,7 +315,20 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	if id == "" {
 		return nil, nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
 	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
+	flags, err := c.ac.WriteFeatures(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	// Flag rules see only the fields the patch names, explicit null
+	// included since it removes the stored value, and the items the list
+	// edits add (a `set` field changes through add only); a flag-gated
+	// field held in the stored body is resent unchanged.
+	sh, err := c.shape(flags,
+		func(f string) bool {
+			_, ok := pm[f]
+			return ok || len(le.add[f]) > 0
+		},
+		func(f string) { delete(pm, f); delete(le.add, f) })
 	if err != nil {
 		return nil, nil, err
 	}
@@ -287,7 +336,7 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := c.stateGuard(ctx, id, stored); err != nil {
+	if err := c.stateGuard(ctx, id, stored, contains(flags, SelectiveProvFlag)); err != nil {
 		return nil, nil, err
 	}
 	merged, absent, err := c.merge(stored, pm, le)
@@ -313,19 +362,22 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	// List edits that change nothing send no PUT: a PUT can move the entity
 	// back to PENDING.
 	if len(pm) == 0 && c.editsUnchanged(stored, merged, le) {
-		return decodeEntity[T](raw), &WriteResult{Body: raw, Previous: raw, Absent: absent, Unchanged: true, FlagsUnavailable: flagsUnavailable}, nil
+		res := &WriteResult{Body: raw, Previous: raw, Absent: absent, Unchanged: true}
+		sh.report(res, false)
+		return decodeEntity[T](raw), res, nil
 	}
 	body, err := json.Marshal(merged)
 	if err != nil {
 		return nil, nil, fmt.Errorf("update: %w", err)
 	}
 
-	res, err := c.ac.doWrite(ctx, "PUT", c.d.entityURI(c.ac, id), body)
+	res, err := c.ac.doWrite(ctx, "PUT", withQuery(c.d.entityURI(c.ac, id), sh.query()), body)
 	if err != nil {
 		if !lostResponse(err, "PUT") {
 			return nil, nil, c.classify("PUT", err)
 		}
-		oe := &OutcomeError{Method: "PUT", ID: id, Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "PUT", ID: id, Outcome: OutcomeUnknown, Err: err,
+			FlagsApplied: sh.flags(true), FieldsDropped: sh.dropped}
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
 		if exists, cur, cerr := c.Confirm(cctx, id); cerr == nil && exists {
@@ -339,7 +391,11 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	}
 	res.Previous = raw
 	res.Absent = absent
-	res.FlagsUnavailable = flagsUnavailable
+	res.Saved = true
+	sh.report(res, true)
+	if res.ValidationStateID != "" {
+		c.ac.awaitValidation(ctx, res)
+	}
 	return decodeEntity[T](res.Body), res, nil
 }
 
@@ -365,8 +421,12 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 	if id == "" {
 		return nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
 	}
-	flagsUnavailable, err := c.ac.CheckWritesAllowed(ctx)
+	flags, err := c.ac.WriteFeatures(ctx)
 	if err != nil {
+		return nil, err
+	}
+	// A family behind a FlagTypeAvailable flag cannot be deleted either.
+	if _, err := c.shape(flags, func(string) bool { return false }, func(string) {}); err != nil {
 		return nil, err
 	}
 	raw, _, err := c.preGet(ctx, id)
@@ -382,12 +442,12 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 	if err != nil {
 		var ae *APIError
 		if errors.As(err, &ae) && ae.Status == 404 && ae.matches(c.d.notFound("DELETE")) {
-			return &WriteResult{Body: []byte(ae.Body), Status: 404, RequestID: ae.RequestID, Previous: raw, FlagsUnavailable: flagsUnavailable}, nil
+			return &WriteResult{Body: []byte(ae.Body), Status: 404, RequestID: ae.RequestID, Previous: raw}, nil
 		}
 		if !lostResponse(err, "DELETE") {
 			return nil, c.classify("DELETE", err)
 		}
-		oe := &OutcomeError{Method: "DELETE", ID: id, Outcome: OutcomeUnknown, Err: err, FlagsUnavailable: flagsUnavailable}
+		oe := &OutcomeError{Method: "DELETE", ID: id, Outcome: OutcomeUnknown, Err: err}
 		cctx, ccancel := confirmContext(ctx)
 		defer ccancel()
 		if exists, cur, cerr := c.Confirm(cctx, id); cerr == nil {
@@ -399,7 +459,6 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 		return nil, oe
 	}
 	res.Previous = raw
-	res.FlagsUnavailable = flagsUnavailable
 	return res, nil
 }
 
@@ -490,8 +549,9 @@ func (c *Core[T]) preGet(ctx context.Context, id string) ([]byte, map[string]any
 
 // stateGuard runs the descriptor's state guard on the pre-GET body. The
 // network state is read only when the entity state alone does not decide
-// (BC-R10).
-func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]any) error {
+// (BC-R10). With selectiveProv false the D13 guard also refuses an
+// IN_PROGRESS network, as TPS does with SELECTIVE-PROV off.
+func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]any, selectiveProv bool) error {
 	if c.d.StateGuard == StateGuardNone {
 		return nil
 	}
@@ -522,11 +582,70 @@ func (c *Core[T]) stateGuard(ctx context.Context, id string, stored map[string]a
 		if err := json.Unmarshal(raw, &nw); err != nil {
 			return fmt.Errorf("%w: network state: %v", ErrStateRefused, err)
 		}
-		if nw.State == "FAILED" {
+		if nw.State == "FAILED" || nw.State == "IN_PROGRESS" && !selectiveProv {
 			return &StateError{ID: id, State: state, NetworkState: nw.State}
 		}
 	}
 	return nil
+}
+
+// shaping is what the flag rules did to one create or update.
+type shaping struct {
+	applied, dropped []string
+	async            bool
+}
+
+func (s shaping) query() url.Values {
+	if !s.async {
+		return nil
+	}
+	return url.Values{"async": {"true"}}
+}
+
+// flags names the flags that changed the request; async validation changes
+// it only when the request is sent.
+func (s shaping) flags(sent bool) []string {
+	if s.async && sent && !contains(s.applied, AsyncValidationFlag) {
+		return append(slices.Clone(s.applied), AsyncValidationFlag)
+	}
+	return s.applied
+}
+
+func (s shaping) report(res *WriteResult, sent bool) {
+	res.FlagsApplied, res.FieldsDropped = s.flags(sent), s.dropped
+}
+
+// shape applies the descriptor's flag rules: it refuses a type or a refused
+// field whose flag is off (ErrNotEnabled), drops the other gated fields set
+// while their flag is off, and selects async validation.
+func (c *Core[T]) shape(flags []string, sets func(field string) bool, drop func(field string)) (shaping, error) {
+	var s shaping
+	refuse := func(what, flag string) error {
+		return fmt.Errorf("%s: %w (needs %s)", what, ErrNotEnabled, flag)
+	}
+	mark := func(flag string) {
+		if !contains(s.applied, flag) {
+			s.applied = append(s.applied, flag)
+		}
+	}
+	for _, r := range c.d.Flags {
+		on := contains(flags, r.Flag)
+		switch {
+		case r.Effect == FlagTypeAvailable && !on:
+			return s, refuse(c.d.Collection, r.Flag)
+		case r.Effect != FlagIncludeField || !sets(r.Field):
+		case on:
+			mark(r.Flag)
+		case r.Refuse:
+			return s, refuse(r.Field, r.Flag)
+		default:
+			drop(r.Field)
+			s.dropped = append(s.dropped, r.Field)
+			mark(r.Flag)
+		}
+	}
+	s.async = c.d.AsyncCapable && contains(flags, AsyncValidationFlag)
+	return s, nil
 }
 
 // merge builds the PUT body from the stored body, the patch and the list

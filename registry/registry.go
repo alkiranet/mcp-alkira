@@ -2,31 +2,15 @@
 package registry
 
 import (
-	"context"
-
 	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/alkiranet/mcp-alkira/handlers"
 	"github.com/alkiranet/mcp-alkira/tools"
+	"github.com/alkiranet/mcp-alkira/writes"
 
-	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-type handlerFunc = func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error)
-
-// perCall resolves the client from get on every tool call and runs the handler mk builds for it.
-func perCall(get handlers.ClientProvider, mk func(*ak.AlkiraClient) handlerFunc) handlerFunc {
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		client, err := get(ctx)
-		if err != nil {
-			return mcp.NewToolResultError(err.Error()), nil
-		}
-		if client == nil {
-			return mcp.NewToolResultError("no Alkira client available for this request"), nil
-		}
-		return mk(client)(ctx, request)
-	}
-}
+var perCall = handlers.PerCall
 
 // Register adds every mcp-alkira tool to srv; each tool call obtains its client from get.
 func Register(srv *server.MCPServer, get handlers.ClientProvider) {
@@ -319,4 +303,35 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider) {
 	srv.AddTool(tools.HealthConnectorInstanceGetById(), perCall(get, handlers.HealthConnectorInstanceGetById))
 	srv.AddTool(tools.HealthServiceGetById(), perCall(get, handlers.HealthServiceGetById))
 	srv.AddTool(tools.HealthServiceInstanceGetById(), perCall(get, handlers.HealthServiceInstanceGetById))
+}
+
+// writeFamily is one resource family served by RegisterWrite.
+type writeFamily struct {
+	Name       string
+	Descriptor ak.Descriptor
+	register   func(srv *server.MCPServer, get handlers.ClientProvider, p *handlers.WritePipeline)
+}
+
+// family wraps f for writeFamilies.
+func family[T any](f handlers.WriteFamily[T]) writeFamily {
+	return writeFamily{Name: f.Name, Descriptor: f.Descriptor, register: func(srv *server.MCPServer, get handlers.ClientProvider, p *handlers.WritePipeline) {
+		writes.RegisterType(srv, get, p, f)
+	}}
+}
+
+// writeFamilies lists the families RegisterWrite serves; each family file appends its entry.
+var writeFamilies []writeFamily
+
+// RegisterWrite adds the write tools of every family to srv, with one pipeline
+// configured by opts (see handlers.NewWritePipeline). It returns the option
+// error, and then registers nothing.
+func RegisterWrite(srv *server.MCPServer, get handlers.ClientProvider, opts ...handlers.WriteOption) error {
+	p, err := handlers.NewWritePipeline(opts...)
+	if err != nil {
+		return err
+	}
+	for _, f := range writeFamilies {
+		f.register(srv, get, p)
+	}
+	return nil
 }
