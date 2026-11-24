@@ -60,6 +60,20 @@ type writePortal struct {
 	flagReads  int
 	// validation answers GET .../validation-states/{id}; unset ids are IN_PROGRESS.
 	validation map[string]string
+	// path, when set, replaces /api/tenantnetworks/7/<collection>, as for
+	// tenant-level collections.
+	path string
+	// notFound, when set, answers a missing id instead of 404 AK000003.
+	notFound *fault
+	// connectors answers GET /api/tenantnetworks/7/connectors (every family,
+	// paging ignored) and single GETs of its rows under .../connectors/{id}.
+	connectors []map[string]any
+	// networkState answers GET /api/tenantnetworks/7; empty means SUCCESS,
+	// since the backend always returns a state.
+	networkState string
+	// groups answers the paged GET /api/tenantnetworks/7/groups when groups
+	// are not the portal's own collection.
+	groups []map[string]any
 }
 
 func newWritePortal(t *testing.T, collection string) *writePortal {
@@ -70,7 +84,12 @@ func newWritePortal(t *testing.T, collection string) *writePortal {
 	return p
 }
 
-func (p *writePortal) base() string { return "/api/tenantnetworks/7/" + p.collection }
+func (p *writePortal) base() string {
+	if p.path != "" {
+		return p.path
+	}
+	return "/api/tenantnetworks/7/" + p.collection
+}
 
 // client returns an AlkiraClient for the fake; host distinguishes tenants.
 func (p *writePortal) client() *ak.AlkiraClient {
@@ -204,8 +223,54 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 	defer p.mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
 	notFound := func() {
+		if p.notFound != nil {
+			w.WriteHeader(p.notFound.status)
+			fmt.Fprint(w, p.notFound.body)
+			return
+		}
 		w.WriteHeader(404)
 		fmt.Fprint(w, `{"code":"AK000003","message":"Entity not found","id":"ALK-404"}`)
+	}
+	if rest, ok := strings.CutPrefix(r.URL.Path, "/api/tenantnetworks/7/connectors"); ok && r.Method == "GET" {
+		if rest == "" {
+			rows := p.connectors
+			if rows == nil {
+				rows = []map[string]any{}
+			}
+			json.NewEncoder(w).Encode(rows)
+			return
+		}
+		for _, c := range p.connectors {
+			if "/"+fmt.Sprint(c["id"]) == rest && c["gone"] == nil {
+				json.NewEncoder(w).Encode(c)
+				return
+			}
+		}
+		w.WriteHeader(404)
+		fmt.Fprint(w, `{"code":"AK000003","message":"Entity not found","id":"ALK-404"}`)
+		return
+	}
+	if r.Method == "GET" && r.URL.Path == "/api/tenantnetworks/7" {
+		state := p.networkState
+		if state == "" {
+			state = "SUCCESS"
+		}
+		fmt.Fprintf(w, `{"id":7,"state":%q}`, state)
+		return
+	}
+	if r.Method == "GET" && r.URL.Path == "/api/tenantnetworks/7/groups" && p.base() != r.URL.Path {
+		rows := p.groups
+		if rows == nil {
+			rows = []map[string]any{}
+		}
+		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		page := []map[string]any{}
+		for i := offset; i < len(rows) && (limit == 0 || i < offset+limit); i++ {
+			page = append(page, rows[i])
+		}
+		json.NewEncoder(w).Encode(map[string]any{"data": page, "pagination": map[string]any{"hits": len(rows)}})
+		return
 	}
 	if vid, ok := strings.CutPrefix(r.URL.Path, "/api/tenantnetworks/7/validation-states/"); ok {
 		body, ok := p.validation[vid]
@@ -228,7 +293,8 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 		case "GET":
 			ids := make([]int, 0, len(p.objects))
 			for id, o := range p.objects {
-				if o["docState"] == nil {
+				// Live policy-service and AS-path list rows carry docState ADDED.
+				if ds := o["docState"]; ds == nil || ds == "ADDED" {
 					ids = append(ids, id)
 				}
 			}
