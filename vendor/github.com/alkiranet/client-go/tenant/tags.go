@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,21 +21,36 @@ import (
 //
 // Tag grammar: `ak:"<key>[=<value>],..."`. "," separates keys and "|"
 // separates alternatives inside a value. Keys: required, default=<v>,
-// readonly, immutable, maxlen=<n> (UTF-16 code units), charset=<name>
-// (name, hyphen, description, noline), enum=<a|b>, min=<n>, max=<n>,
-// range=<lo>..<hi>[|<lo>..<hi>], secret, set, flag=<FLAG>, src=<file:line>[|...].
+// readonly, keep, immutable, maxlen=<n> (UTF-16 code units), charset=<name>
+// (name, hyphen, description, noline, slug, alnum), enum=<a|b>, min=<n>, max=<n>,
+// range=<lo>..<hi>[|<lo>..<hi>], maxitems=<n>, minitems=<n>, distinct=<field>[|<field>],
+// secret, set, trimmed, expired=<epoch seconds>, flag=<FLAG>, src=<file:line>[|...].
+// keep, on a readonly field, resends the stored value on update: a create or
+// patch still cannot set it, but the backend's update copies it from the
+// request and resets it when it is missing.
+// trimmed refuses a leading or trailing space, as the backend's
+// "constraint.nottrimmed" pattern does.
 // set marks a scalar list that changes only through add and remove: a merge
 // patch cannot set it, because a patch array replaces the stored list whole.
-// On a slice, maxlen, charset, enum, min, max and range apply to each element.
+// expired takes the backend's @Expiry epoch: after it, a create or patch
+// that sets the field is refused and an update drops the stored value.
+// On a slice, maxlen, charset, enum, min, max and range apply to each element
+// and maxitems and minitems to the slice; a patch is held to them only when it
+// sets the slice. distinct=<a|b> on a slice of structs refuses two elements
+// with the same value of any named JSON field; unset values are not compared.
 // required on a bool or number needs a pointer field, since a zero value
 // cannot be told apart from an unset one.
-// maxlen, charset, enum, min, max and range need src= on the same tag.
+// maxlen, charset, enum, min, max, range, maxitems, minitems, distinct, trimmed
+// and expired need src= on the same tag.
+// On create, an unset field with default= is sent with its default unless a
+// FlagIncludeField rule whose flag is off gates it.
 type FieldRule struct {
 	Name       string       // JSON name
 	GoName     string       // Go field name
 	Type       reflect.Type // Go field type
 	Required   bool
 	ReadOnly   bool
+	Keep       bool // readonly, resent from the stored body on update
 	Immutable  bool
 	Secret     bool
 	Set        bool
@@ -46,6 +62,11 @@ type FieldRule struct {
 	Min        *int64
 	Max        *int64
 	Ranges     []Range
+	MaxItems   int      // 0: no limit
+	MinItems   int      // 0: no limit
+	Distinct   []string // JSON fields whose values must differ between elements
+	Trimmed    bool     // no leading or trailing space
+	Expired    int64    // epoch seconds; 0: never
 	Flag       string
 	Src        []string
 	Fields     []FieldRule
@@ -63,6 +84,10 @@ var charsets = map[string]*regexp.Regexp{
 	"hyphen":      regexp.MustCompile(`^[a-zA-Z0-9-]+$`),
 	"description": regexp.MustCompile(`^[a-zA-Z0-9.:;@_+\-% ]*$`),
 	"noline":      regexp.MustCompile("^[^\n\r\u0085  ]*$"),
+	// slug: TPS InternetApplication.name (InternetApplication.java:69-73).
+	"slug": regexp.MustCompile(`^[a-zA-Z0-9_-]*$`),
+	// alnum: TPS InternetApplication.fqdnPrefix (InternetApplication.java:80-82).
+	"alnum": regexp.MustCompile(`^[a-zA-Z0-9]*$`),
 }
 
 // CharsetPattern returns the regular expression of a charset= name.
@@ -144,6 +169,15 @@ func parseStruct(t reflect.Type, seen map[reflect.Type]bool) ([]FieldRule, error
 			if r.Fields, err = parseStruct(st, seen); err != nil {
 				return nil, err
 			}
+			// Only top-level fields are stripped from the stored body once expired.
+			if slices.ContainsFunc(r.Fields, func(c FieldRule) bool { return c.Expired != 0 }) {
+				return nil, fmt.Errorf("ak tags: %s.%s: expired= on a nested field; only top-level fields can expire", t.Name(), f.Name)
+			}
+		}
+		for _, d := range r.Distinct {
+			if !slices.ContainsFunc(r.Fields, func(c FieldRule) bool { return c.Name == d }) {
+				return nil, fmt.Errorf("ak tags: %s.%s: distinct=%s names no field of the element", t.Name(), f.Name, d)
+			}
 		}
 		if r.Secret {
 			secretKeys.Store(strings.ToLower(name), true)
@@ -166,7 +200,7 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 			return r, fmt.Errorf("duplicate key %q", key)
 		}
 		seen[key] = true
-		flagKey := key == "required" || key == "readonly" || key == "immutable" || key == "secret" || key == "set"
+		flagKey := key == "required" || key == "readonly" || key == "immutable" || key == "secret" || key == "set" || key == "trimmed" || key == "keep"
 		if flagKey && hasVal || !flagKey && (!hasVal || val == "") {
 			return r, fmt.Errorf("malformed key %q", item)
 		}
@@ -176,10 +210,17 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 			r.Required = true
 		case "readonly":
 			r.ReadOnly = true
+		case "keep":
+			r.Keep = true
 		case "immutable":
 			r.Immutable = true
 		case "secret":
 			r.Secret = true
+		case "trimmed":
+			if elem != reflect.String {
+				return r, fmt.Errorf("trimmed on a non-string field")
+			}
+			r.Trimmed, constraint = true, true
 		case "set":
 			if indirect(ft).Kind() != reflect.Slice || structOf(ft) != nil {
 				return r, errors.New("set on a field that is not a list of scalars")
@@ -243,6 +284,35 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 				r.Ranges = append(r.Ranges, Range{l, h})
 			}
 			constraint = true
+		case "maxitems":
+			n, err := strconv.Atoi(val)
+			if err != nil || n <= 0 {
+				return r, fmt.Errorf("maxitems=%s: not a positive integer", val)
+			}
+			if k := indirect(ft).Kind(); k != reflect.Slice && k != reflect.Array {
+				return r, fmt.Errorf("maxitems on a non-slice field")
+			}
+			r.MaxItems, constraint = n, true
+		case "minitems":
+			n, err := strconv.Atoi(val)
+			if err != nil || n <= 0 {
+				return r, fmt.Errorf("minitems=%s: not a positive integer", val)
+			}
+			if k := indirect(ft).Kind(); k != reflect.Slice && k != reflect.Array {
+				return r, fmt.Errorf("minitems on a non-slice field")
+			}
+			r.MinItems, constraint = n, true
+		case "distinct":
+			if k := indirect(ft).Kind(); (k != reflect.Slice && k != reflect.Array) || structOf(ft) == nil {
+				return r, fmt.Errorf("distinct on a field that is not a list of structs")
+			}
+			r.Distinct, constraint = strings.Split(val, "|"), true
+		case "expired":
+			n, err := strconv.ParseInt(val, 10, 64)
+			if err != nil || n <= 0 {
+				return r, fmt.Errorf("expired=%s: not a positive epoch", val)
+			}
+			r.Expired, constraint = n, true
 		case "flag":
 			r.Flag = val
 		case "src":
@@ -257,6 +327,12 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 	if r.Min != nil && r.Max != nil && *r.Min > *r.Max {
 		return r, errors.New("min above max")
 	}
+	if r.MinItems > 0 && r.MaxItems > 0 && r.MinItems > r.MaxItems {
+		return r, errors.New("minitems above maxitems")
+	}
+	if r.Keep && !r.ReadOnly {
+		return r, errors.New("keep without readonly")
+	}
 	// A zero bool or number cannot be told apart from an unset one, so a
 	// required one must be a pointer.
 	if r.Required && (ft.Kind() == reflect.Bool || isInt(ft.Kind()) || ft.Kind() == reflect.Float32 || ft.Kind() == reflect.Float64) {
@@ -266,6 +342,11 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 		return r, errors.New("constraint key without src=")
 	}
 	return r, nil
+}
+
+// expired reports whether the field's expiry has passed.
+func (r FieldRule) expired() bool {
+	return r.Expired != 0 && clockNow().Unix() > r.Expired
 }
 
 func indirect(t reflect.Type) reflect.Type {
@@ -344,11 +425,25 @@ func validateField(r FieldRule, fv reflect.Value, patch bool, path string) error
 		}
 		return nil
 	}
+	if r.expired() {
+		return fmt.Errorf("%w: %s is no longer accepted by the backend", ErrInvalidInput, path)
+	}
 	for fv.Kind() == reflect.Pointer || fv.Kind() == reflect.Interface {
 		fv = fv.Elem()
 	}
 	switch fv.Kind() {
 	case reflect.Slice, reflect.Array:
+		if r.MaxItems > 0 && fv.Len() > r.MaxItems {
+			return fmt.Errorf("%w: %s has %d items, at most %d allowed", ErrInvalidInput, path, fv.Len(), r.MaxItems)
+		}
+		if fv.Len() < r.MinItems {
+			return fmt.Errorf("%w: %s has %d items, at least %d needed", ErrInvalidInput, path, fv.Len(), r.MinItems)
+		}
+		for _, d := range r.Distinct {
+			if err := checkDistinct(r, d, fv, path); err != nil {
+				return err
+			}
+		}
 		var errs []error
 		for i := 0; i < fv.Len(); i++ {
 			ev := fv.Index(i)
@@ -379,6 +474,40 @@ func validateField(r FieldRule, fv reflect.Value, patch bool, path string) error
 	return checkScalarRules(r, fv, path)
 }
 
+// checkDistinct refuses two elements of slice fv whose field name holds the
+// same set value.
+func checkDistinct(r FieldRule, name string, fv reflect.Value, path string) error {
+	var goName string
+	for _, f := range r.Fields {
+		if f.Name == name {
+			goName = f.GoName
+		}
+	}
+	seen := map[string]int{}
+	for i := 0; i < fv.Len(); i++ {
+		ev := fv.Index(i)
+		for ev.Kind() == reflect.Pointer || ev.Kind() == reflect.Interface {
+			if ev.IsNil() {
+				break
+			}
+			ev = ev.Elem()
+		}
+		if ev.Kind() != reflect.Struct {
+			continue
+		}
+		f := ev.FieldByName(goName)
+		if !f.IsValid() || absent(f) {
+			continue
+		}
+		key := fmt.Sprint(reflect.Indirect(f).Interface())
+		if j, dup := seen[key]; dup {
+			return fmt.Errorf("%w: %s[%d] and %s[%d] have the same %s %s", ErrInvalidInput, path, j, path, i, name, key)
+		}
+		seen[key] = i
+	}
+	return nil
+}
+
 // absent reports whether v is a nil pointer, slice, map or interface, or a zero scalar.
 func absent(v reflect.Value) bool {
 	switch v.Kind() {
@@ -402,6 +531,9 @@ func checkScalarRules(r FieldRule, v reflect.Value, path string) error {
 			if n := len(utf16.Encode([]rune(s))); n > r.MaxLen {
 				return fmt.Errorf("%w: %s is %d characters long, at most %d allowed", ErrInvalidInput, path, n, r.MaxLen)
 			}
+		}
+		if r.Trimmed && (strings.HasPrefix(s, " ") || strings.HasSuffix(s, " ")) {
+			return fmt.Errorf("%w: %s has a leading or trailing space", ErrInvalidInput, path)
 		}
 		if r.Charset != "" && !charsets[r.Charset].MatchString(s) {
 			return fmt.Errorf("%w: %s has characters outside the %s character set", ErrInvalidInput, path, r.Charset)
@@ -571,15 +703,25 @@ func children(r FieldRule, v any, path string) []child {
 // stripReadOnly deletes the read-only fields of obj at every level, in
 // place. A nested id stays: id-matched arrays pair elements by it.
 func stripReadOnly(rules []FieldRule, obj map[string]any, nested bool) {
+	stripFields(rules, obj, nested, false)
+}
+
+// stripStored is stripReadOnly for a stored body an update resends: fields
+// tagged keep stay.
+func stripStored(rules []FieldRule, obj map[string]any) {
+	stripFields(rules, obj, false, true)
+}
+
+func stripFields(rules []FieldRule, obj map[string]any, nested, keep bool) {
 	for _, r := range rules {
 		v, ok := obj[r.Name]
 		switch {
 		case !ok:
-		case r.ReadOnly && !(nested && r.Name == "id"):
+		case r.ReadOnly && !(nested && r.Name == "id") && !(keep && r.Keep):
 			delete(obj, r.Name)
 		case r.Fields != nil:
 			for _, c := range children(r, v, "") {
-				stripReadOnly(r.Fields, c.obj, true)
+				stripFields(r.Fields, c.obj, true, keep)
 			}
 		}
 	}

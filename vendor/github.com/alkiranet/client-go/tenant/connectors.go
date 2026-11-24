@@ -10,9 +10,11 @@ import (
 
 // ConnectorRef is one row of GET /connectors.
 type ConnectorRef struct {
-	ID   json.Number `json:"id"`
-	Name string      `json:"name"`
-	Type string      `json:"type"`
+	ID            json.Number `json:"id"`
+	Name          string      `json:"name"`
+	Type          string      `json:"type"`
+	State         string      `json:"state,omitempty"`
+	PreviousState string      `json:"previousState,omitempty"`
 }
 
 // ListConnectors returns every connector of every family from

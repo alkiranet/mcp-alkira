@@ -13,6 +13,7 @@ import (
 
 	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/alkiranet/mcp-alkira/internal/confirm"
+	"github.com/alkiranet/mcp-alkira/internal/schemagen"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
@@ -217,6 +218,42 @@ func TestErrorResult_Texts(t *testing.T) {
 	}
 }
 
+// The schemas a pipeline advertises and the validation of its calls evaluate
+// field expiry at the same instant, the pipeline's construction.
+func TestNewWritePipeline_SchemaInstant(t *testing.T) {
+	now := time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
+	p, err := NewWritePipeline(WithClock(func() time.Time { return now }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	now = time.Date(2026, 11, 19, 0, 0, 0, 0, time.UTC)
+	type expiring struct {
+		Old *int64 `json:"old,omitempty" ak:"expired=1780272000,src=Test.java:1"`
+	}
+	rules, err := ak.FieldRules[expiring]()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := p.Schema().Object(rules, schemagen.Create)["properties"].(map[string]any)["old"]; !ok {
+		t.Error("schema lacks a field that expired after the pipeline was built")
+	}
+	if err := p.Schema().Validate(rules, json.RawMessage(`{"old":1}`), schemagen.Create); err != nil {
+		t.Errorf("Validate: %v", err)
+	}
+}
+
+func TestArticle(t *testing.T) {
+	for noun, want := range map[string]string{
+		"segment": "a segment", "AS-path list": "an AS-path list", "extended community list": "an extended community list",
+		"UDR list": "a UDR list", "internet connector": "an internet connector", "NAT rule": "a NAT rule", "BYOIP": "a BYOIP",
+		"ipsec connector": "an ipsec connector",
+	} {
+		if got := Article(noun); got != want {
+			t.Errorf("Article(%q) = %q, want %q", noun, got, want)
+		}
+	}
+}
+
 func TestObjectLocks(t *testing.T) {
 	w := newWriteCall(&WritePipeline{timeout: time.Minute}, WriteFamily[thing]{Name: "thing", Noun: "thing",
 		Descriptor: ak.Descriptor{Collection: "things"}})
@@ -264,5 +301,27 @@ func TestObjectLocks(t *testing.T) {
 	defer w.p.locks.mu.Unlock()
 	if len(w.p.locks.m) != 0 {
 		t.Fatalf("locks left after release: %v", w.p.locks.m)
+	}
+}
+
+// cachedFlags is a client whose flag read fails while an earlier read, older
+// than the EnabledFeatures cache, is still held for writes.
+type cachedFlags struct{ flags []string }
+
+func (c cachedFlags) EnabledFeatures(context.Context) ([]string, error) {
+	return nil, errors.New("tenantenabledfeatures: status 500")
+}
+
+func (c cachedFlags) WriteFeatures(context.Context) ([]string, error) { return c.flags, nil }
+
+func TestTypeAvailable_UsesWriteFeatures(t *testing.T) {
+	w := newWriteCall(&WritePipeline{timeout: time.Minute}, WriteFamily[thing]{Name: "thing", Noun: "thing",
+		Descriptor: ak.Descriptor{Collection: "things", Flags: []ak.FlagRule{{Flag: "THING", Effect: ak.FlagTypeAvailable}}}})
+	ctx := context.Background()
+	if res := w.typeAvailable(ctx, cachedFlags{flags: []string{"THING"}}); res != nil {
+		t.Fatalf("preview refused with cached flags on: %+v", res)
+	}
+	if r := refusalOf(t, w.typeAvailable(ctx, cachedFlags{flags: []string{}})); r.Code != "not_enabled" {
+		t.Fatalf("refusal = %+v", r)
 	}
 }
