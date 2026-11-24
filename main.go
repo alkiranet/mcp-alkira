@@ -43,8 +43,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 func newServer(get handlers.ClientProvider, allowWrite bool) *server.MCPServer {
 	srv := server.NewMCPServer("mcp-alkira", version)
 	srv.AddPrompt(prompts.Summary(), prompts.SummaryHandler())
-	// One key per process signs every confirmation code, so the write tools
-	// accept the codes a read tool issues.
+	// One key per process signs every delete confirmation code.
 	key := handlers.WithConfirmKey(confirm.RandomKey())
 	// A 32-byte key cannot fail.
 	if err := registry.Register(srv, get, key); err != nil {

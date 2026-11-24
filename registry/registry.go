@@ -13,10 +13,9 @@ import (
 var perCall = handlers.PerCall
 
 // Register adds every mcp-alkira read tool to srv; each tool call obtains its
-// client from get. opts configure the pipeline of the read tools that issue
-// confirmation codes: pass the WithConfirmKey given to RegisterWrite, so the
-// write tools accept those codes. It returns the option error, and then
-// registers nothing.
+// client from get. opts are write pipeline options; the read tools use only
+// the call deadline. It returns the option error, and then registers
+// nothing.
 func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handlers.WriteOption) error {
 	if _, err := handlers.NewWritePipeline(opts...); err != nil {
 		return err
