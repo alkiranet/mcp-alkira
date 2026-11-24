@@ -27,13 +27,34 @@ type WriteFamily[T any] struct {
 	// Noun names the family in tool output, for example "segment".
 	Noun       string
 	Descriptor ak.Descriptor
+	// NameKey is the field that names an object in tool output when the
+	// family has no name field, for example "prefix"; empty means "name".
+	NameKey string
 	// Implicit returns the objects the backend deletes together with an object named name.
 	Implicit func(name string) []string
+	// ImplicitNote describes, in the delete preview, objects the backend
+	// deletes together with the stored object raw named name when their
+	// names do not follow from the object name alone; "" means none.
+	ImplicitNote func(name string, raw []byte) string
 	// ProvisionNote, when set, replaces the provision effect line of the delete preview.
 	ProvisionNote string
 	// Volatile lists top-level GET fields that change without a user edit; the
 	// delete state hash leaves them out.
 	Volatile []string
+	// CreateNote, UpdateNote and DeleteNote add family facts to the tool descriptions.
+	CreateNote, UpdateNote, DeleteNote string
+	// StoredRefs lists references the stored object can keep after their
+	// target is deleted (BC-R11).
+	StoredRefs []StoredRef
+}
+
+// StoredRef is a reference an update resends from the stored object. When
+// the backend refuses an update on Field and the patch does not set it, the
+// update output names the stored IDField value as dangling once Lookup
+// answers ak.ErrNotFound for it.
+type StoredRef struct {
+	Field, IDField, Noun string
+	Lookup               func(ctx context.Context, client *ak.AlkiraClient, id string) error
 }
 
 // Refusal is the typed reason of a write tool error, carried in the result
@@ -65,12 +86,20 @@ type WritePipeline struct {
 	// timeout bounds a whole tool call: pre-GET, write and confirming GET.
 	timeout time.Duration
 
+	// schema evaluates expiry rules at the pipeline's construction, so the
+	// schemas its tools advertise and the validation of their calls agree.
+	schema schemagen.Generator
+
 	key       []byte
 	noConfirm bool
 	now       func() time.Time
 
 	locks objectLocks
 }
+
+// Schema returns the generator of the pipeline's tool schemas; Validate
+// checks calls with the same generator.
+func (p *WritePipeline) Schema() schemagen.Generator { return p.schema }
 
 // WriteOption configures NewWritePipeline.
 type WriteOption func(*WritePipeline) error
@@ -114,7 +143,7 @@ func WithWriteTimeout(d time.Duration) WriteOption {
 }
 
 // WithClock makes the pipeline read now instead of the wall clock, for the
-// expiry of delete codes.
+// expiry of delete codes and the instant field expiry rules are evaluated at.
 func WithClock(now func() time.Time) WriteOption {
 	return func(p *WritePipeline) error {
 		p.now = now
@@ -132,6 +161,7 @@ func NewWritePipeline(opts ...WriteOption) (*WritePipeline, error) {
 			return nil, err
 		}
 	}
+	p.schema = schemagen.At(p.now())
 	if p.noConfirm {
 		return p, nil
 	}
@@ -186,7 +216,7 @@ func WriteCreate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 				return res, nil
 			}
 			raw, _ := json.Marshal(args["body"])
-			if err := schemagen.Validate(w.rules, raw, schemagen.Create); err != nil {
+			if err := w.p.schema.Validate(w.rules, raw, schemagen.Create); err != nil {
 				return invalidArgs(err), nil
 			}
 			var obj T
@@ -208,7 +238,7 @@ func WriteCreate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			}
 
 			created, wr, err := core.Create(ctx, &obj, ak.WriteOptions{})
-			name := nameOf(raw)
+			name := w.nameOf(raw)
 			var oe *ak.OutcomeError
 			if errors.As(err, &oe) {
 				return w.outcomeResult(oe, fieldOf(raw, w.f.Descriptor.Uniqueness.Key)), nil
@@ -232,7 +262,7 @@ func WriteCreate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 				out.WriteString("\n")
 			}
 			validationRunning(&out, wr)
-			flagEffects(&out, wr)
+			w.flagEffects(&out, wr)
 			w.writeTail(&out, wr, created, sent(obj), nil)
 			return mcp.NewToolResultText(out.String()), nil
 		}
@@ -258,7 +288,7 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			var patch []byte
 			if args["patch"] != nil {
 				patch, _ = json.Marshal(args["patch"])
-				if err := schemagen.Validate(w.rules, patch, schemagen.Patch); err != nil {
+				if err := w.p.schema.Validate(w.rules, patch, schemagen.Patch); err != nil {
 					return invalidArgs(err), nil
 				}
 			}
@@ -278,17 +308,28 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			defer cancel()
 			unlock, err := w.lockObject(ctx, client, "id\x00"+id)
 			if err != nil {
-				return w.errorResult("update", id, nameOf(patch), err, redaction{}), nil
+				return w.errorResult("update", id, w.nameOf(patch), err, redaction{}), nil
 			}
 			defer unlock()
 
 			updated, wr, err := core.Update(ctx, id, patch, edits)
 			var oe *ak.OutcomeError
 			if errors.As(err, &oe) {
-				return w.outcomeResult(oe, nameOf(patch)), nil
+				return w.outcomeResult(oe, w.nameOf(patch)), nil
 			}
 			if err != nil {
-				return w.errorResult("update", id, nameOf(patch), err, w.updateRedaction(ctx, core, id, patch, err)), nil
+				res := w.errorResult("update", id, w.nameOf(patch), err, w.updateRedaction(ctx, core, id, patch, err))
+				if note := w.danglingRef(ctx, client, core, id, patch, err); note != "" && len(res.Content) > 0 {
+					if tc, ok := res.Content[0].(mcp.TextContent); ok {
+						tc.Text += " " + note
+						res.Content[0] = tc
+					}
+					if rf, ok := res.Meta["refusal"].(Refusal); ok {
+						rf.Text += " " + note
+						res.Meta["refusal"] = rf
+					}
+				}
+				return res, nil
 			}
 			var out strings.Builder
 			switch {
@@ -308,12 +349,12 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			validationRunning(&out, wr)
 			absentText(&out, wr.Absent)
 			if wr.Unchanged {
-				flagEffects(&out, wr)
+				w.flagEffects(&out, wr)
 				out.WriteString("Object:\n")
 				out.WriteString(w.render(wr.Body))
 				return mcp.NewToolResultText(out.String()), nil
 			}
-			flagEffects(&out, wr)
+			w.flagEffects(&out, wr)
 			w.writeTail(&out, wr, updated, patch, nullKeys(patch))
 			if diff := editsDiff(edits, wr.Body, wr.Absent, w.f.Descriptor.IDMatchedArrays); len(diff) > 0 {
 				fmt.Fprintf(&out, "The backend did not keep the list edits as sent: %s.\n", strings.Join(diff, "; "))
@@ -356,6 +397,9 @@ func WriteDelete[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			if code == "" {
 				ctx, cancel := context.WithTimeout(ctx, w.p.timeout)
 				defer cancel()
+				if res := w.typeAvailable(ctx, client); res != nil {
+					return res, nil
+				}
 				return w.preview(ctx, core, tenant, id), nil
 			}
 			if err := w.p.confirm.CheckSignature(code, tenant, w.f.Name, id); err != nil {
@@ -388,14 +432,18 @@ func WriteDelete[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 				return w.confirmRefusal(ce.err, id), nil
 			}
 			if err != nil {
-				return w.errorResult("delete", id, nameOf(raw), err, w.redaction(raw)), nil
+				return w.errorResult("delete", id, w.nameOf(raw), err, w.redaction(raw)), nil
 			}
 			raw = wr.Previous
 			var out strings.Builder
-			if marked, _ := w.marksRow(raw); marked {
-				fmt.Fprintf(&out, "Marked %s%s (id %s) for deletion. It stays deployed and keeps its name and references until the next provision.\n", w.f.Noun, quoted(nameOf(raw)), id)
+			// client-go returns a DELETE answered with the family's not-found
+			// signature as a result: the object went between the pre-GET and the DELETE.
+			if wr.Status >= 400 {
+				fmt.Fprintf(&out, "%s%s (id %s) was already deleted: the backend answered the DELETE with not found (status %d).\n", capital(w.f.Noun), quoted(w.nameOf(raw)), id, wr.Status)
+			} else if marked, _ := w.marksRow(raw); marked {
+				fmt.Fprintf(&out, "Marked %s%s (id %s) for deletion. It stays deployed and keeps its name and references until the next provision.\n", w.f.Noun, quoted(w.nameOf(raw)), id)
 			} else {
-				fmt.Fprintf(&out, "Deleted %s%s (id %s).\n", w.f.Noun, quoted(nameOf(raw)), id)
+				fmt.Fprintf(&out, "Deleted %s%s (id %s).\n", w.f.Noun, quoted(w.nameOf(raw)), id)
 			}
 			out.WriteString("Previous object:\n")
 			out.WriteString(w.render(wr.Previous))
@@ -409,17 +457,62 @@ type codeError struct{ err error }
 
 func (e codeError) Error() string { return e.err.Error() }
 
+// writeFeatures reads the flags a write uses; *ak.AlkiraClient implements it.
+type writeFeatures interface {
+	WriteFeatures(ctx context.Context) ([]string, error)
+}
+
+// typeAvailable refuses a family whose tenant feature is off before a delete
+// preview, which sends no write and so does not pass the core's flag check.
+// It reads the flags through WriteFeatures, as the confirmed delete does, so
+// during a failed flag read both use the cached flags of any age.
+func (w writeCall[T]) typeAvailable(ctx context.Context, client writeFeatures) *mcp.CallToolResult {
+	var gate []ak.FlagRule
+	for _, r := range w.f.Descriptor.Flags {
+		if r.Effect == ak.FlagTypeAvailable {
+			gate = append(gate, r)
+		}
+	}
+	if gate == nil {
+		return nil
+	}
+	flags, err := client.WriteFeatures(ctx)
+	if err != nil {
+		return w.errorResult("delete", "", "", err, redaction{})
+	}
+	for _, r := range gate {
+		needs := r.Flag
+		if len(r.AnyOf) > 0 {
+			needs += " and one of " + strings.Join(r.AnyOf, ", ")
+		}
+		on := slices.Contains(flags, r.Flag) && (len(r.AnyOf) == 0 || slices.ContainsFunc(r.AnyOf, func(f string) bool { return slices.Contains(flags, f) }))
+		if !on {
+			return w.errorResult("delete", "", "", fmt.Errorf("%s: %w (needs %s)", w.f.Descriptor.Collection, ak.ErrNotEnabled, needs), redaction{})
+		}
+	}
+	return nil
+}
+
 func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id string) *mcp.CallToolResult {
 	_, raw, err := core.Get(ctx, id)
 	if err != nil {
 		return w.errorResult("delete", id, "", err, redaction{})
+	}
+	// Get returns rows the family's writes refuse (FamilyType.Value), such as
+	// implicit groups; the preview refuses them as the delete would.
+	if f := w.f.Descriptor.FamilyType; f.Value != "" {
+		var m map[string]any
+		_ = json.Unmarshal(raw, &m)
+		if v := m[f.Field]; fmt.Sprint(v) != f.Value {
+			return w.errorResult("delete", id, "", &ak.FamilyError{ID: id, Collection: w.f.Descriptor.Collection, Field: f.Field, Got: v, Want: f.Value}, w.redaction(raw))
+		}
 	}
 	state, err := confirm.StateHash(raw, w.f.Volatile)
 	if err != nil {
 		return w.errorResult("delete", id, "", err, w.redaction(raw))
 	}
 	code, exp := w.p.confirm.Issue(tenant, w.f.Name, id, state)
-	name := nameOf(raw)
+	name := w.nameOf(raw)
 	deployed, err := ak.Deployed(w.f.Descriptor, raw)
 	if err != nil {
 		return w.errorResult("delete", id, name, err, w.redaction(raw))
@@ -428,9 +521,12 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 
 	var out strings.Builder
 	fmt.Fprintf(&out, "Delete preview for %s%s (id %s). Nothing was deleted.\n", w.f.Noun, quoted(name), id)
+	stateless := !slices.ContainsFunc(w.rules, func(r ak.FieldRule) bool { return r.Name == "state" })
 	switch {
 	case !w.f.Descriptor.Provisionable:
 		out.WriteString("Deployed: not applicable; this family is not provisioned.\n")
+	case stateless:
+		fmt.Fprintf(&out, "Deployed: unknown; %ss carry no state. If it was provisioned, it stays live until a provision that includes the delete.\n", w.f.Noun)
 	case deployed:
 		fmt.Fprintf(&out, "Deployed: yes (state %s).\n", entityState)
 	default:
@@ -439,6 +535,11 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 	if w.f.Implicit != nil && name != "" {
 		if implicit := w.f.Implicit(name); len(implicit) > 0 {
 			fmt.Fprintf(&out, "Also deleted with it: %s.\n", quoteAll(implicit))
+		}
+	}
+	if w.f.ImplicitNote != nil {
+		if note := w.f.ImplicitNote(name, raw); note != "" {
+			fmt.Fprintf(&out, "Also deleted with it: %s.\n", note)
 		}
 	}
 	if w.f.Descriptor.MarkedRowLifecycle && deployed {
@@ -451,6 +552,8 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 		fmt.Fprintf(&out, "The next provision: %s\n", w.f.ProvisionNote)
 	case !w.f.Descriptor.Provisionable:
 		out.WriteString("The next provision: no effect.\n")
+	case stateless:
+		out.WriteString("The next provision: tears it down if it was deployed; otherwise nothing to tear down.\n")
 	case deployed:
 		out.WriteString("The next provision: tears down the deployed object.\n")
 	default:
@@ -738,6 +841,7 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		de *ak.DuplicateError
 		oe *ak.OutcomeError
 		ae *ak.APIError
+		fe *ak.FamilyError
 	)
 	if errors.As(err, &ae) {
 		r = r.add(w.redaction([]byte(ae.Body)))
@@ -763,6 +867,9 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		return refuse("validation_pending", strings.TrimSpace(check)+ids(ae))
 	case errors.Is(err, ak.ErrNotEnabled):
 		what, flag := w.flagRefusal(err)
+		if strings.Contains(flag, " and one of ") {
+			return refuse("not_enabled", fmt.Sprintf("%s is not enabled for this tenant (it needs the tenant features %s); nothing was sent.", what, flag))
+		}
 		return refuse("not_enabled", fmt.Sprintf("%s is not enabled for this tenant (tenant feature %s is off); nothing was sent.", what, flag))
 	case errors.Is(err, ak.ErrFlagsUnavailable):
 		// No flags could be read and none are cached, so the kill switch is unknown.
@@ -782,8 +889,11 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		}
 		return refuse("state_refused", fmt.Sprintf("%s cannot change while %s; wait for the running provision to finish.", subject, stateText(se)))
 	case errors.As(err, &de):
+		if de.Group {
+			return refuse("duplicate", fmt.Sprintf("a group named %q already exists (id %s); the backend creates a group of that name with the %s, so the name cannot be used.", de.Value, de.ID, w.f.Noun))
+		}
 		if de.Type != "" {
-			return refuse("duplicate", fmt.Sprintf("a %s connector named %q already exists (id %s); connector names are unique across every connector type and group.", strings.ToLower(de.Type), de.Value, de.ID))
+			return refuse("duplicate", fmt.Sprintf("%s connector named %q already exists (id %s); connector names are unique across every connector type and group.", Article(strings.ToLower(de.Type)), de.Value, de.ID))
 		}
 		return refuse("duplicate", fmt.Sprintf("%s already exists (id %s).", w.keyed(de.Value), de.ID))
 	case errors.Is(err, ak.ErrDuplicate):
@@ -791,10 +901,12 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		return refuse("duplicate", w.keyed(name)+" already exists.")
 	case errors.Is(err, ak.ErrNotFound):
 		return refuse("not_found", fmt.Sprintf("%s not found.", subject))
+	case errors.As(err, &fe) && fe.Want != "" && fe.Got != nil:
+		return refuse("family_mismatch", fmt.Sprintf("%s has %s %v; only %ss with %s %s can be changed or deleted. Nothing was sent.", capital(subject), fe.Field, fe.Got, noun, fe.Field, fe.Want))
 	case errors.Is(err, ak.ErrFamilyMismatch):
-		return refuse("family_mismatch", fmt.Sprintf("id %s belongs to another family, not a %s; nothing was changed.", id, noun))
+		return refuse("family_mismatch", fmt.Sprintf("id %s belongs to another family, not %s; nothing was changed.", id, Article(noun)))
 	case errors.Is(err, ak.ErrInUse):
-		return refuse("in_use", fmt.Sprintf("%s is still referenced: %s", subject, backendText(ae, r)))
+		return refuse("in_use", fmt.Sprintf("%s is still referenced: %s. A referrer deleted without a provision keeps the reference until the next provision.", subject, backendText(ae, r)))
 	case errors.Is(err, ak.ErrRateLimited):
 		if ae != nil && ae.RetryAfter > 0 {
 			return refuse("rate_limited", fmt.Sprintf("The backend is busy or rate limiting writes; retry after %d s.%s", int(ae.RetryAfter.Seconds()), ids(ae)))
@@ -841,7 +953,7 @@ func (w writeCall[T]) outcomeResult(oe *ak.OutcomeError, name string) *mcp.CallT
 		if oe.FlagsApplied != nil || oe.FieldsDropped != nil {
 			out.WriteString("\n")
 		}
-		flagEffects(&out, &ak.WriteResult{FlagsApplied: oe.FlagsApplied, FieldsDropped: oe.FieldsDropped})
+		w.flagEffects(&out, &ak.WriteResult{FlagsApplied: oe.FlagsApplied, FieldsDropped: oe.FieldsDropped, FieldsCleared: oe.FieldsCleared})
 		switch {
 		case async && oe.Outcome == ak.OutcomeCreated:
 			// A lost async create found by lookup has no validation state id (ak.ValidationUnknown).
@@ -882,14 +994,36 @@ func (w writeCall[T]) outcomeResult(oe *ak.OutcomeError, name string) *mcp.CallT
 	return refuse("outcome_unknown", text(fmt.Sprintf("%s %s: %s (%v). Read it with %s_get_by_id before retrying.", capital(w.f.Noun), oe.ID, what, oe.Err, w.f.Name)))
 }
 
-// flagEffects names the flags that changed the request and the fields left out (D16).
-func flagEffects(out *strings.Builder, wr *ak.WriteResult) {
+// flagEffects names the flags that changed the request, the fields left out
+// and the stored values sent empty (D16).
+func (w writeCall[T]) flagEffects(out *strings.Builder, wr *ak.WriteResult) {
 	if len(wr.FlagsApplied) > 0 {
 		fmt.Fprintf(out, "Tenant feature flags that shaped the request: %s.\n", strings.Join(wr.FlagsApplied, ", "))
 	}
 	if len(wr.FieldsDropped) > 0 {
 		fmt.Fprintf(out, "Left out because their tenant feature is off: %s.\n", strings.Join(wr.FieldsDropped, ", "))
 	}
+	var cleared []string
+	for _, f := range wr.FieldsCleared {
+		cleared = append(cleared, f+w.clearReason(f))
+	}
+	if len(cleared) > 0 {
+		fmt.Fprintf(out, "Stored values sent empty or false, as the portal does, because the backend refuses them under the current tenant features: %s.\n", strings.Join(cleared, ", "))
+	}
+}
+
+// clearReason names the tenant feature behind a field client-go sent empty.
+func (w writeCall[T]) clearReason(field string) string {
+	for _, r := range w.f.Descriptor.Flags {
+		switch {
+		case r.Field != field:
+		case r.Effect == ak.FlagClearField:
+			return fmt.Sprintf(" (tenant feature %s is on)", r.Flag)
+		case r.ClearStored:
+			return fmt.Sprintf(" (tenant feature %s is off)", r.Flag)
+		}
+	}
+	return ""
 }
 
 // validationRunning reports an async validation that had not finished (Q-A2).
@@ -964,12 +1098,19 @@ func withoutKeys(sent []byte, keys []string) []byte {
 	if len(keys) == 0 {
 		return sent
 	}
-	var m map[string]json.RawMessage
-	if json.Unmarshal(sent, &m) != nil {
+	v, err := decodeNumbers(sent)
+	m, ok := v.(map[string]any)
+	if err != nil || !ok {
 		return sent
 	}
+	// A key may be a dotted path to a nested field.
 	for _, k := range keys {
-		delete(m, k)
+		path := strings.Split(k, ".")
+		parent := m
+		for _, p := range path[:len(path)-1] {
+			parent, _ = parent[p].(map[string]any)
+		}
+		delete(parent, path[len(path)-1])
 	}
 	b, _ := json.Marshal(m)
 	return b
@@ -1073,7 +1214,7 @@ func jsonText(v any) string {
 // editFields lists the fields the add or remove argument takes, from the
 // same generated schema the tool advertises.
 func (w writeCall[T]) editFields(remove bool) []string {
-	s := schemagen.ListEdits(w.rules, remove, w.f.Descriptor.IDMatchedArrays)
+	s := w.p.schema.ListEdits(w.rules, remove, w.f.Descriptor.IDMatchedArrays)
 	if s == nil {
 		return nil
 	}
@@ -1143,13 +1284,44 @@ func (w writeCall[T]) keyed(value string) string {
 	key := w.f.Descriptor.Uniqueness.Key
 	switch {
 	case value == "" && (key == "" || key == "name"):
-		return fmt.Sprintf("a %s with this name", w.f.Noun)
+		return Article(w.f.Noun) + " with this name"
 	case value == "":
-		return fmt.Sprintf("a %s with this %s", w.f.Noun, key)
+		return fmt.Sprintf("%s with this %s", Article(w.f.Noun), key)
 	case key == "" || key == "name":
-		return fmt.Sprintf("a %s named %q", w.f.Noun, value)
+		return fmt.Sprintf("%s named %q", Article(w.f.Noun), value)
 	}
-	return fmt.Sprintf("a %s with %s %q", w.f.Noun, key, value)
+	return fmt.Sprintf("%s with %s %q", Article(w.f.Noun), key, value)
+}
+
+// danglingRef names a stored reference whose target is gone when the backend
+// refused the update on a field the patch does not set.
+func (w writeCall[T]) danglingRef(ctx context.Context, client *ak.AlkiraClient, core *ak.Core[T], id string, patch []byte, err error) string {
+	var ae *ak.APIError
+	if len(w.f.StoredRefs) == 0 || !errors.As(err, &ae) {
+		return ""
+	}
+	var set map[string]json.RawMessage
+	_ = json.Unmarshal(patch, &set)
+	for _, ref := range w.f.StoredRefs {
+		if _, ok := set[ref.Field]; ok || !slices.ContainsFunc(ae.Errors, func(fe ak.FieldError) bool { return fe.Field == ref.Field }) {
+			continue
+		}
+		_, raw, gerr := core.Get(ctx, id)
+		if gerr != nil {
+			return ""
+		}
+		var stored map[string]json.RawMessage
+		if json.Unmarshal(raw, &stored) != nil || len(stored[ref.IDField]) == 0 {
+			return ""
+		}
+		refID := strings.Trim(string(stored[ref.IDField]), `"`)
+		if !errors.Is(ref.Lookup(ctx, client, refID), ak.ErrNotFound) {
+			continue
+		}
+		return fmt.Sprintf("The stored %s %s names a %s that no longer exists, so the backend refused the stored reference, not the patch. "+
+			"Set %s to an existing %s in the patch, or delete this %s.", ref.IDField, refID, ref.Noun, ref.Field, ref.Noun, w.f.Noun)
+	}
+	return ""
 }
 
 // backendText is the backend message, masked with r and quoted, with its
@@ -1341,7 +1513,13 @@ func decodeNumbers(b []byte) (any, error) {
 	return v, err
 }
 
-func nameOf(body []byte) string { return fieldOf(body, "name") }
+// nameOf returns the field that names an object of the family in tool output.
+func (w writeCall[T]) nameOf(body []byte) string {
+	if w.f.NameKey != "" {
+		return fieldOf(body, w.f.NameKey)
+	}
+	return fieldOf(body, "name")
+}
 
 // fieldOf returns a top-level scalar field of a JSON object as text, or "".
 func fieldOf(body []byte, key string) string {
@@ -1383,6 +1561,18 @@ func orNone(s string) string {
 		return "none"
 	}
 	return s
+}
+
+// Article returns noun with its indefinite article: "an" when the noun
+// starts with a vowel letter, else "a". A first word that starts with a
+// vowel letter but is spoken with a consonant sound takes "a", as in
+// "a UDR list".
+func Article(noun string) string {
+	first, _, _ := strings.Cut(noun, " ")
+	if noun == "" || first == "UDR" || !strings.ContainsRune("aeiouAEIOU", rune(noun[0])) {
+		return "a " + noun
+	}
+	return "an " + noun
 }
 
 func capital(s string) string {
