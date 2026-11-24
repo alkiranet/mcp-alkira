@@ -250,6 +250,10 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handle
 	srv.AddTool(tools.PolicyTrafficRuleListGetById(), perCall(get, handlers.PolicyTrafficRuleListGetById))
 	srv.AddTool(tools.PolicyTrafficRuleListGetByName(), perCall(get, handlers.PolicyTrafficRuleListGetByName))
 
+	// Add zero trust access profile tools
+	srv.AddTool(tools.ZtaProfileGetAll(), perCall(get, handlers.ZtaProfileGetAll))
+	srv.AddTool(tools.ZtaProfileGetById(), perCall(get, handlers.ZtaProfileGetById))
+
 	// Add AS Path list tools
 	srv.AddTool(tools.ListAsPathGetAll(), perCall(get, handlers.ListAsPathGetAll))
 	srv.AddTool(tools.ListAsPathGetById(), perCall(get, handlers.ListAsPathGetById))
