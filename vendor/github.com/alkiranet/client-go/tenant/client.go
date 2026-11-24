@@ -165,7 +165,7 @@ func (ac *AlkiraClient) get(uri string, maxBody int64) ([]byte, error) {
 		body = io.LimitReader(body, maxBody+1)
 	}
 	data, _ := ioutil.ReadAll(body)
-	logf("DEBUG", "client-get(%s) %d RSP: %s", requestId, response.StatusCode, string(data))
+	logf("DEBUG", "client-get(%s) %d RSP: %s", requestId, response.StatusCode, redactBody(data))
 
 	if response.StatusCode != 200 {
 		return nil, newHTTPError("client-get("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-get(%s): %d %s", requestId, response.StatusCode, string(data)))
@@ -180,7 +180,7 @@ func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	logf("DEBUG", "client-create REQ: %s", string(body))
+	logf("DEBUG", "client-create REQ: %s", redactBody(body))
 
 	requestId := "client-" + uuid.New().String()
 	request, err := retryablehttp.NewRequest("POST", uri, bytes.NewBuffer(body))
@@ -207,7 +207,7 @@ func (ac *AlkiraClient) Create(uri string, body []byte) ([]byte, error) {
 	defer response.Body.Close()
 	data, _ := ioutil.ReadAll(response.Body)
 
-	logf("DEBUG", "client-create(%s) %d RSP: %s", requestId, response.StatusCode, string(data))
+	logf("DEBUG", "client-create(%s) %d RSP: %s", requestId, response.StatusCode, redactBody(data))
 
 	if response.StatusCode != 201 && response.StatusCode != 200 {
 		return nil, newHTTPError("client-create("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-create(%s): %d %s.", requestId, response.StatusCode, string(data)))
@@ -248,7 +248,7 @@ func (ac *AlkiraClient) Delete(uri string) error {
 	defer response.Body.Close()
 	data, _ := ioutil.ReadAll(response.Body)
 
-	logf("DEBUG", "client-delete(%s): %d RSP: %s\n", requestId, response.StatusCode, string(data))
+	logf("DEBUG", "client-delete(%s): %d RSP: %s\n", requestId, response.StatusCode, redactBody(data))
 
 	if response.StatusCode < 200 || response.StatusCode > 299 {
 		if response.StatusCode == 404 {
@@ -268,7 +268,7 @@ func (ac *AlkiraClient) Update(uri string, body []byte) (string, error) {
 		return "", err
 	}
 
-	logf("DEBUG", "client-update: REQ: %s\n", string(body))
+	logf("DEBUG", "client-update: REQ: %s\n", redactBody(body))
 
 	requestId := "client-" + uuid.New().String()
 	request, err := retryablehttp.NewRequest("PUT", uri, bytes.NewBuffer(body))
@@ -295,7 +295,7 @@ func (ac *AlkiraClient) Update(uri string, body []byte) (string, error) {
 	defer response.Body.Close()
 	data, _ := ioutil.ReadAll(response.Body)
 
-	logf("DEBUG", "client-update(%s): %d RSP: %v\n", requestId, response.StatusCode, data)
+	logf("DEBUG", "client-update(%s): %d RSP: %s\n", requestId, response.StatusCode, redactBody(data))
 
 	if response.StatusCode != 200 && response.StatusCode != 202 {
 		return "", newHTTPError("client-update("+requestId+")", response.StatusCode, data, nil, fmt.Sprintf("client-update(%s): %d %s", requestId, response.StatusCode, string(data)))

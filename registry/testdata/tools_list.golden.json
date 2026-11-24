@@ -2521,9 +2521,32 @@
       "idempotentHint": false,
       "openWorldHint": true
     },
-    "description": "Get all audit logs with optional filter: 'status' or 'type'",
+    "description": "Get one page of audit logs, newest first by default, with optional filters: 'status', 'type', 'startTime', 'endTime'. Page with 'offset' and 'limit'; offset + limit must be at most 10000. The response 'pagination.hits' is the match count, capped at 10000; to reach older events, narrow with 'startTime' and 'endTime' instead of paging further. To walk several pages, pass the same 'endTime' on every call, such as the current time or the newest 'createdAt' on the first page; without it, new events shift the pages and events repeat or go missing. 'createdAt' is whole seconds and events in the same second have no fixed order, so drop duplicates by 'id'",
     "inputSchema": {
       "properties": {
+        "endTime": {
+          "description": "Only audit logs created at or before this time, in Unix seconds (not milliseconds); not before startTime. Keep it fixed while paging",
+          "type": "string"
+        },
+        "limit": {
+          "default": "50",
+          "description": "Pagination limit, from 1 to 10000",
+          "type": "string"
+        },
+        "offset": {
+          "default": "0",
+          "description": "Pagination offset",
+          "type": "string"
+        },
+        "sortBy": {
+          "default": "createdAt:desc",
+          "description": "Sort order as 'field:direction', several joined with '|'. Fields (case-sensitive): createdAt, type, initiator, ipAddress. Directions: asc, desc; desc when omitted",
+          "type": "string"
+        },
+        "startTime": {
+          "description": "Only audit logs created at or after this time, in Unix seconds (not milliseconds)",
+          "type": "string"
+        },
         "status": {
           "description": "Audit Log Status, like: 'FAILED', 'SUCCEEDED'",
           "type": "string"
