@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -20,6 +21,7 @@ import (
 	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/alkiranet/mcp-alkira/handlers"
 	"github.com/alkiranet/mcp-alkira/internal/confirm"
+	"github.com/alkiranet/mcp-alkira/internal/schemagen"
 	"github.com/alkiranet/mcp-alkira/internal/testfamily"
 	"github.com/alkiranet/mcp-alkira/writes"
 	"github.com/mark3labs/mcp-go/server"
@@ -83,6 +85,7 @@ type writeResult struct {
 	Text    string
 	IsError bool
 	Code    string // refusal code from the result meta
+	Refusal string // refusal text from the result meta
 }
 
 func callWrite(t *testing.T, srv *server.MCPServer, name string, args map[string]any) writeResult {
@@ -103,7 +106,7 @@ func callWrite(t *testing.T, srv *server.MCPServer, name string, args map[string
 	if res.IsError && res.Meta.Refusal.Code == "" && !strings.Contains(res.Content[0].Text, "provider") {
 		t.Fatalf("%s: error without a typed refusal: %s", name, raw)
 	}
-	return writeResult{res.Content[0].Text, res.IsError, res.Meta.Refusal.Code}
+	return writeResult{res.Content[0].Text, res.IsError, res.Meta.Refusal.Code, res.Meta.Refusal.Text}
 }
 
 func (e *writeEnv) call(name string, args map[string]any) writeResult {
@@ -1009,7 +1012,7 @@ func TestWrite_RemoveOnlyDescription(t *testing.T) {
 		Sites []testfamily.WidgetSite `json:"sites,omitempty"`
 	}
 	f := handlers.WriteFamily[gadget]{Name: "gadget", Noun: "gadget", Descriptor: ak.Descriptor{Collection: "gadgets", IDMatchedArrays: []string{"sites"}}}
-	for _, tool := range writes.Tools(f) {
+	for _, tool := range writes.Tools(schemagen.At(time.Now()), f) {
 		if tool.Name != "gadget_update" {
 			continue
 		}
@@ -1031,10 +1034,10 @@ func TestWrite_Annotations(t *testing.T) {
 			} `json:"annotations"`
 		} `json:"tools"`
 	}
-	if err := json.Unmarshal(call(t, newWriteEnv(t).srv, "tools/list", nil), &res); err != nil {
+	if err := json.Unmarshal(call(t, allWriteServer(t), "tools/list", nil), &res); err != nil {
 		t.Fatal(err)
 	}
-	if len(res.Tools) != 3 {
+	if want := 3 * (1 + len(writeFamilies)); len(res.Tools) != want && len(res.Tools) != want-3 {
 		t.Fatalf("%d tools", len(res.Tools))
 	}
 	for _, tool := range res.Tools {
@@ -1083,7 +1086,7 @@ func TestWrite_NoSecretInSchemas(t *testing.T) {
 			InputSchema json.RawMessage `json:"inputSchema"`
 		} `json:"tools"`
 	}
-	if err := json.Unmarshal(call(t, writeServer(noClient), "tools/list", nil), &res); err != nil {
+	if err := json.Unmarshal(call(t, allWriteServer(t), "tools/list", nil), &res); err != nil {
 		t.Fatal(err)
 	}
 	for _, tool := range res.Tools {
@@ -1139,32 +1142,78 @@ func TestWrite_TagCitationLint(t *testing.T) {
 	}
 }
 
-const writeGolden = "testdata/tools_list_write.golden.json"
+// writeGoldenDir holds one golden file per write tool, so a change that adds a
+// family adds its own files and touches no shared golden.
+const writeGoldenDir = "testdata/tools_list_write"
 
-// MA-W7: the write tools generated for the test family are pinned.
+// allWriteServer serves the write tools of the test family and of every
+// served family, with schemas generated at goldenClock.
+func allWriteServer(t *testing.T) *server.MCPServer {
+	srv := server.NewMCPServer("mcp-alkira", "test")
+	p := newPipeline(t, handlers.WithClock(goldenClock))
+	family(testfamily.Family).register(srv, noClient, p)
+	for _, f := range writeFamilies {
+		f.register(srv, noClient, p)
+	}
+	return srv
+}
+
+// goldenClock is the fixed date the golden tests generate schemas at, so an
+// expired= date that passes never changes a golden.
+func goldenClock() time.Time { return time.Date(2026, 11, 19, 0, 0, 0, 0, time.UTC) }
+
+// MA-W7: the write tools generated for the test family and every served family are pinned.
 func TestWrite_ToolsListGolden(t *testing.T) {
 	var res struct {
 		Tools json.RawMessage `json:"tools"`
 	}
-	if err := json.Unmarshal(call(t, newWriteEnv(t).srv, "tools/list", nil), &res); err != nil {
+	if err := json.Unmarshal(call(t, allWriteServer(t), "tools/list", nil), &res); err != nil {
 		t.Fatal(err)
 	}
-	var got bytes.Buffer
-	if err := json.Indent(&got, res.Tools, "", "  "); err != nil {
+	var tools []json.RawMessage
+	if err := json.Unmarshal(res.Tools, &tools); err != nil {
 		t.Fatal(err)
 	}
-	got.WriteByte('\n')
-	if *update {
-		if err := os.WriteFile(writeGolden, got.Bytes(), 0o644); err != nil {
+	got := map[string][]byte{}
+	for _, raw := range tools {
+		var tool struct{ Name string }
+		if err := json.Unmarshal(raw, &tool); err != nil {
 			t.Fatal(err)
 		}
+		var b bytes.Buffer
+		if err := json.Indent(&b, raw, "", "  "); err != nil {
+			t.Fatal(err)
+		}
+		b.WriteByte('\n')
+		got[tool.Name+".json"] = b.Bytes()
 	}
-	want, err := os.ReadFile(writeGolden)
+	if *update {
+		if err := os.RemoveAll(writeGoldenDir); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(writeGoldenDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		for name, b := range got {
+			if err := os.WriteFile(filepath.Join(writeGoldenDir, name), b, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	entries, err := os.ReadDir(writeGoldenDir)
 	if err != nil {
 		t.Fatalf("%v (run with -update to create it)", err)
 	}
-	if !bytes.Equal(got.Bytes(), want) {
-		t.Errorf("write tools/list differs from %s; run with -update if the change is intended", writeGolden)
+	for _, e := range entries {
+		if _, ok := got[e.Name()]; !ok {
+			t.Errorf("%s/%s has no served tool; run with -update if the change is intended", writeGoldenDir, e.Name())
+		}
+	}
+	for name, b := range got {
+		want, err := os.ReadFile(filepath.Join(writeGoldenDir, name))
+		if err != nil || !bytes.Equal(b, want) {
+			t.Errorf("write tool %s differs from %s/%s; run with -update if the change is intended", strings.TrimSuffix(name, ".json"), writeGoldenDir, name)
+		}
 	}
 }
 
@@ -1447,7 +1496,7 @@ func TestWrite_CreateDescriptionWithoutKey(t *testing.T) {
 		Name *string `json:"name,omitempty"`
 	}
 	f := handlers.WriteFamily[gadget]{Name: "gadget", Noun: "gadget", Descriptor: ak.Descriptor{Collection: "gadgets"}}
-	desc := writes.Tools(f)[0].Description
+	desc := writes.Tools(schemagen.At(time.Now()), f)[0].Description
 	if strings.Contains(desc, "Refused with no request") || strings.Contains(desc, "  ") {
 		t.Fatalf("description = %q", desc)
 	}

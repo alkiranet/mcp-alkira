@@ -741,6 +741,8 @@ var wantToolNames = []string{
 	"tenant_network_summary",
 	"tenant_resource_limits",
 	"tenant_resource_usages",
+	"zta_profile_get_all",
+	"zta_profile_get_by_id",
 }
 
 func TestRegister_HealthInstanceGetById_HTTP(t *testing.T) {

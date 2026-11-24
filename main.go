@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/alkiranet/mcp-alkira/handlers"
+	"github.com/alkiranet/mcp-alkira/internal/confirm"
 	"github.com/alkiranet/mcp-alkira/prompts"
 	"github.com/alkiranet/mcp-alkira/registry"
 
@@ -42,10 +43,15 @@ func getEnvOrDefault(key, defaultValue string) string {
 func newServer(get handlers.ClientProvider, allowWrite bool) *server.MCPServer {
 	srv := server.NewMCPServer("mcp-alkira", version)
 	srv.AddPrompt(prompts.Summary(), prompts.SummaryHandler())
-	registry.Register(srv, get)
+	// One key per process signs every confirmation code, so the write tools
+	// accept the codes a read tool issues.
+	key := handlers.WithConfirmKey(confirm.RandomKey())
+	// A 32-byte key cannot fail.
+	if err := registry.Register(srv, get, key); err != nil {
+		panic(err)
+	}
 	if allowWrite {
-		// The default write options cannot fail.
-		if err := registry.RegisterWrite(srv, get); err != nil {
+		if err := registry.RegisterWrite(srv, get, key); err != nil {
 			panic(err)
 		}
 	}

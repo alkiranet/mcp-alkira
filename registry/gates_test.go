@@ -120,6 +120,7 @@ func applicableScenarios(d ak.Descriptor) []string {
 // scenarioRows maps family -> scenario -> the tests or rows that cover it.
 // A Test name must exist in this package; other entries name the MA, CG or
 // H row and the ticket that delivers it.
+// Families whose specs live in their own test files add their rows in init.
 var scenarioRows = map[string]map[string]string{
 	"widget": {
 		scCRUD:              "TestWrite_CreateRequestShape TestWrite_UpdateMerge TestWrite_DeleteWithCode",
@@ -132,6 +133,34 @@ var scenarioRows = map[string]map[string]string{
 		scMissingRequestID:  "MA-W12 (ST-03)",
 		scTimeoutPartial:    "TestWrite_Outcomes; MA-W18 (ST-03)",
 		scSoftDeleteOff:     "TestWrite_StateRefusals TestWrite_DeleteCodeStale",
+	},
+	"segment": {
+		scCRUD:              "TestFamilies_CreateRequestShape TestFamilies_UpdateMerge TestFamilies_DeleteWithCode; K01.1-.5",
+		scExternalDelete:    "TestFamilies_NotFound TestFamilies_DeleteAlreadyGone TestFamilies_DeleteWithCode",
+		scRetryOn429:        "TestWrite_ErrorMapping; CG-W5 (client-go), H-W16 (ST-04)",
+		scImportNonexistent: "TestFamilies_NotFound; K01 E5",
+		scWaveCoalescing:    "MA-W13 (ST-03)",
+		scRequestFailed:     "MA-W18 (ST-03); E11 segment half: TestFamilies_StateGuard",
+		scPreflightBlocked:  "TestFamilies_StateGuard; MA-W13 (ST-03)",
+		scMissingRequestID:  "MA-W12 (ST-03)",
+		scTimeoutPartial:    "TestWrite_Outcomes; MA-W18 (ST-03)",
+	},
+	"group": {
+		scCRUD:              "TestFamilies_CreateRequestShape TestFamilies_UpdateMerge TestFamilies_DeleteWithCode; K02.1-.5",
+		scExternalDelete:    "TestFamilies_NotFound TestFamilies_DeleteAlreadyGone TestFamilies_DeleteWithCode",
+		scRetryOn429:        "TestWrite_ErrorMapping; CG-W5 (client-go), H-W16 (ST-04)",
+		scImportNonexistent: "TestFamilies_NotFound",
+		scWaveCoalescing:    "MA-W13 (ST-03)",
+		scRequestFailed:     "MA-W18 (ST-03)",
+		scPreflightBlocked:  "TestFamilies_StateGuard (groups carry no state); MA-W13 (ST-03)",
+		scMissingRequestID:  "MA-W12 (ST-03)",
+		scTimeoutPartial:    "TestWrite_Outcomes; MA-W18 (ST-03)",
+	},
+	"billing_tag": {
+		scCRUD:              "TestFamilies_CreateRequestShape TestFamilies_UpdateMerge TestFamilies_DeleteWithCode; K03.1-.5",
+		scExternalDelete:    "TestFamilies_NotFound TestFamilies_DeleteWithCode",
+		scRetryOn429:        "TestWrite_ErrorMapping; CG-W5 (client-go)",
+		scImportNonexistent: "TestFamilies_NotFound",
 	},
 }
 
@@ -193,10 +222,15 @@ func TestGate_ScenarioChecklist(t *testing.T) {
 // the goldens at the mcp-alkira commit mcp-alkira-hosted pins (7428a2c3e579).
 func TestGate_GoldenDiff(t *testing.T) {
 	allowed := deprecations(t, "../schema/deprecations.yaml")
-	for _, name := range []string{"tools_list.golden.json", "tools_list_write.golden.json"} {
-		base := readTools(t, filepath.Join("testdata/baseline", name))
-		cur := readTools(t, filepath.Join("testdata", name))
-		for _, f := range breakingChanges(base, cur) {
+	for _, g := range []struct {
+		name      string
+		base, cur map[string]json.RawMessage
+	}{
+		{"tools_list.golden.json", readTools(t, "testdata/baseline/tools_list.golden.json"), readTools(t, "testdata/tools_list.golden.json")},
+		{"tools_list_write", readToolDir(t, "testdata/baseline/tools_list_write"), readToolDir(t, writeGoldenDir)},
+	} {
+		name := g.name
+		for _, f := range breakingChanges(g.base, g.cur) {
 			if !slices.Contains(allowed, f) {
 				t.Errorf("%s: breaking change %q not listed in schema/deprecations.yaml", name, f)
 			}
@@ -245,6 +279,32 @@ func readTools(t *testing.T, path string) map[string]json.RawMessage {
 		var tool struct{ Name string }
 		json.Unmarshal(raw, &tool)
 		out[tool.Name] = raw
+	}
+	return out
+}
+
+// readToolDir reads a directory of per-tool goldens into a map by tool name;
+// a missing baseline directory reads as no tools.
+func readToolDir(t *testing.T, dir string) map[string]json.RawMessage {
+	t.Helper()
+	entries, err := os.ReadDir(dir)
+	if os.IsNotExist(err) && strings.Contains(dir, "baseline") {
+		return map[string]json.RawMessage{}
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := map[string]json.RawMessage{}
+	for _, e := range entries {
+		b, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var tool struct{ Name string }
+		if err := json.Unmarshal(b, &tool); err != nil {
+			t.Fatal(err)
+		}
+		out[tool.Name] = b
 	}
 	return out
 }

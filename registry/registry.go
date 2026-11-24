@@ -12,8 +12,15 @@ import (
 
 var perCall = handlers.PerCall
 
-// Register adds every mcp-alkira tool to srv; each tool call obtains its client from get.
-func Register(srv *server.MCPServer, get handlers.ClientProvider) {
+// Register adds every mcp-alkira read tool to srv; each tool call obtains its
+// client from get. opts configure the pipeline of the read tools that issue
+// confirmation codes: pass the WithConfirmKey given to RegisterWrite, so the
+// write tools accept those codes. It returns the option error, and then
+// registers nothing.
+func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handlers.WriteOption) error {
+	if _, err := handlers.NewWritePipeline(opts...); err != nil {
+		return err
+	}
 	// Add tenant network basic tools
 	srv.AddTool(tools.TenantNetworkSummary(), perCall(get, handlers.TenantNetworkSummary))
 	srv.AddTool(tools.TenantNetworkFirewallZones(), perCall(get, handlers.TenantNetworkFirewallZones))
@@ -243,6 +250,10 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider) {
 	srv.AddTool(tools.PolicyTrafficRuleListGetById(), perCall(get, handlers.PolicyTrafficRuleListGetById))
 	srv.AddTool(tools.PolicyTrafficRuleListGetByName(), perCall(get, handlers.PolicyTrafficRuleListGetByName))
 
+	// Add zero trust access profile tools
+	srv.AddTool(tools.ZtaProfileGetAll(), perCall(get, handlers.ZtaProfileGetAll))
+	srv.AddTool(tools.ZtaProfileGetById(), perCall(get, handlers.ZtaProfileGetById))
+
 	// Add AS Path list tools
 	srv.AddTool(tools.ListAsPathGetAll(), perCall(get, handlers.ListAsPathGetAll))
 	srv.AddTool(tools.ListAsPathGetById(), perCall(get, handlers.ListAsPathGetById))
@@ -303,6 +314,12 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider) {
 	srv.AddTool(tools.HealthConnectorInstanceGetById(), perCall(get, handlers.HealthConnectorInstanceGetById))
 	srv.AddTool(tools.HealthServiceGetById(), perCall(get, handlers.HealthServiceGetById))
 	srv.AddTool(tools.HealthServiceInstanceGetById(), perCall(get, handlers.HealthServiceInstanceGetById))
+	for _, add := range readToolSets {
+		if err := add(srv, get, opts); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // writeFamily is one resource family served by RegisterWrite.
@@ -319,8 +336,13 @@ func family[T any](f handlers.WriteFamily[T]) writeFamily {
 	}}
 }
 
-// writeFamilies lists the families RegisterWrite serves; each family file appends its entry.
-var writeFamilies []writeFamily
+// writeFamilies lists the families RegisterWrite serves. Families registered
+// in their own files append themselves in init.
+var writeFamilies = []writeFamily{
+	family(writes.Segment),
+	family(writes.Group),
+	family(writes.BillingTag),
+}
 
 // RegisterWrite adds the write tools of every family to srv, with one pipeline
 // configured by opts (see handlers.NewWritePipeline). It returns the option
@@ -333,5 +355,16 @@ func RegisterWrite(srv *server.MCPServer, get handlers.ClientProvider, opts ...h
 	for _, f := range writeFamilies {
 		f.register(srv, get, p)
 	}
+	for _, add := range writeToolSets {
+		add(srv, get, p)
+	}
 	return nil
 }
+
+// readToolSets add read tools defined in their own files, which append to
+// it in init; opts are the options given to Register.
+var readToolSets []func(srv *server.MCPServer, get handlers.ClientProvider, opts []handlers.WriteOption) error
+
+// writeToolSets add write tools that are not family tools, with the pipeline
+// of RegisterWrite; the files that define them append to it in init.
+var writeToolSets []func(srv *server.MCPServer, get handlers.ClientProvider, p *handlers.WritePipeline)
