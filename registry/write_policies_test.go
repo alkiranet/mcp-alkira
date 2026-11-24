@@ -306,6 +306,24 @@ func TestPolicies_StateGuard(t *testing.T) {
 	}
 }
 
+// A NAT rule body carries no state, but TPS hard-deletes a rule no live
+// policy holds, so its delete says it removes the rule at once.
+func TestPolicies_NatRuleDeleteRemovesAtOnce(t *testing.T) {
+	s := specNamed("policy_nat_rule")
+	e := newFamilyEnv(t, s)
+	s.put(e, 7, s.stored())
+	r := e.call("policy_nat_rule_delete", map[string]any{"id": "7"})
+	code := previewCode(t, r)
+	if !strings.Contains(r.Text, "The delete now: removes it at once.\n") || strings.Contains(r.Text, "marks it for deletion") {
+		t.Fatalf("preview = %s", r.Text)
+	}
+	r = e.call("policy_nat_rule_delete", map[string]any{"id": "7", "confirmCode": code})
+	mustOK(t, r)
+	if !strings.HasPrefix(r.Text, `Deleted NAT rule "r7" (id 7).`) || strings.Contains(r.Text, "marked for deletion") {
+		t.Fatalf("text = %s", r.Text)
+	}
+}
+
 // MA-W16: a DELETED row from the include-marked GET is a residue row; a policy body without docState is ADDED.
 // list_prefix is left out: policy-service sends no docState for a prefix list.
 func TestPolicies_DocStateDeleted(t *testing.T) {
