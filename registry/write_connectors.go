@@ -7,5 +7,6 @@ func init() {
 		family(writes.ConnectorIPsec),
 		family(writes.ConnectorAwsVpc),
 		family(writes.ConnectorAzureVnet),
+		family(writes.ConnectorAzureExpressRoute),
 	)
 }
