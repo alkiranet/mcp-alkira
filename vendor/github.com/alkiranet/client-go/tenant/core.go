@@ -102,18 +102,40 @@ func (e *StateError) Error() string {
 // Is reports a match for ErrStateRefused.
 func (e *StateError) Is(target error) bool { return target == ErrStateRefused }
 
+// Kinds of object a DuplicateError names.
+const (
+	// DuplicateKindConnector: a connector of type DuplicateError.Type.
+	DuplicateKindConnector = "connector"
+	// DuplicateKindGroup: a group, which shares the connector name space.
+	DuplicateKindGroup = "group"
+	// DuplicateKindService: a service of type DuplicateError.Type.
+	DuplicateKindService = "service"
+)
+
 // DuplicateError refuses a create whose uniqueness key is taken.
 type DuplicateError struct {
 	Key   string
 	Value string
 	ID    string // id of the existing object
-	Type  string // connector type, for the connector name space
+	Type  string // connector or service type, for those name spaces
 	Group bool   // the existing object is the group named by Uniqueness.GroupSuffix
+	// Service: the existing object is a service of type Type.
+	Service bool
+	// Kind is the kind of the existing object when it lies outside the
+	// family's own collection: DuplicateKindConnector, DuplicateKindGroup or
+	// DuplicateKindService. It is empty for an object of the same family.
+	Kind string
 }
 
 func (e *DuplicateError) Error() string {
 	if e.Group {
 		return fmt.Sprintf("group %q already exists (id %s)", e.Value, e.ID)
+	}
+	if e.Kind == DuplicateKindGroup {
+		return fmt.Sprintf("the name %q is taken by group id %s; connector and group names share one name space", e.Value, e.ID)
+	}
+	if e.Service {
+		return fmt.Sprintf("a service named %q already exists (%s id %s)", e.Value, e.Type, e.ID)
 	}
 	if e.Type != "" {
 		return fmt.Sprintf("%s %q already exists (%s id %s)", e.Key, e.Value, e.Type, e.ID)
@@ -193,6 +215,7 @@ func (e *OutcomeError) Unwrap() error { return e.Err }
 // The returned object is nil when the response body is empty or does not
 // decode into T.
 func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *WriteResult, error) {
+	start := time.Now()
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
@@ -240,6 +263,9 @@ func (c *Core[T]) Create(ctx context.Context, obj *T, opts WriteOptions) (*T, *W
 		if dup != nil {
 			return nil, nil, dup
 		}
+	}
+	if err := checkBudget(ctx, start); err != nil {
+		return nil, nil, err
 	}
 
 	res, err := c.ac.doWrite(ctx, "POST", withQuery(c.d.collectionURI(c.ac), sh.query()), body)
@@ -334,6 +360,7 @@ func (c *Core[T]) liveInList(ctx context.Context, id string) error {
 // WriteResult.Absent names the removed items the stored list did not hold.
 // A nil or empty patch with edits is allowed.
 func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, edits ListEdits) (*T, *WriteResult, error) {
+	start := time.Now()
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
@@ -375,10 +402,11 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	if err != nil {
 		return nil, nil, err
 	}
-	raw, stored, err := c.preGet(ctx, id, true)
+	pre, err := c.preGetFull(ctx, id, true)
 	if err != nil {
 		return nil, nil, err
 	}
+	raw, stored := pre.raw, pre.m
 	if err := c.stateGuard(ctx, id, stored, contains(flags, SelectiveProvFlag)); err != nil {
 		return nil, nil, err
 	}
@@ -397,10 +425,13 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 			}
 		}
 	}
-	if p := changedField(c.rules, before, merged, "", func(r FieldRule) bool { return r.Immutable }); p != "" {
+	if p := changedField(c.rules, before, merged, "", func(r FieldRule) bool { return r.Immutable }, false); p != "" {
 		return nil, nil, fmt.Errorf("%w: %s cannot be changed after create", ErrInvalidInput, p)
 	}
-	if p := changedField(c.rules, before, merged, "", func(r FieldRule) bool { return r.Secret }); p != "" {
+	// Secrets held in stored fields the exclusive drop removed go with them.
+	secretBase := cloneJSON(before).(map[string]any)
+	dropExclusive(c.rules, secretBase, decodePatch(pm))
+	if p := changedField(c.rules, secretBase, merged, "", func(r FieldRule) bool { return r.Secret }, true); p != "" {
 		return nil, nil, fmt.Errorf("%w: the update would change or drop the stored secret %s", ErrInvalidInput, p)
 	}
 	if err := c.crossCheck(merged); err != nil {
@@ -416,6 +447,12 @@ func (c *Core[T]) Update(ctx context.Context, id string, patch json.RawMessage, 
 	body, err := json.Marshal(merged)
 	if err != nil {
 		return nil, nil, fmt.Errorf("update: %w", err)
+	}
+	if err := c.unchangedSince(ctx, id, pre.entity); err != nil {
+		return nil, nil, err
+	}
+	if err := checkBudget(ctx, start); err != nil {
+		return nil, nil, err
 	}
 
 	res, err := c.ac.doWrite(ctx, "PUT", withQuery(c.d.entityURI(c.ac, id), sh.query()), body)
@@ -462,6 +499,7 @@ func (c *Core[T]) Delete(ctx context.Context, id string) (*WriteResult, error) {
 
 // DeleteWith is Delete with options.
 func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions) (*WriteResult, error) {
+	start := time.Now()
 	ctx, cancel := withWriteDeadline(ctx)
 	defer cancel()
 
@@ -484,6 +522,9 @@ func (c *Core[T]) DeleteWith(ctx context.Context, id string, opts DeleteOptions)
 		if err := opts.Check(raw); err != nil {
 			return nil, err
 		}
+	}
+	if err := checkBudget(ctx, start); err != nil {
+		return nil, err
 	}
 	res, err := c.ac.doWrite(ctx, "DELETE", c.d.entityURI(c.ac, id), nil)
 	if err != nil {
@@ -548,41 +589,122 @@ func (c *Core[T]) Confirm(ctx context.Context, id string) (exists bool, body []b
 	return true, raw, nil
 }
 
+// preRead is the result of a pre-GET: raw is the body the write builds on
+// (with the GET /connectors or GET /services row state copied in), m its
+// decoded form, and entity the family GET body as received.
+type preRead struct {
+	raw    []byte
+	m      map[string]any
+	entity []byte
+}
+
 // preGet reads one entity and runs the family and docState checks (D4, BC-R2).
 // The FamilyCheck value is checked only before a write.
 func (c *Core[T]) preGet(ctx context.Context, id string, write bool) ([]byte, map[string]any, error) {
+	p, err := c.preGetFull(ctx, id, write)
+	return p.raw, p.m, err
+}
+
+// entityQuery is the query of the family GET of a pre-GET.
+func (c *Core[T]) entityQuery() url.Values {
+	if c.d.MarkedRowLifecycle && c.d.DocState != DocStatePlainGet {
+		return url.Values{"includeMarkedForDeletion": {"true"}}
+	}
+	return nil
+}
+
+// unchangedSince re-reads the family GET of id right before a PUT and
+// refuses the write, with nothing sent, when the body differs from the one
+// the update was built on: another writer changed the object in between,
+// and the PUT would overwrite that change with the stored body it was
+// merged from.
+func (c *Core[T]) unchangedSince(ctx context.Context, id string, entity []byte) error {
+	cur, err := c.ac.doGet(ctx, withQuery(c.d.entityURI(c.ac, id), c.entityQuery()))
+	if err != nil {
+		if cerr := ctx.Err(); cerr != nil {
+			return fmt.Errorf("re-read of id %s before the write: %w", id, cerr)
+		}
+		return fmt.Errorf("%w: re-read of id %s before the write: %w", ErrNotSent, id, c.classify("GET", err))
+	}
+	before, err1 := decodeObject(entity)
+	after, err2 := decodeObject(cur)
+	if err1 != nil || err2 != nil || !jsonEqual(dropPerRead(before), dropPerRead(after)) {
+		return fmt.Errorf("%w: id %s %w; read it again and retry the update", ErrNotSent, id, ErrChangedSinceRead)
+	}
+	return nil
+}
+
+// perReadFields are fields the backend fills anew on every GET, so they
+// differ between two reads of an unchanged object (GET /global-cidr-lists/{id}
+// answers a new lastConfigUpdatedAt each time).
+var perReadFields = []string{"lastConfigUpdatedAt", "lastModifiedAt"}
+
+// dropPerRead removes perReadFields from v at any depth and returns v.
+func dropPerRead(v any) any {
+	switch x := v.(type) {
+	case map[string]any:
+		for _, k := range perReadFields {
+			delete(x, k)
+		}
+		for _, e := range x {
+			dropPerRead(e)
+		}
+	case []any:
+		for _, e := range x {
+			dropPerRead(e)
+		}
+	}
+	return v
+}
+
+func (c *Core[T]) preGetFull(ctx context.Context, id string, write bool) (preRead, error) {
+	raw, m, entity, err := c.preGetBody(ctx, id, write)
+	return preRead{raw: raw, m: m, entity: entity}, err
+}
+
+func (c *Core[T]) preGetBody(ctx context.Context, id string, write bool) ([]byte, map[string]any, []byte, error) {
 	if id == "" {
-		return nil, nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
+		return nil, nil, nil, fmt.Errorf("%w: empty id", ErrInvalidInput)
+	}
+	var row *serviceRef
+	if c.d.ServiceType != "" {
+		r, err := c.serviceRow(ctx, id)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		row = r
 	}
 	uri := c.d.entityURI(c.ac, id)
-	var q url.Values
-	if c.d.MarkedRowLifecycle && c.d.DocState != DocStatePlainGet {
-		q = url.Values{"includeMarkedForDeletion": {"true"}}
-	}
-	raw, err := c.ac.doGet(ctx, withQuery(uri, q))
+	raw, err := c.ac.doGet(ctx, withQuery(uri, c.entityQuery()))
 	if err != nil {
 		err = c.classify("GET", err)
 		if c.d.DocState == DocStatePlainGet && c.d.MarkedRowLifecycle && errors.Is(err, ErrNotFound) {
 			marked, merr := c.ac.doGet(ctx, withQuery(uri, url.Values{"includeMarkedForDeletion": {"true"}}))
 			if merr == nil {
-				return marked, nil, &StateError{ID: id, DocState: "MARKED_FOR_DELETION"}
+				return marked, nil, nil, &StateError{ID: id, DocState: "MARKED_FOR_DELETION"}
 			}
 		}
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+	entity := raw
 	m, err := decodeObject(raw)
 	if err != nil {
-		return nil, nil, fmt.Errorf("GET id %s: %w", id, err)
+		return nil, nil, nil, fmt.Errorf("GET id %s: %w", id, err)
 	}
 	if f := c.d.FamilyType; f.Field != "" {
 		v, ok := m[f.Field]
-		if !ok || (write && f.Value != "" && fmt.Sprint(v) != f.Value) {
-			return nil, nil, &FamilyError{ID: id, Collection: c.d.Collection, Field: f.Field, Got: v, Want: f.Value}
+		if (!ok && (write || !f.ReadMissing)) || (ok && write && f.Value != "" && fmt.Sprint(v) != f.Value) {
+			return nil, nil, nil, &FamilyError{ID: id, Collection: c.d.Collection, Field: f.Field, Got: v, Want: f.Value}
 		}
 	}
 	if c.d.ConnectorType != "" {
 		if raw, err = c.connectorRow(ctx, id, m); err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
+		}
+	}
+	if row != nil {
+		if raw, err = withRowState(m, id, row.State, row.PreviousState); err != nil {
+			return nil, nil, nil, err
 		}
 	}
 	if c.d.DocState != DocStatePlainGet {
@@ -590,19 +712,19 @@ func (c *Core[T]) preGet(ctx context.Context, id string, write bool) ([]byte, ma
 		ds, isString := v.(string)
 		switch {
 		case !ok && c.d.DocState == DocStateField:
-			return nil, nil, fmt.Errorf("%w: GET id %s has no docState", ErrStateRefused, id)
+			return nil, nil, nil, fmt.Errorf("%w: GET id %s has no docState", ErrStateRefused, id)
 		case ok && !isString:
-			return nil, nil, fmt.Errorf("%w: GET id %s has a docState that is not a string", ErrStateRefused, id)
+			return nil, nil, nil, fmt.Errorf("%w: GET id %s has a docState that is not a string", ErrStateRefused, id)
 		case ds == "MARKED_FOR_DELETION" || ds == "DELETED":
-			return raw, m, &StateError{ID: id, DocState: ds}
+			return raw, m, entity, &StateError{ID: id, DocState: ds}
 		}
 	}
 	if c.d.LiveInList {
 		if err := c.liveInList(ctx, id); err != nil {
-			return raw, m, err
+			return raw, m, entity, err
 		}
 	}
-	return raw, m, nil
+	return raw, m, entity, nil
 }
 
 // connectorRow checks id against its GET /connectors/{id} row and copies
@@ -626,7 +748,13 @@ func (c *Core[T]) connectorRow(ctx context.Context, id string, m map[string]any)
 	if r.Type != c.d.ConnectorType {
 		return nil, fmt.Errorf("%w: id %s is a %s connector, not %s", ErrFamilyMismatch, id, r.Type, c.d.ConnectorType)
 	}
-	for k, v := range map[string]string{"state": r.State, "previousState": r.PreviousState} {
+	return withRowState(m, id, r.State, r.PreviousState)
+}
+
+// withRowState copies a GET /connectors or GET /services row's state and
+// previousState into m and returns m encoded again.
+func withRowState(m map[string]any, id, state, prev string) ([]byte, error) {
+	for k, v := range map[string]string{"state": state, "previousState": prev} {
 		if v != "" {
 			m[k] = v
 		}
@@ -636,6 +764,33 @@ func (c *Core[T]) connectorRow(ctx context.Context, id string, m map[string]any)
 		return nil, fmt.Errorf("GET id %s: %w", id, err)
 	}
 	return raw, nil
+}
+
+// serviceRef is one GET /services row.
+type serviceRef struct {
+	ID            json.Number `json:"id"`
+	Name          string      `json:"name"`
+	Type          string      `json:"type"`
+	State         string      `json:"state"`
+	PreviousState string      `json:"previousState"`
+}
+
+// serviceRow reads GET /services/{id} with marked rows and refuses an id of
+// another service type. The row reads the database, as the family GET does.
+func (c *Core[T]) serviceRow(ctx context.Context, id string) (*serviceRef, error) {
+	uri := c.ac.URI + "/tenantnetworks/" + c.ac.TenantNetworkId + "/services/" + pathSegment(id)
+	data, err := c.ac.doGet(ctx, withQuery(uri, url.Values{"includeMarkedForDeletion": {"true"}}))
+	if err != nil {
+		return nil, fmt.Errorf("service type: %w", c.classify("GET", err))
+	}
+	var r serviceRef
+	if err := json.Unmarshal(data, &r); err != nil {
+		return nil, fmt.Errorf("GET service %s: %w", id, err)
+	}
+	if r.Type != c.d.ServiceType {
+		return nil, &FamilyError{ID: id, Collection: c.d.Collection, Field: "type", Got: r.Type, Want: c.d.ServiceType}
+	}
+	return &r, nil
 }
 
 // stateGuard runs the descriptor's state guard on the pre-GET body. The
@@ -839,7 +994,16 @@ func fillDefaults(rules []FieldRule, m map[string]any, skip map[string]bool) {
 	for _, r := range rules {
 		t := indirect(r.Type)
 		switch {
-		case r.ReadOnly || skip[r.Name] || t.Kind() == reflect.Slice || t.Kind() == reflect.Map:
+		case r.ReadOnly || skip[r.Name]:
+		case t.Kind() == reflect.Slice && r.Fields != nil:
+			// Defaults apply inside each element of a list of objects.
+			list, _ := m[r.Name].([]any)
+			for _, e := range list {
+				if child, ok := e.(map[string]any); ok {
+					fillDefaults(r.Fields, child, nil)
+				}
+			}
+		case t.Kind() == reflect.Slice || t.Kind() == reflect.Map:
 		case r.HasDefault:
 			if m[r.Name] == nil {
 				m[r.Name] = defaultValue(r.Default, t.Kind())
@@ -876,15 +1040,19 @@ func defaultValue(v string, k reflect.Kind) any {
 // edits. It returns the removed items the stored lists did not hold.
 func (c *Core[T]) merge(stored map[string]any, pm map[string]json.RawMessage, le listEdits) (map[string]any, map[string][]any, error) {
 	base := cloneJSON(stored).(map[string]any)
+	// defaultRouting can be a read-only field, so provenance is read before the strip.
+	for _, f := range c.d.RoutingProvenance {
+		if _, set := pm[f]; !set && allDefaultRouting(base[f]) {
+			delete(base, f)
+		}
+	}
+	if c.d.PrepareStored != nil {
+		c.d.PrepareStored(base)
+	}
 	stripStored(c.rules, base)
 	for _, r := range c.rules {
 		if r.expired() {
 			delete(base, r.Name)
-		}
-	}
-	for _, f := range c.d.RoutingProvenance {
-		if _, set := pm[f]; !set && allDefaultRouting(base[f]) {
-			delete(base, f)
 		}
 	}
 	absent := map[string][]any{}
@@ -913,15 +1081,12 @@ func (c *Core[T]) merge(stored map[string]any, pm map[string]json.RawMessage, le
 		}
 		patch[k] = v
 	}
-	idPaths := make(map[string]bool, len(c.d.IDMatchedArrays))
-	for _, p := range c.d.IDMatchedArrays {
-		idPaths[p] = true
-	}
-	mv, err := mergeValue(base, patch, "", idPaths)
+	mv, err := mergeValue(base, patch, "", c.matchPaths())
 	if err != nil {
 		return nil, nil, err
 	}
 	out := mv.(map[string]any)
+	dropExclusive(c.rules, out, patch)
 	for k, items := range le.remove {
 		if c.idMatchedTop(k) {
 			continue
@@ -1137,11 +1302,30 @@ func jsonText(v any) string {
 	return string(b)
 }
 
-// mergeValue applies RFC 7386 to target, except that arrays at idPaths merge
+// arrayMatch is how an array merges: by key, and with strict set by id with
+// every stored id required (IDMatchedArrays).
+type arrayMatch struct {
+	key    string
+	strict bool
+}
+
+// matchPaths returns the descriptor's id-matched and key-matched arrays by path.
+func (c *Core[T]) matchPaths() map[string]arrayMatch {
+	paths := make(map[string]arrayMatch, len(c.d.IDMatchedArrays)+len(c.d.KeyMatchedArrays))
+	for _, p := range c.d.IDMatchedArrays {
+		paths[p] = arrayMatch{key: "id", strict: true}
+	}
+	for p, k := range c.d.KeyMatchedArrays {
+		paths[p] = arrayMatch{key: k}
+	}
+	return paths
+}
+
+// mergeValue applies RFC 7386 to target, except that id-matched arrays merge
 // element by id: the patch must carry the id of every stored element, an
 // element with a known id merges into it, one without id is new, and an
-// unknown id is refused.
-func mergeValue(target, patch any, path string, idPaths map[string]bool) (any, error) {
+// unknown id is refused. Key-matched arrays merge element by key (mergeByKey).
+func mergeValue(target, patch any, path string, paths map[string]arrayMatch) (any, error) {
 	switch p := patch.(type) {
 	case map[string]any:
 		t, ok := target.(map[string]any)
@@ -1159,7 +1343,7 @@ func mergeValue(target, patch any, path string, idPaths map[string]bool) (any, e
 				delete(t, k)
 				continue
 			}
-			mv, err := mergeValue(t[k], v, joinPath(path, k), idPaths)
+			mv, err := mergeValue(t[k], v, joinPath(path, k), paths)
 			if err != nil {
 				return nil, err
 			}
@@ -1167,8 +1351,11 @@ func mergeValue(target, patch any, path string, idPaths map[string]bool) (any, e
 		}
 		return t, nil
 	case []any:
-		if idPaths[path] {
-			return mergeByID(target, p, path, idPaths)
+		switch m, ok := paths[path]; {
+		case ok && m.strict:
+			return mergeByID(target, p, path, paths)
+		case ok:
+			return mergeByKey(target, p, path, m.key, paths)
 		}
 	}
 	return patch, nil
@@ -1181,7 +1368,7 @@ func joinPath(path, k string) string {
 	return path + "." + k
 }
 
-func mergeByID(target any, patch []any, path string, idPaths map[string]bool) (any, error) {
+func mergeByID(target any, patch []any, path string, paths map[string]arrayMatch) (any, error) {
 	stored, _ := target.([]any)
 	byID := map[string]any{}
 	for _, e := range stored {
@@ -1209,7 +1396,7 @@ func mergeByID(target any, patch []any, path string, idPaths map[string]bool) (a
 			sent[key] = true
 			base = s
 		}
-		mv, err := mergeValue(base, pm, path+"[]", idPaths)
+		mv, err := mergeValue(base, pm, path+"[]", paths)
 		if err != nil {
 			return nil, err
 		}
@@ -1223,13 +1410,50 @@ func mergeByID(target any, patch []any, path string, idPaths map[string]bool) (a
 	return out, nil
 }
 
+// mergeByKey merges each patch element into the stored element with the
+// same key value; an element without a stored pair is new, and a stored
+// element the patch leaves out is dropped.
+func mergeByKey(target any, patch []any, path, key string, paths map[string]arrayMatch) (any, error) {
+	stored, _ := target.([]any)
+	byKey := map[string]any{}
+	for _, e := range stored {
+		if m, ok := e.(map[string]any); ok && m[key] != nil {
+			byKey[fmt.Sprint(m[key])] = m
+		}
+	}
+	sent := map[string]bool{}
+	out := make([]any, 0, len(patch))
+	for i, e := range patch {
+		pm, ok := e.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("%w: %s[%d] must be an object", ErrInvalidInput, path, i)
+		}
+		var base any
+		if v, has := pm[key]; has && v != nil {
+			k := fmt.Sprint(v)
+			if sent[k] {
+				return nil, fmt.Errorf("%w: %s[%d] repeats %s %s", ErrInvalidInput, path, i, key, k)
+			}
+			sent[k] = true
+			base = byKey[k]
+		}
+		mv, err := mergeValue(base, pm, path+"[]", paths)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, mv)
+	}
+	return out, nil
+}
+
 // changedField returns the path of the first field that pick selects whose
 // merged value differs from the stored one, or "". Read-only and expired
 // fields are skipped, since the merge strips them. Array elements pair by
 // id, or by position when the stored element has no id; a stored element
 // with no pair compares against nothing. A merged element with no stored pair is new and
-// has nothing to compare.
-func changedField(rules []FieldRule, stored, merged any, path string, pick func(FieldRule) bool) string {
+// has nothing to compare. With dropOK set, a droppable field merged no
+// longer holds is not searched.
+func changedField(rules []FieldRule, stored, merged any, path string, pick func(FieldRule) bool, dropOK bool) string {
 	switch s := stored.(type) {
 	case []any:
 		m, _ := merged.([]any)
@@ -1246,7 +1470,7 @@ func changedField(rules []FieldRule, stored, merged any, path string, pick func(
 			} else if i < len(m) && elemID(m[i]) == "" {
 				me = m[i]
 			}
-			if p := changedField(rules, se, me, fmt.Sprintf("%s[%d]", path, i), pick); p != "" {
+			if p := changedField(rules, se, me, fmt.Sprintf("%s[%d]", path, i), pick, dropOK); p != "" {
 				return p
 			}
 		}
@@ -1263,20 +1487,20 @@ func changedField(rules []FieldRule, stored, merged any, path string, pick func(
 				}
 				continue
 			}
-			if r.Fields == nil || sv == nil {
+			if r.Fields == nil || sv == nil || dropOK && r.Droppable && mv == nil {
 				continue
 			}
 			if indirect(r.Type).Kind() == reflect.Map {
 				sm, _ := sv.(map[string]any)
 				mm, _ := mv.(map[string]any)
 				for k, x := range sm {
-					if q := changedField(r.Fields, x, mm[k], p+"["+k+"]", pick); q != "" {
+					if q := changedField(r.Fields, x, mm[k], p+"["+k+"]", pick, dropOK); q != "" {
 						return q
 					}
 				}
 				continue
 			}
-			if q := changedField(r.Fields, sv, mv, p, pick); q != "" {
+			if q := changedField(r.Fields, sv, mv, p, pick, dropOK); q != "" {
 				return q
 			}
 		}
@@ -1310,20 +1534,79 @@ func cloneJSON(v any) any {
 	return v
 }
 
-// allDefaultRouting reports whether v is a non-empty list of objects that all
-// carry defaultRouting=true.
+// allDefaultRouting reports whether v holds at least one routing entry and
+// every entry has defaultRouting=true. An entry is an object in a list,
+// found at any depth: v is a list of entries or an object whose lists hold
+// them (AWS VPC vpcRouting.exportToCXPOptions.userInputPrefixes and
+// importFromCXPOptions.routeTables).
 func allDefaultRouting(v any) bool {
-	list, ok := v.([]any)
-	if !ok || len(list) == 0 {
-		return false
+	n := 0
+	var walk func(v any, inList bool) bool
+	walk = func(v any, inList bool) bool {
+		switch t := v.(type) {
+		case []any:
+			for _, e := range t {
+				if !walk(e, true) {
+					return false
+				}
+			}
+		case map[string]any:
+			if inList {
+				n++
+				return t["defaultRouting"] == true
+			}
+			for _, e := range t {
+				if !walk(e, false) {
+					return false
+				}
+			}
+		}
+		return true
 	}
-	for _, e := range list {
-		m, ok := e.(map[string]any)
-		if !ok || m["defaultRouting"] != true {
-			return false
+	return walk(v, false) && n > 0
+}
+
+// decodePatch decodes the top-level values of a validated patch; a value
+// that does not decode is left out, since merge refuses it.
+func decodePatch(pm map[string]json.RawMessage) map[string]any {
+	patch := make(map[string]any, len(pm))
+	for k, raw := range pm {
+		if v, err := decodeAny(raw); err == nil {
+			patch[k] = v
 		}
 	}
-	return true
+	return patch
+}
+
+// dropExclusive removes from merged the stored fields of an exclusive group
+// whose other side the patch sets, at the top level and in nested objects
+// the patch sets.
+func dropExclusive(rules []FieldRule, merged, patch map[string]any) {
+	sides := map[string]string{}
+	for _, r := range rules {
+		if v, set := patch[r.Name]; r.Exclusive != "" && set && v != nil {
+			g, side := r.ExclusiveGroup()
+			sides[g] = side
+		}
+	}
+	for _, r := range rules {
+		if r.Exclusive == "" {
+			continue
+		}
+		g, side := r.ExclusiveGroup()
+		if set, ok := sides[g]; ok && set != side {
+			if _, inPatch := patch[r.Name]; !inPatch {
+				delete(merged, r.Name)
+			}
+		}
+	}
+	for _, r := range rules {
+		pm, ok1 := patch[r.Name].(map[string]any)
+		mm, ok2 := merged[r.Name].(map[string]any)
+		if r.Fields != nil && ok1 && ok2 {
+			dropExclusive(r.Fields, mm, pm)
+		}
+	}
 }
 
 // applied reports whether the confirming read holds the PUT: every patched
@@ -1336,13 +1619,10 @@ func (c *Core[T]) applied(current []byte, pm map[string]json.RawMessage, le list
 	if err != nil {
 		return false
 	}
-	idPaths := make(map[string]bool, len(c.d.IDMatchedArrays))
-	for _, p := range c.d.IDMatchedArrays {
-		idPaths[p] = true
-	}
+	paths := c.matchPaths()
 	for k, raw := range pm {
 		pv, err := decodeAny(raw)
-		if err != nil || !patchHolds(cur, map[string]any{k: pv}, "", idPaths) {
+		if err != nil || !patchHolds(cur, map[string]any{k: pv}, "", paths) {
 			return false
 		}
 	}
@@ -1372,9 +1652,10 @@ func (c *Core[T]) applied(current []byte, pm map[string]json.RawMessage, le list
 }
 
 // patchHolds reports whether cur carries every value of merge patch p.
-// Arrays at idPaths are checked element by element through the ids; a patch
-// element without an id (a new element) cannot be found, so it never holds.
-func patchHolds(cur, p any, path string, idPaths map[string]bool) bool {
+// Id-matched and key-matched arrays are checked element by element through
+// the id or key; a patch element without one (a new element) cannot be
+// found, so it never holds.
+func patchHolds(cur, p any, path string, paths map[string]arrayMatch) bool {
 	switch pv := p.(type) {
 	case map[string]any:
 		cm, ok := cur.(map[string]any)
@@ -1388,29 +1669,30 @@ func patchHolds(cur, p any, path string, idPaths map[string]bool) bool {
 				}
 				continue
 			}
-			if !patchHolds(cm[k], v, joinPath(path, k), idPaths) {
+			if !patchHolds(cm[k], v, joinPath(path, k), paths) {
 				return false
 			}
 		}
 		return true
 	case []any:
-		if !idPaths[path] {
+		m, matched := paths[path]
+		if !matched {
 			break
 		}
 		cl, _ := cur.([]any)
-		byID := map[string]any{}
+		byKey := map[string]any{}
 		for _, e := range cl {
-			if m, ok := e.(map[string]any); ok && m["id"] != nil {
-				byID[fmt.Sprint(m["id"])] = m
+			if cm, ok := e.(map[string]any); ok && cm[m.key] != nil {
+				byKey[fmt.Sprint(cm[m.key])] = cm
 			}
 		}
 		for _, e := range pv {
 			em, ok := e.(map[string]any)
-			if !ok || em["id"] == nil {
+			if !ok || em[m.key] == nil {
 				return false
 			}
-			ce, ok := byID[fmt.Sprint(em["id"])]
-			if !ok || !patchHolds(ce, em, path+"[]", idPaths) {
+			ce, ok := byKey[fmt.Sprint(em[m.key])]
+			if !ok || !patchHolds(ce, em, path+"[]", paths) {
 				return false
 			}
 		}
@@ -1494,8 +1776,9 @@ func (c *Core[T]) keyValue(m map[string]any) string {
 	return fmt.Sprint(v)
 }
 
-// lookup finds an existing object holding the uniqueness key value, through
-// paged reads and GET /connectors, never ?name= (D15).
+// lookup finds an existing object holding the uniqueness key value: family
+// collections and groups through paged reads, the connector name space
+// through GET /connectors?name=, services through GET /services.
 func (c *Core[T]) lookup(ctx context.Context, value string) (*DuplicateError, error) {
 	key := c.d.Uniqueness.Key
 	pagedMatch := func(uri string, paging Paging) (*DuplicateError, error) {
@@ -1524,27 +1807,81 @@ func (c *Core[T]) lookup(ctx context.Context, value string) (*DuplicateError, er
 		key, value = "name", value+c.d.Uniqueness.GroupSuffix
 		dup, err = pagedMatch(groups, PagingTotalHits)
 		if dup != nil {
-			dup.Group = true
+			dup.Group, dup.Kind = true, DuplicateKindGroup
 		}
 		return dup, err
 	case ScopeConnectorsGroups:
 		if dup, err := c.connectorMatch(ctx, value); dup != nil || err != nil {
 			return dup, err
 		}
-		return pagedMatch(groups, PagingTotalHits)
+		dup, err := pagedMatch(groups, PagingTotalHits)
+		if dup != nil {
+			dup.Kind = DuplicateKindGroup
+		}
+		return dup, err
 	case ScopeGroupsConnectors:
 		if dup, err := pagedMatch(c.d.collectionURI(c.ac), c.d.Paging); dup != nil || err != nil {
 			return dup, err
 		}
 		return c.connectorMatch(ctx, value)
+	case ScopeServices:
+		// TPS checks the name against every service row, marked ones included
+		// (ServiceLogicImpl.java:2174-2184).
+		uri := c.ac.URI + "/tenantnetworks/" + c.ac.TenantNetworkId + "/services"
+		// staleOk=false: the default cached view can miss a service created seconds ago.
+		raw, err := c.ac.doGet(ctx, withQuery(uri, url.Values{"includeMarkedForDeletion": {"true"}, "staleOk": {"false"}}))
+		if err != nil {
+			return nil, err
+		}
+		var rows []serviceRef
+		if err := json.Unmarshal(raw, &rows); err != nil {
+			return nil, fmt.Errorf("GET services: %w", err)
+		}
+		for _, r := range rows {
+			if r.Name == value {
+				return &DuplicateError{Key: key, Value: value, ID: r.ID.String(), Type: r.Type, Service: true, Kind: DuplicateKindService}, nil
+			}
+		}
 	}
 	return nil, nil
 }
 
-// connectorMatch checks the connector name space. Deleted rows stay in
-// GET /connectors for some seconds, so each same-named row is confirmed by
-// a single GET and dropped when that answers the not-found signature.
+// connectorMatch checks the connector name space with
+// GET /connectors?name=, which TPS answers from the database with the live
+// row of that name, of any connector type (ConnectorController.java:87-91;
+// ConnectorServiceImpl.getByName), so the read stays one row however many
+// connectors the tenant has. A 5xx (TPS findOne fails when the name has
+// more than one row) falls back to connectorListMatch.
 func (c *Core[T]) connectorMatch(ctx context.Context, name string) (*DuplicateError, error) {
+	uri := c.ac.URI + "/tenantnetworks/" + c.ac.TenantNetworkId + "/connectors"
+	// No 5xx retries: the read client retries a 5xx up to 5 times with waits
+	// of up to 30 s, which would use up the write deadline before the
+	// fallback runs.
+	raw, err := c.ac.doGetNo5xxRetry(ctx, withQuery(uri, url.Values{"name": {name}}))
+	var ae *APIError
+	switch {
+	case errors.As(err, &ae) && ae.Status >= 500:
+		return c.connectorListMatch(ctx, name)
+	case err != nil:
+		return nil, err
+	}
+	var rows []ConnectorRef
+	if err := json.Unmarshal(raw, &rows); err != nil {
+		return nil, fmt.Errorf("GET connectors by name: %w", err)
+	}
+	for _, r := range rows {
+		if r.Name == name {
+			return &DuplicateError{Key: c.d.Uniqueness.Key, Value: name, ID: r.ID.String(), Type: r.Type, Kind: DuplicateKindConnector}, nil
+		}
+	}
+	return nil, nil
+}
+
+// connectorListMatch checks the connector name space through the whole
+// GET /connectors list. Deleted rows stay in it for some seconds, so each
+// same-named row is confirmed by a single GET and dropped when that answers
+// the not-found signature.
+func (c *Core[T]) connectorListMatch(ctx context.Context, name string) (*DuplicateError, error) {
 	rows, err := c.ac.ListConnectors(ctx)
 	if err != nil {
 		return nil, err
@@ -1561,9 +1898,43 @@ func (c *Core[T]) connectorMatch(ctx context.Context, name string) (*DuplicateEr
 			}
 			return nil, err
 		}
-		return &DuplicateError{Key: c.d.Uniqueness.Key, Value: name, ID: r.ID.String(), Type: r.Type}, nil
+		return &DuplicateError{Key: c.d.Uniqueness.Key, Value: name, ID: r.ID.String(), Type: r.Type, Kind: DuplicateKindConnector}, nil
 	}
 	return nil, nil
+}
+
+// MinWriteBudget is the time a POST, PUT or DELETE must have left before
+// its deadline to be sent, capped at half of the call's whole budget so a
+// short configured deadline still writes. A write with less left is refused
+// with ErrNotSent and ErrBudgetTooSmall: sent that late, it would end with
+// its outcome unknown instead of applied or refused.
+var MinWriteBudget = 5 * time.Second
+
+// ErrBudgetTooSmall refuses a write whose remaining deadline is below
+// MinWriteBudget after the reads that precede it; nothing was sent.
+var ErrBudgetTooSmall = errors.New("too little time left before the deadline to send the write")
+
+// ErrChangedSinceRead refuses an update whose object changed between the
+// read the update was built on and the re-read right before the PUT;
+// nothing was sent. The returned error also matches ErrNotSent.
+var ErrChangedSinceRead = errors.New("changed since it was read")
+
+// checkBudget refuses the write when less than the minimum budget is left
+// on ctx; start is when the call began.
+func checkBudget(ctx context.Context, start time.Time) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return nil
+	}
+	need := MinWriteBudget
+	if half := deadline.Sub(start) / 2; half < need {
+		need = half
+	}
+	if left := time.Until(deadline); left < need {
+		return fmt.Errorf("%w: %w (%s left, %s needed)", ErrNotSent, ErrBudgetTooSmall,
+			max(left, 0).Round(time.Millisecond), need.Round(time.Millisecond))
+	}
+	return nil
 }
 
 // ConfirmTimeout bounds the confirming GET or uniqueness-key lookup after a
