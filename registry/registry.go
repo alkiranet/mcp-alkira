@@ -208,6 +208,8 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handle
 	srv.AddTool(tools.ConnectorIPSecAdvGetTotal(), perCall(get, handlers.ConnectorIPSecAdvGetTotal))
 
 	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetAll(), perCall(get, handlers.ConnectorIPSecTunnelProfileGetAll))
+	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetById(), perCall(get, handlers.ConnectorIPSecTunnelProfileGetById))
+	srv.AddTool(tools.ConnectorIPSecTunnelProfileGetByName(), perCall(get, handlers.ConnectorIPSecTunnelProfileGetByName))
 
 	// Add internet application tools
 	srv.AddTool(tools.InternetApplicationGetAll(), perCall(get, handlers.InternetApplicationGetAll))

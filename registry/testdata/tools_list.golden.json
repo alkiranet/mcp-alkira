@@ -1274,6 +1274,50 @@
       "idempotentHint": false,
       "openWorldHint": true
     },
+    "description": "Get details of one IPSec Tunnel Profile by its ID.",
+    "inputSchema": {
+      "properties": {
+        "profileId": {
+          "description": "IPSec Tunnel Profile ID.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profileId"
+      ],
+      "type": "object"
+    },
+    "name": "connector_ipsec_tunnel_profile_get_by_id"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get every IPSec Tunnel Profile with the given name, as a JSON array.",
+    "inputSchema": {
+      "properties": {
+        "profileName": {
+          "description": "IPSec Tunnel Profile name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profileName"
+      ],
+      "type": "object"
+    },
+    "name": "connector_ipsec_tunnel_profile_get_by_name"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
     "description": "Get all Oracle Cloud Infrastructure VCN connectors",
     "inputSchema": {
       "properties": {
