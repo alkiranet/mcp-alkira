@@ -123,6 +123,12 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handle
 	srv.AddTool(tools.ConnectorAwsTgwGetByName(), perCall(get, handlers.ConnectorAwsTgwGetByName))
 	srv.AddTool(tools.ConnectorAwsTgwGetTotal(), perCall(get, handlers.ConnectorAwsTgwGetTotal))
 
+	// Add AWS Transit Gateway peering gateway and attachment tools
+	srv.AddTool(tools.PeeringGatewayAwsTgwGetAll(), perCall(get, handlers.PeeringGatewayAwsTgwGetAll))
+	srv.AddTool(tools.PeeringGatewayAwsTgwGetById(), perCall(get, handlers.PeeringGatewayAwsTgwGetById))
+	srv.AddTool(tools.PeeringGatewayAwsTgwAttachmentGetAll(), perCall(get, handlers.PeeringGatewayAwsTgwAttachmentGetAll))
+	srv.AddTool(tools.PeeringGatewayAwsTgwAttachmentGetById(), perCall(get, handlers.PeeringGatewayAwsTgwAttachmentGetById))
+
 	// Add Azure ExpressRoute connector tools
 	srv.AddTool(tools.ConnectorAzureExpressRouteGetAll(), perCall(get, handlers.ConnectorAzureExpressRouteGetAll))
 	srv.AddTool(tools.ConnectorAzureExpressRouteGetById(), perCall(get, handlers.ConnectorAzureExpressRouteGetById))
