@@ -65,3 +65,17 @@ func (w writeCall[T]) lockObject(ctx context.Context, client *ak.AlkiraClient, o
 	}
 	return unlock, nil
 }
+
+// lockedWrite waits up to the write timeout for the per-object slot, then
+// starts the write timeout, so a write queued behind a slow one still gets
+// the full budget for its reads and its write. done releases both.
+func (w writeCall[T]) lockedWrite(ctx context.Context, client *ak.AlkiraClient, object string) (context.Context, func(), error) {
+	wait, stop := context.WithTimeout(ctx, w.p.timeout)
+	unlock, err := w.lockObject(wait, client, object)
+	stop()
+	if err != nil {
+		return nil, nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, w.p.timeout)
+	return ctx, func() { cancel(); unlock() }, nil
+}
