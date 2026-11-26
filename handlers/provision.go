@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,16 +12,13 @@ import (
 	"time"
 
 	ak "github.com/alkiranet/client-go/tenant"
-	"github.com/alkiranet/mcp-alkira/internal/confirm"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-// Two-step selective provisioning (00-PLAN.md D14), following the portal:
-// karrawa 5d18e83fd src/views/network/provision/diffV2/index.js:378-387,
+// Provision preview and dry-run validation of selected changes, following
+// the portal: karrawa 5d18e83fd src/views/network/provision/diffV2/index.js:378-387,
 // diffV2/utils/dataTransform.js:12-226 and src/_api/topology.js:210-220.
-
-// provisionFamily binds provision codes; a delete code never matches it.
-const provisionFamily = "tenant_network_provision"
+// Changes are provisioned from the portal; no tool here provisions.
 
 // Feature flags the portal reads for the provision body.
 const (
@@ -235,14 +231,6 @@ func attribute(changes []*pendingChange, caller string) {
 type selection struct {
 	mode  string   // "all", "mine" or "keys"
 	items []string // sorted, for mode "keys"
-}
-
-// canonical is the form the code is bound to.
-func (s selection) canonical() string {
-	if s.mode != "keys" {
-		return s.mode
-	}
-	return strings.Join(s.items, ",")
 }
 
 func parseSelect(args map[string]any) (selection, *mcp.CallToolResult) {
@@ -465,30 +453,7 @@ func unselectedDependencies(changes []*pendingChange) []dependency {
 	return out
 }
 
-// pendingHash hashes the merged pending list; any added, removed or
-// re-edited change changes it.
-func pendingHash(changes []*pendingChange) [32]byte {
-	lines := make([]string, 0, len(changes))
-	for _, c := range changes {
-		lc, _ := c.Props["lastConfigUpdatedAt"].(json.Number)
-		lines = append(lines, strings.Join([]string{c.Key, c.Change.ChangeType, strconv.FormatInt(c.Change.Entity.LastModifiedAt, 10),
-			lc.String(), strconv.FormatBool(c.Implicit), strconv.FormatBool(c.Change.BestEffortAllowed), c.Change.LastUpdatedByUserID}, "|"))
-	}
-	sort.Strings(lines)
-	return sha256.Sum256([]byte(strings.Join(lines, "\n")))
-}
-
-// codeState binds a code to the pending list, the exact body and the newest
-// provision request. The pending list stays the same until a provision
-// succeeds, so the request binding voids the code once any provision,
-// this one included, is filed after the preview.
-func codeState(in *planInput) [32]byte {
-	h := pendingHash(in.Changes)
-	raw, _ := json.Marshal(in.Body)
-	return sha256.Sum256(append(append(h[:], raw...), "\n"+in.NewestRequest...))
-}
-
-// planInput is everything one preview, provision or validate reads.
+// planInput is everything one change list, preview or validate reads.
 type planInput struct {
 	Changes      []*pendingChange
 	Caller       string
@@ -501,8 +466,6 @@ type planInput struct {
 	Dependencies []dependency
 	Blocked      []ak.ValidationState
 	Failed       []*pendingChange // selected changes whose entity is FAILED (Q-A15)
-	// NewestRequest is the id of the newest provision request, "" when there is none.
-	NewestRequest string
 }
 
 // planReads says what plan reads besides both change lists and the caller id.
@@ -513,14 +476,12 @@ type planReads struct {
 	haveFlags bool
 	// forValidation builds the body of a dry-run validation request.
 	forValidation bool
-	// requests reads the newest provision request, which a provision code binds.
-	requests bool
 	// validation reads the open validation states that block a provision.
 	validation bool
 }
 
-// previewReads are the reads of the provision preview and the provision.
-var previewReads = planReads{requests: true, validation: true}
+// previewReads are the reads of the provision preview.
+var previewReads = planReads{validation: true}
 
 // plan reads the flags, both change lists, the caller id and what reads
 // names, and applies sel. GETs only.
@@ -541,15 +502,6 @@ func plan(ctx context.Context, client *ak.AlkiraClient, sel selection, reads pla
 		return nil, fmt.Errorf("policy changes: %w", err)
 	}
 	in.Changes = mergeChanges(tps, pol)
-	if reads.requests {
-		newest, _, err := client.ListProvisionRequestsPage(ctx, "", 1)
-		if err != nil {
-			return nil, fmt.Errorf("provision requests: %w", err)
-		}
-		if len(newest) > 0 {
-			in.NewestRequest = newest[0].Id
-		}
-	}
 	in.Caller, in.CallerErr = client.GetSelfUserID(ctx)
 	attribute(in.Changes, in.Caller)
 	in.Missing, in.Ambiguous, err = sel.apply(in.Changes, in.Caller)
@@ -751,12 +703,8 @@ func writeChanges(out *strings.Builder, in *planInput) {
 }
 
 // NewPreviewPipeline returns the pipeline Register serves
-// tenant_network_provision_preview with. Unlike NewWritePipeline it never
-// draws a random key: a code signed with a per-process key is refused by
-// tenant_network_provision on every other replica and in every pipeline
-// built with the shared key. Without WithConfirmKey, or with WithoutConfirm,
-// it has no signer and the preview answers confirm_unavailable with no
-// request.
+// tenant_network_provision_preview with; opts set its call deadline. The
+// preview issues no confirmation code, so the pipeline has no signer.
 func NewPreviewPipeline(opts ...WriteOption) (*WritePipeline, error) {
 	p := &WritePipeline{timeout: writeTimeout(), now: time.Now}
 	for _, o := range opts {
@@ -764,19 +712,11 @@ func NewPreviewPipeline(opts ...WriteOption) (*WritePipeline, error) {
 			return nil, err
 		}
 	}
-	if p.key == nil || p.noConfirm {
-		return p, nil
-	}
-	s, err := confirm.NewSigner(p.key, confirm.WithClock(p.now))
-	if err != nil {
-		return nil, err
-	}
-	p.confirm = s
 	return p, nil
 }
 
 // ProvisionPreview returns the tenant_network_provision_preview handler.
-// It sends GETs only and issues a code signed with p's key.
+// It sends GETs only.
 func ProvisionPreview(p *WritePipeline) func(*ak.AlkiraClient) ToolHandler {
 	return func(client *ak.AlkiraClient) ToolHandler {
 		return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -787,9 +727,6 @@ func ProvisionPreview(p *WritePipeline) func(*ak.AlkiraClient) ToolHandler {
 			sel, res := parseSelect(args)
 			if res != nil {
 				return res, nil
-			}
-			if p.confirm == nil {
-				return refuse(RefusalConfirmUnavailable, "Provisioning is unavailable: no confirmation key is configured, so no confirmation code can be issued; nothing was read."), nil
 			}
 			ctx, cancel := context.WithTimeout(ctx, p.timeout)
 			defer cancel()
@@ -824,16 +761,11 @@ func ProvisionPreview(p *WritePipeline) func(*ak.AlkiraClient) ToolHandler {
 			fmt.Fprintf(&out, "Request body: %s\n", body)
 			switch {
 			case len(in.Blocked) > 0:
-				fmt.Fprintf(&out, "No confirmCode: selected changes are not validated: %s. Check them with %s, then run the preview again.\n", blockedText(in), ValidationStateTool)
+				fmt.Fprintf(&out, "Selected changes are not validated: %s. Check them with %s; a provision that includes them is refused until their validation succeeds.\n", blockedText(in), ValidationStateTool)
 			case len(in.Body) == 0:
-				out.WriteString("No confirmCode: nothing to provision; the selection holds no change the portal would send.\n")
-			default:
-				code, exp := p.confirm.Issue(tenantOf(client), provisionFamily, sel.canonical(), codeState(in))
-				fmt.Fprintf(&out, "To provision exactly these changes, call tenant_network_provision with select %s and confirmCode %s before %s. "+
-					"Requests filed within about 10 s by other users of the network are deployed in the same run.\n",
-					selectText(sel), code, exp.UTC().Format(time.RFC3339))
-				fmt.Fprintf(&out, "confirmCode: %s\nexpires: %s\n", code, exp.UTC().Format(time.RFC3339))
+				out.WriteString("Nothing to provision: the selection holds no change the portal would send.\n")
 			}
+			out.WriteString("Changes are provisioned from the portal.\n")
 			return mcp.NewToolResultText(out.String()), nil
 		}
 	}
@@ -849,107 +781,6 @@ func countSelected(changes []*pendingChange) int {
 	return n
 }
 
-func selectText(sel selection) string {
-	if sel.mode != "keys" {
-		return strconv.Quote(sel.mode)
-	}
-	b, _ := json.Marshal(sel.items)
-	return string(b)
-}
-
-// Provision returns the tenant_network_provision handler.
-func Provision(p *WritePipeline) func(*ak.AlkiraClient) ToolHandler {
-	return func(client *ak.AlkiraClient) ToolHandler {
-		return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args, res := toolArgs(req, []string{"select", "confirmCode", "description"}, []string{"select", "confirmCode"})
-			if res != nil {
-				return res, nil
-			}
-			sel, res := parseSelect(args)
-			if res != nil {
-				return res, nil
-			}
-			code, _ := args["confirmCode"].(string)
-			if code == "" {
-				return invalidArgs(errors.New("confirmCode must be a non-empty string from tenant_network_provision_preview")), nil
-			}
-			desc, isString := args["description"].(string)
-			if _, set := args["description"]; set && !isString {
-				return invalidArgs(errors.New("description must be a string")), nil
-			}
-			if n := ak.DescriptionLength(desc); n > ak.MaxProvisionDescription {
-				return invalidArgs(fmt.Errorf("description is %d characters long, at most %d allowed", n, ak.MaxProvisionDescription)), nil
-			}
-			if p.confirm == nil {
-				return refuse(RefusalConfirmUnavailable, "Provisioning is unavailable: no confirmation key is configured, so no confirmation code can be checked; nothing was sent."), nil
-			}
-			tenant := tenantOf(client)
-			if err := p.confirm.CheckSignature(code, tenant, provisionFamily, sel.canonical()); err != nil {
-				return provisionCodeRefusal(err), nil
-			}
-			ctx, cancel := context.WithTimeout(ctx, p.timeout)
-			defer cancel()
-			if err := client.CheckWritesAllowed(ctx); err != nil {
-				return writeGateRefusal(err), nil
-			}
-			_, res = preflight(ctx, client, "sent")
-			if res != nil {
-				return res, nil
-			}
-			in, err := plan(ctx, client, sel, previewReads)
-			if errors.Is(err, errNoCaller) {
-				return refuse("caller_unknown", `select "mine" needs the caller's user id, which could not be read; nothing was sent.`), nil
-			}
-			if err != nil {
-				return planRefusal(err, "sent"), nil
-			}
-			if len(in.Missing) > 0 || len(in.Ambiguous) > 0 {
-				return provisionCodeRefusal(confirm.ErrStale), nil
-			}
-			if err := p.confirm.Check(code, tenant, provisionFamily, sel.canonical(), codeState(in)); err != nil {
-				return provisionCodeRefusal(err), nil
-			}
-			if len(in.Blocked) > 0 {
-				return refuse("validation_pending", fmt.Sprintf("Nothing was sent: selected changes are not validated: %s. Check them with %s.", blockedText(in), ValidationStateTool)), nil
-			}
-			if len(in.Body) == 0 {
-				return refuse("nothing_selected", "Nothing was sent: the selection holds no change the portal would send."), nil
-			}
-
-			id, wr, err := client.ProvisionTenantNetworkWith(ctx, ak.ProvisionOptions{Description: desc, Changes: in.Body})
-			var out strings.Builder
-			switch {
-			case errors.Is(err, ak.ErrNoProvisionRequest) && wr != nil:
-				// The backend answered 2xx without x-provision-request-id, so
-				// the call cannot tell whether a provision request was filed.
-				fmt.Fprintf(&out, "The provision was accepted (status %d) but no provision request id was returned, so it cannot be followed by id. "+
-					"Do not send it again: run tenant_network_provision_preview, which reports the network's last provision state and the pending changes, to check whether a provision request runs.\n", wr.Status)
-			case err != nil:
-				return provisionError(err), nil
-			default:
-				fmt.Fprintf(&out, "Provision requested for %d changes; request id %s. It runs in the background; follow it with tenant_network_provision_request_get.\n", len(in.Body), id)
-			}
-			if len(in.Failed) > 0 {
-				fmt.Fprintf(&out, "Warning: selected changes whose objects were FAILED: %s.\n", failedText(in))
-			}
-			for _, d := range in.Dependencies {
-				fmt.Fprintf(&out, "Not selected, referenced by %s: %s %q.\n", strings.Join(d.By, ", "), d.Need.Key, d.Need.Change.Entity.Name)
-			}
-			return mcp.NewToolResultText(out.String()), nil
-		}
-	}
-}
-
-func provisionCodeRefusal(err error) *mcp.CallToolResult {
-	switch {
-	case errors.Is(err, confirm.ErrExpired):
-		return refuse(RefusalConfirmExpired, "confirmation code expired; nothing was sent. Run tenant_network_provision_preview again for a new code.")
-	case errors.Is(err, confirm.ErrStale):
-		return refuse(RefusalConfirmStale, "pending changes changed since the preview; run the preview again. Nothing was sent.")
-	}
-	return refuse(RefusalConfirmMismatch, "confirmation code does not match this tenant and select; nothing was sent. Use the select of the preview that issued it.")
-}
-
 // writeGateRefusal maps the kill-switch and flag-read refusals.
 func writeGateRefusal(err error) *mcp.CallToolResult {
 	switch {
@@ -959,38 +790,6 @@ func writeGateRefusal(err error) *mcp.CallToolResult {
 		return refuse("flags_unavailable", capital(ak.ErrFlagsUnavailable.Error())+". Nothing was sent.")
 	}
 	return refuse("error", "Nothing was sent: "+err.Error())
-}
-
-// provisionError maps a failed provision POST (01-api-surface.md section 3).
-func provisionError(err error) *mcp.CallToolResult {
-	var ae *ak.APIError
-	errors.As(err, &ae)
-	switch {
-	case errors.Is(err, ak.ErrNotSent):
-		return refuse("not_sent", fmt.Sprintf("The provision was not sent, nothing changed: %v", err))
-	case errors.Is(err, ak.ErrPostSend), errors.Is(err, context.DeadlineExceeded),
-		ae != nil && ae.Status == 500 && strings.Contains(ae.Message, "Request failed"):
-		return refuse("outcome_unknown", "The provision request may have been filed: the response was lost. Do not send it again. A request filed by this call "+
-			"is newer than the call in the portal's provision request list, and while it runs the network's last provision state is IN_PROGRESS, which "+
-			"tenant_network_provision_preview reports. Pending changes stay pending until a provision succeeds, so they do not tell whether it was filed."+ids(ae))
-	case ae == nil:
-		return refuse("error", "The provision failed: "+err.Error())
-	case ae.Status == 400 && strings.Contains(ae.Message, "validation status is"):
-		return refuse("validation_pending", fmt.Sprintf("%s. Check it with %s.%s", ae.Message, ValidationStateTool, ids(ae)))
-	case ae.Status == 400 && (strings.Contains(ae.Message, "is not included") || strings.Contains(ae.Message, "referenced by") || strings.HasPrefix(ae.Message, "De-provision ")):
-		return refuse("dependency_not_selected", fmt.Sprintf("The backend refused the selection: %s. Select the changes it names as well, or deprovision the object it names first, then run the preview again.%s", ae.Message, ids(ae)))
-	case ae.Status == 400 && strings.Contains(ae.Message, "Invalid change"):
-		return refuse(RefusalConfirmStale, "pending changes changed since the preview; run the preview again."+ids(ae))
-	case ae.Status == 403:
-		return refuse("permission_denied", fmt.Sprintf("Provisioning was refused: %s. Provisioning is not enabled for this tenant, or the API key lacks network provisioning permission.%s", ae.Message, ids(ae)))
-	case ae.Status == 409:
-		return refuse("conflict", fmt.Sprintf("%s; wait for the running provision to finish.%s", ae.Message, ids(ae)))
-	case errors.Is(err, ak.ErrRateLimited):
-		return refuse("rate_limited", "Rate limit reached; retry later."+ids(ae))
-	case ae.Status >= 500:
-		return refuse("backend_error", fmt.Sprintf("The provision failed with status %d%s.", ae.Status, ids(ae)))
-	}
-	return refuse("backend_error", fmt.Sprintf("The provision failed with status %d: %s%s", ae.Status, ae.Message, ids(ae)))
 }
 
 // Validate returns the tenant_network_validate handler.

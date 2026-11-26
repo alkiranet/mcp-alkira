@@ -79,9 +79,8 @@ const (
 // pipeline built with the same key accepts it.
 type WritePipeline struct {
 	// confirm signs and checks the pipeline's confirmation codes. It is nil
-	// in a pipeline built with WithoutConfirm, in one built without a key by
-	// a constructor that draws no random key, and in a zero value; the tools
-	// that need a code then refuse every call.
+	// in a pipeline built with WithoutConfirm, in the preview pipeline and in
+	// a zero value; the tools that need a code then refuse every call.
 	confirm *confirm.Signer
 	// timeout bounds a whole tool call: pre-GET, write and confirming GET.
 	timeout time.Duration
