@@ -226,15 +226,15 @@ func WriteCreate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil
 			}
-			ctx, cancel := context.WithTimeout(ctx, w.p.timeout)
-			defer cancel()
+			var done func()
 			if key := fieldOf(raw, w.f.Descriptor.Uniqueness.Key); w.f.Descriptor.Uniqueness.Key != "" && key != "" {
-				unlock, err := w.lockObject(ctx, client, "create\x00"+key)
-				if err != nil {
+				if ctx, done, err = w.lockedWrite(ctx, client, "create\x00"+key); err != nil {
 					return w.errorResult("create", "", key, err, redaction{}), nil
 				}
-				defer unlock()
+			} else {
+				ctx, done = context.WithTimeout(ctx, w.p.timeout)
 			}
+			defer done()
 
 			created, wr, err := core.Create(ctx, &obj, ak.WriteOptions{})
 			name := w.nameOf(raw)
@@ -303,13 +303,11 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			if err != nil {
 				return mcp.NewToolResultError(err.Error()), nil
 			}
-			ctx, cancel := context.WithTimeout(ctx, w.p.timeout)
-			defer cancel()
-			unlock, err := w.lockObject(ctx, client, "id\x00"+id)
+			ctx, done, err := w.lockedWrite(ctx, client, "id\x00"+id)
 			if err != nil {
 				return w.errorResult("update", id, w.nameOf(patch), err, redaction{}), nil
 			}
-			defer unlock()
+			defer done()
 
 			updated, wr, err := core.Update(ctx, id, patch, edits)
 			var oe *ak.OutcomeError
@@ -404,13 +402,11 @@ func WriteDelete[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			if err := w.p.confirm.CheckSignature(code, tenant, w.f.Name, id); err != nil {
 				return w.confirmRefusal(err, id), nil
 			}
-			ctx, cancel := context.WithTimeout(ctx, w.p.timeout)
-			defer cancel()
-			unlock, err := w.lockObject(ctx, client, "id\x00"+id)
+			ctx, done, err := w.lockedWrite(ctx, client, "id\x00"+id)
 			if err != nil {
 				return w.errorResult("delete", id, "", err, redaction{}), nil
 			}
-			defer unlock()
+			defer done()
 
 			// The code is checked on the core's own pre-GET body, so the
 			// DELETE goes out only for the state the preview showed.

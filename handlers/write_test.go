@@ -304,6 +304,59 @@ func TestObjectLocks(t *testing.T) {
 	}
 }
 
+// A write queued behind another write to the same object starts its timeout
+// once it holds the slot; the wait for the slot is capped by the same timeout.
+func TestLockedWrite_TimeoutStartsAfterLock(t *testing.T) {
+	const timeout = 300 * time.Millisecond
+	w := newWriteCall(&WritePipeline{timeout: timeout}, WriteFamily[thing]{Name: "thing", Noun: "thing",
+		Descriptor: ak.Descriptor{Collection: "things"}})
+	client := &ak.AlkiraClient{URI: "https://a/api", TenantNetworkId: "7"}
+	ctx := context.Background()
+
+	_, first, err := w.lockedWrite(ctx, client, "id\x007")
+	if err != nil {
+		t.Fatal(err)
+	}
+	type locked struct {
+		at       time.Time
+		deadline time.Time
+		err      error
+	}
+	got := make(chan locked, 1)
+	go func() {
+		wctx, done, err := w.lockedWrite(ctx, client, "id\x007")
+		if err != nil {
+			got <- locked{err: err}
+			return
+		}
+		defer done()
+		d, _ := wctx.Deadline()
+		got <- locked{at: time.Now(), deadline: d}
+	}()
+	time.Sleep(timeout / 2)
+	first()
+	l := <-got
+	if l.err != nil {
+		t.Fatal(l.err)
+	}
+	if left := l.deadline.Sub(l.at); left < timeout*9/10 {
+		t.Fatalf("queued write got %s of its %s timeout", left, timeout)
+	}
+
+	_, held, err := w.lockedWrite(ctx, client, "id\x007")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer held()
+	start := time.Now()
+	if _, _, err := w.lockedWrite(ctx, client, "id\x007"); !errors.Is(err, ak.ErrNotSent) || !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("err = %v", err)
+	}
+	if waited := time.Since(start); waited < timeout || waited > 3*timeout {
+		t.Fatalf("lock wait = %s, want about %s", waited, timeout)
+	}
+}
+
 // cachedFlags is a client whose flag read fails while an earlier read, older
 // than the EnabledFeatures cache, is still held for writes.
 type cachedFlags struct{ flags []string }
