@@ -11,6 +11,5 @@ var RoutePolicy = handlers.WriteFamily[ak.RoutePolicyConfig]{
 	Noun:       "route policy",
 	Descriptor: ak.RoutePolicyDescriptor(),
 	UpdateNote: "Refused with no request while the route policy is FAILED, SCHEDULED or IN_PROGRESS, or while the network is FAILED and the policy is not PENDING.",
-	DeleteNote: "A route policy still referenced is refused as in use. " +
-		"A deployed route policy stays live until a provision that includes the delete.",
+	DeleteNote: "A route policy still referenced is refused as in use.",
 }

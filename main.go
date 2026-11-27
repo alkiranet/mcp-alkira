@@ -39,8 +39,9 @@ func getEnvOrDefault(key, defaultValue string) string {
 }
 
 // newServer builds the MCP server with the summary prompt and the read tools,
-// plus the write tools when allowWrite is set.
-func newServer(get handlers.ClientProvider, allowWrite bool) *server.MCPServer {
+// plus the write tools when allowWrite is set: those of the families matching
+// writeFamilies, or of every family when it is empty.
+func newServer(get handlers.ClientProvider, allowWrite bool, writeFamilies []string) (*server.MCPServer, error) {
 	srv := server.NewMCPServer("mcp-alkira", version)
 	srv.AddPrompt(prompts.Summary(), prompts.SummaryHandler())
 	// One key per process signs every delete confirmation code.
@@ -50,11 +51,15 @@ func newServer(get handlers.ClientProvider, allowWrite bool) *server.MCPServer {
 		panic(err)
 	}
 	if allowWrite {
-		if err := registry.RegisterWrite(srv, get, key); err != nil {
-			panic(err)
+		opts := []handlers.WriteOption{key}
+		if len(writeFamilies) > 0 {
+			opts = append(opts, handlers.WithWriteFamilies(writeFamilies...))
+		}
+		if err := registry.RegisterWrite(srv, get, opts...); err != nil {
+			return nil, err
 		}
 	}
-	return srv
+	return srv, nil
 }
 
 // checkWriteMode refuses write tools outside stdio: the SSE server listens
@@ -78,6 +83,7 @@ func main() {
 	var key string
 	var maxToken int
 	var allowWrite bool
+	var writeFamilies string
 
 	flag.StringVar(&port, "port", getEnvOrDefault("SERVER_PORT", "8081"), "Server port")
 	flag.StringVar(&mode, "mode", getEnvOrDefault("SERVER_MODE", "stdio"), "Server mode: 'stdio' or 'sse'")
@@ -86,6 +92,7 @@ func main() {
 	flag.StringVar(&key, "key", "", "Alkira API Key")
 	flag.IntVar(&maxToken, "maxToken", 0, "Max Token of payload")
 	flag.BoolVar(&allowWrite, "allowWrite", os.Getenv("AK_MCP_ALLOW_WRITE") == "true", "Serve create, update and delete tools (stdio only)")
+	flag.StringVar(&writeFamilies, "writeFamilies", os.Getenv("AK_MCP_WRITE_FAMILIES"), "Comma-separated write families to serve with -allowWrite, for example segment,group,connector_aws_vpc; empty serves every family")
 	flag.Parse()
 
 	if err := checkWriteMode(allowWrite, mode); err != nil {
@@ -112,9 +119,13 @@ func main() {
 		return
 	}
 
-	srv := newServer(func(context.Context) (*ak.AlkiraClient, error) {
+	srv, err := newServer(func(context.Context) (*ak.AlkiraClient, error) {
 		return alkiraClient, nil
-	}, allowWrite)
+	}, allowWrite, handlers.ParseWriteFamilies(writeFamilies))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "mcp-alkira:", err)
+		os.Exit(2)
+	}
 	if allowWrite {
 		logf("INFO", "Serving read and write tools")
 	} else {
