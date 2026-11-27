@@ -158,7 +158,7 @@ var segmentResourceSpecs = []familySpec{
 		},
 		previews: []previewCase{
 			{"SUCCESS", []string{`Delete preview for internet connector "ic7" (id 7).`, "Deployed: yes (state SUCCESS).", `Also deleted with it: "ic7".`,
-				"The delete now: marks it for deletion; it keeps its name and references until the next provision."}},
+				"The delete now: marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal."}},
 			{"PENDING", []string{"Deployed: no, never deployed (state PENDING).", `Also deleted with it: "ic7".`, "The delete now: removes it at once.", "The next provision: nothing to tear down."}},
 		},
 	},
@@ -375,7 +375,7 @@ func TestConnectorInternet_NameSpace(t *testing.T) {
 	e.portal.groups = []map[string]any{{"id": 61, "name": "grp"}}
 	mustRefuse(t, e.call("connector_internet_create", map[string]any{"body": connectorInternetBody("edge")}), "duplicate",
 		`an ip_sec connector named "edge" already exists (id 31); connector names are unique across every connector type and group.`)
-	mustRefuse(t, e.call("connector_internet_create", map[string]any{"body": connectorInternetBody("grp")}), "duplicate", `an internet connector named "grp" already exists (id 61).`)
+	mustRefuse(t, e.call("connector_internet_create", map[string]any{"body": connectorInternetBody("grp")}), "duplicate", `The name "grp" is taken by group id 61. Connector and group names share one name space; choose another name.`)
 	if e.portal.count("POST") != 0 {
 		t.Fatal("POST sent")
 	}

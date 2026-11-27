@@ -22,9 +22,27 @@ import (
 // Tag grammar: `ak:"<key>[=<value>],..."`. "," separates keys and "|"
 // separates alternatives inside a value. Keys: required, default=<v>,
 // readonly, keep, immutable, maxlen=<n> (UTF-16 code units), charset=<name>
-// (name, hyphen, description, noline, slug, alnum), enum=<a|b>, min=<n>, max=<n>,
+// (name, hyphen, description, noline, slug, alnum, psk), enum=<a|b>, min=<n>, max=<n>,
 // range=<lo>..<hi>[|<lo>..<hi>], maxitems=<n>, minitems=<n>, distinct=<field>[|<field>],
-// secret, set, trimmed, expired=<epoch seconds>, flag=<FLAG>, src=<file:line>[|...].
+// secret, writeonly, masked, set, trimmed, expired=<epoch seconds>,
+// exclusive=<group>[:<side>], rederived, droppable, flag=<FLAG>, src=<file:line>[|...].
+// secret: a create or patch cannot set the field (a tool never takes it),
+// an update resends the stored value, and output masks it.
+// writeonly: a secret that a create may set, such as a pre-shared key the
+// caller chooses; a patch still cannot set it and output masks it. It
+// implies secret.
+// masked: an ordinary input field whose value output and DEBUG logs mask,
+// such as a file that embeds a registration token.
+// exclusive puts a field in one side of a group of mutually exclusive fields
+// of the same object; the side defaults to the field name. When a patch sets
+// a field of one side, an update drops the stored fields of the group's other
+// sides that the patch does not set, so a mode switch does not resend the
+// inactive side; the stored secrets of a dropped side go with it.
+// droppable, on an object field, lets an update drop it although it holds
+// stored secrets, which go with it: a patch that sets it or its parent to
+// null. Without it, an update that would drop a stored secret is refused.
+// rederived, on a readonly field, marks a value the backend recomputes on
+// every save, so a change in it is not a change the request made.
 // keep, on a readonly field, resends the stored value on update: a create or
 // patch still cannot set it, but the backend's update copies it from the
 // request and resets it when it is missing.
@@ -45,14 +63,18 @@ import (
 // On create, an unset field with default= is sent with its default unless a
 // FlagIncludeField rule whose flag is off gates it.
 type FieldRule struct {
-	Name       string       // JSON name
-	GoName     string       // Go field name
-	Type       reflect.Type // Go field type
-	Required   bool
-	ReadOnly   bool
-	Keep       bool // readonly, resent from the stored body on update
-	Immutable  bool
-	Secret     bool
+	Name      string       // JSON name
+	GoName    string       // Go field name
+	Type      reflect.Type // Go field type
+	Required  bool
+	ReadOnly  bool
+	Keep      bool // readonly, resent from the stored body on update
+	Immutable bool
+	Secret    bool
+	// WriteOnly marks a secret a create may set (writeonly); Secret is also set.
+	WriteOnly bool
+	// Masked marks an input field whose value output masks (masked).
+	Masked     bool
 	Set        bool
 	HasDefault bool
 	Default    string
@@ -67,9 +89,21 @@ type FieldRule struct {
 	Distinct   []string // JSON fields whose values must differ between elements
 	Trimmed    bool     // no leading or trailing space
 	Expired    int64    // epoch seconds; 0: never
+	Exclusive  string   // group[:side]
+	Rederived  bool
+	Droppable  bool // a patch may null it and drop the stored secrets it holds
 	Flag       string
 	Src        []string
 	Fields     []FieldRule
+}
+
+// ExclusiveGroup splits the exclusive= value of r into its group and side.
+func (r FieldRule) ExclusiveGroup() (group, side string) {
+	group, side, ok := strings.Cut(r.Exclusive, ":")
+	if !ok {
+		side = r.Name
+	}
+	return group, side
 }
 
 // Range is one closed interval of a range= rule.
@@ -88,6 +122,9 @@ var charsets = map[string]*regexp.Regexp{
 	"slug": regexp.MustCompile(`^[a-zA-Z0-9_-]*$`),
 	// alnum: TPS InternetApplication.fqdnPrefix (InternetApplication.java:80-82).
 	"alnum": regexp.MustCompile(`^[a-zA-Z0-9]*$`),
+	// psk: TPS pre-shared key characters (IPsecConnectorSite.java:68;
+	// ZscalerInternetAccessService.java:112; IPSecTunnel.java:35).
+	"psk": regexp.MustCompile("^[a-zA-Z0-9\t ./<>?;:'`!@#$%^&*()\\[\\]{}_+=|\\-]*$"),
 }
 
 // CharsetPattern returns the regular expression of a charset= name.
@@ -179,7 +216,7 @@ func parseStruct(t reflect.Type, seen map[reflect.Type]bool) ([]FieldRule, error
 				return nil, fmt.Errorf("ak tags: %s.%s: distinct=%s names no field of the element", t.Name(), f.Name, d)
 			}
 		}
-		if r.Secret {
+		if r.Secret || r.Masked {
 			secretKeys.Store(strings.ToLower(name), true)
 		}
 		rules = append(rules, r)
@@ -200,7 +237,7 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 			return r, fmt.Errorf("duplicate key %q", key)
 		}
 		seen[key] = true
-		flagKey := key == "required" || key == "readonly" || key == "immutable" || key == "secret" || key == "set" || key == "trimmed" || key == "keep"
+		flagKey := key == "required" || key == "readonly" || key == "immutable" || key == "secret" || key == "writeonly" || key == "masked" || key == "set" || key == "trimmed" || key == "keep" || key == "rederived" || key == "droppable"
 		if flagKey && hasVal || !flagKey && (!hasVal || val == "") {
 			return r, fmt.Errorf("malformed key %q", item)
 		}
@@ -212,10 +249,26 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 			r.ReadOnly = true
 		case "keep":
 			r.Keep = true
+		case "rederived":
+			r.Rederived = true
+		case "droppable":
+			if structOf(ft) == nil {
+				return r, errors.New("droppable on a field that holds no object")
+			}
+			r.Droppable = true
+		case "exclusive":
+			if g, side, ok := strings.Cut(val, ":"); g == "" || ok && side == "" {
+				return r, fmt.Errorf("malformed key %q", item)
+			}
+			r.Exclusive = val
 		case "immutable":
 			r.Immutable = true
 		case "secret":
 			r.Secret = true
+		case "writeonly":
+			r.Secret, r.WriteOnly = true, true
+		case "masked":
+			r.Masked = true
 		case "trimmed":
 			if elem != reflect.String {
 				return r, fmt.Errorf("trimmed on a non-string field")
@@ -333,6 +386,12 @@ func parseTag(tag string, ft reflect.Type) (FieldRule, error) {
 	if r.Keep && !r.ReadOnly {
 		return r, errors.New("keep without readonly")
 	}
+	if r.Rederived && !r.ReadOnly {
+		return r, errors.New("rederived without readonly")
+	}
+	if r.Exclusive != "" && r.ReadOnly {
+		return r, errors.New("exclusive on a readonly field")
+	}
 	// A zero bool or number cannot be told apart from an unset one, so a
 	// required one must be a pointer.
 	if r.Required && (ft.Kind() == reflect.Bool || isInt(ft.Kind()) || ft.Kind() == reflect.Float32 || ft.Kind() == reflect.Float64) {
@@ -430,6 +489,12 @@ func validateField(r FieldRule, fv reflect.Value, patch bool, path string) error
 	}
 	for fv.Kind() == reflect.Pointer || fv.Kind() == reflect.Interface {
 		fv = fv.Elem()
+	}
+	// A required string set to "" or spaces counts as missing: a pointer
+	// field would otherwise pass the presence check with a blank value
+	// (a blank Versa or Zscaler key stores no usable key).
+	if r.Required && fv.Kind() == reflect.String && strings.TrimSpace(fv.String()) == "" {
+		return fmt.Errorf("%w: %s is required and cannot be blank", ErrInvalidInput, path)
 	}
 	switch fv.Kind() {
 	case reflect.Slice, reflect.Array:

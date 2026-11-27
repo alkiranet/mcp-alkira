@@ -74,6 +74,18 @@ type writePortal struct {
 	// groups answers the paged GET /api/tenantnetworks/7/groups when groups
 	// are not the portal's own collection.
 	groups []map[string]any
+	// serviceType, when set, makes the objects services of that type: GET
+	// /api/tenantnetworks/7/services lists them after otherServices, GET
+	// .../services/{id} answers an object's row, and a plain GET of a row
+	// marked for deletion answers not found. As in TPS, rows marked for
+	// deletion are listed only with includeMarkedForDeletion=true, and
+	// without staleOk=false the list leaves out the rows in fresh.
+	// serviceRows overrides fields of an object's row, so a row can carry a
+	// state its object body does not.
+	serviceType   string
+	otherServices []map[string]any
+	serviceRows   map[int]map[string]any
+	fresh         map[int]bool
 }
 
 func newWritePortal(t *testing.T, collection string) *writePortal {
@@ -237,6 +249,15 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 			if rows == nil {
 				rows = []map[string]any{}
 			}
+			// TPS answers ?name= from the database: only the live row of that name.
+			if name := r.URL.Query().Get("name"); name != "" {
+				rows = []map[string]any{}
+				for _, c := range p.connectors {
+					if c["name"] == name && c["gone"] == nil {
+						rows = append(rows, c)
+					}
+				}
+			}
 			json.NewEncoder(w).Encode(rows)
 			return
 		}
@@ -248,6 +269,43 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 		}
 		w.WriteHeader(404)
 		fmt.Fprint(w, `{"code":"AK000003","message":"Entity not found","id":"ALK-404"}`)
+		return
+	}
+	if rest, ok := strings.CutPrefix(r.URL.Path, "/api/tenantnetworks/7/services"); ok && r.Method == "GET" && p.serviceType != "" {
+		q := r.URL.Query()
+		marked, stale := q.Get("includeMarkedForDeletion") == "true", q.Get("staleOk") != "false"
+		rows := append([]map[string]any{}, p.otherServices...)
+		ids := make([]int, 0, len(p.objects))
+		for id := range p.objects {
+			ids = append(ids, id)
+		}
+		sort.Ints(ids)
+		for _, id := range ids {
+			o := p.objects[id]
+			if o["docState"] == "MARKED_FOR_DELETION" && !marked || rest == "" && stale && p.fresh[id] {
+				continue
+			}
+			prev := o["previousState"]
+			if prev == nil {
+				prev = o["state"]
+			}
+			row := map[string]any{"id": id, "name": o["name"], "type": p.serviceType, "state": o["state"], "previousState": prev}
+			for k, v := range p.serviceRows[id] {
+				row[k] = v
+			}
+			rows = append(rows, row)
+		}
+		if rest == "" {
+			json.NewEncoder(w).Encode(rows)
+			return
+		}
+		for _, row := range rows {
+			if "/"+fmt.Sprint(row["id"]) == rest {
+				json.NewEncoder(w).Encode(row)
+				return
+			}
+		}
+		notFound()
 		return
 	}
 	if r.Method == "GET" && r.URL.Path == "/api/tenantnetworks/7" {
@@ -330,6 +388,10 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 	}
 	switch r.Method {
 	case "GET":
+		if p.serviceType != "" && obj["docState"] == "MARKED_FOR_DELETION" && r.URL.Query().Get("includeMarkedForDeletion") != "true" {
+			notFound()
+			return
+		}
 		json.NewEncoder(w).Encode(obj)
 	case "PUT":
 		var next map[string]any
@@ -342,7 +404,10 @@ func (p *writePortal) handle(w http.ResponseWriter, r *http.Request, body []byte
 		w.WriteHeader(async(id, 200))
 		json.NewEncoder(w).Encode(next)
 	case "DELETE":
-		if s, _ := obj["state"].(string); s != "" && s != "PENDING" {
+		// TPS ProvisionedState.isProvisioned: neither state nor previousState is PENDING.
+		s, _ := obj["state"].(string)
+		prev, _ := obj["previousState"].(string)
+		if s != "" && s != "PENDING" && prev != "PENDING" {
 			obj["docState"] = "MARKED_FOR_DELETION"
 		} else {
 			delete(p.objects, id)
