@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
+	"strings"
 	"testing"
 
 	ak "github.com/alkiranet/client-go/tenant"
+	"github.com/alkiranet/mcp-alkira/handlers"
 	"github.com/alkiranet/mcp-alkira/registry"
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -48,8 +51,18 @@ func readToolCount(t *testing.T) int {
 	return len(list(t, srv, "tools/list", "tools"))
 }
 
+// mustServer is newServer that fails the test on an error.
+func mustServer(t *testing.T, allowWrite bool, families ...string) *server.MCPServer {
+	t.Helper()
+	srv, err := newServer(noClient, allowWrite, families)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return srv
+}
+
 func TestNewServer_ServesRegistry(t *testing.T) {
-	srv := newServer(noClient, false)
+	srv := mustServer(t, false)
 	// registry.TestRegister_ToolNames pins the names of the read tools.
 	if got, want := len(list(t, srv, "tools/list", "tools")), readToolCount(t); got != want {
 		t.Fatalf("tools/list returned %d tools, want the %d read tools", got, want)
@@ -92,13 +105,37 @@ func writeTools(t *testing.T, srv *server.MCPServer) []string {
 
 // Without -allowWrite only read tools are served; with it, the write tools as well.
 func TestNewServer_AllowWrite(t *testing.T) {
-	srv := newServer(noClient, true)
+	srv := mustServer(t, true)
 	names, writes := list(t, srv, "tools/list", "tools"), writeTools(t, srv)
 	if len(names) != readToolCount(t)+len(writes) {
 		t.Fatalf("%d tools, %d of them write tools", len(names), len(writes))
 	}
-	if w := writeTools(t, newServer(noClient, false)); w != nil {
+	if w := writeTools(t, mustServer(t, false)); w != nil {
 		t.Fatalf("write tools %v served without -allowWrite", w)
+	}
+}
+
+// -writeFamilies serves the write tools of the named families only; the
+// validate tool is always served.
+func TestNewServer_WriteFamilies(t *testing.T) {
+	got := writeTools(t, mustServer(t, true, handlers.ParseWriteFamilies(" segment , connector_aws_vpc,")...))
+	var want []string
+	for _, name := range writeTools(t, mustServer(t, true)) {
+		if strings.HasPrefix(name, "segment_") && !strings.HasPrefix(name, "segment_resource") || strings.HasPrefix(name, "connector_aws_vpc_") ||
+			!strings.HasSuffix(name, "_create") && !strings.HasSuffix(name, "_update") && !strings.HasSuffix(name, "_delete") {
+			want = append(want, name)
+		}
+	}
+	slices.Sort(got)
+	slices.Sort(want)
+	if !slices.Equal(got, want) {
+		t.Fatalf("served %v, want %v", got, want)
+	}
+	if !slices.Contains(got, "segment_create") || !slices.Contains(got, "connector_aws_vpc_update") || slices.Contains(got, "group_create") {
+		t.Fatalf("served %v", got)
+	}
+	if _, err := newServer(noClient, true, []string{"segmnt"}); err == nil {
+		t.Error("unknown family accepted")
 	}
 }
 

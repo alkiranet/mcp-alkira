@@ -2614,6 +2614,100 @@
       "idempotentHint": false,
       "openWorldHint": true
     },
+    "description": "Get all AWS Transit Gateway peering attachments of the tenant network. An AWS TGW connector uses one ACTIVE attachment, by its id (awsTgwPeeringAttachmentId); awsTgwId is the id of the attachment's peering gateway.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": "50",
+          "description": "Pagination limit",
+          "type": "string"
+        },
+        "offset": {
+          "default": "0",
+          "description": "Pagination offset",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "peering_gateway_aws_tgw_attachment_get_all"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get details of one AWS Transit Gateway peering attachment by its ID.",
+    "inputSchema": {
+      "properties": {
+        "attachmentId": {
+          "description": "Peering attachment ID.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachmentId"
+      ],
+      "type": "object"
+    },
+    "name": "peering_gateway_aws_tgw_attachment_get_by_id"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get all AWS Transit Gateway peering gateways of the tenant network, with their CXP, AWS region, ASN and state.",
+    "inputSchema": {
+      "properties": {
+        "limit": {
+          "default": "50",
+          "description": "Pagination limit",
+          "type": "string"
+        },
+        "offset": {
+          "default": "0",
+          "description": "Pagination offset",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "peering_gateway_aws_tgw_get_all"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "description": "Get details of one AWS Transit Gateway peering gateway by its ID.",
+    "inputSchema": {
+      "properties": {
+        "peeringGatewayId": {
+          "description": "Peering gateway ID.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "peeringGatewayId"
+      ],
+      "type": "object"
+    },
+    "name": "peering_gateway_aws_tgw_get_by_id"
+  },
+  {
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
     "description": "Get all NAT policies. By default, max 50 policies will be returned once.",
     "inputSchema": {
       "properties": {

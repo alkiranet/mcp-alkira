@@ -2,6 +2,9 @@
 package registry
 
 import (
+	"fmt"
+	"slices"
+
 	ak "github.com/alkiranet/client-go/tenant"
 	"github.com/alkiranet/mcp-alkira/handlers"
 	"github.com/alkiranet/mcp-alkira/tools"
@@ -119,6 +122,12 @@ func Register(srv *server.MCPServer, get handlers.ClientProvider, opts ...handle
 	srv.AddTool(tools.ConnectorAwsTgwGetById(), perCall(get, handlers.ConnectorAwsTgwGetById))
 	srv.AddTool(tools.ConnectorAwsTgwGetByName(), perCall(get, handlers.ConnectorAwsTgwGetByName))
 	srv.AddTool(tools.ConnectorAwsTgwGetTotal(), perCall(get, handlers.ConnectorAwsTgwGetTotal))
+
+	// Add AWS Transit Gateway peering gateway and attachment tools
+	srv.AddTool(tools.PeeringGatewayAwsTgwGetAll(), perCall(get, handlers.PeeringGatewayAwsTgwGetAll))
+	srv.AddTool(tools.PeeringGatewayAwsTgwGetById(), perCall(get, handlers.PeeringGatewayAwsTgwGetById))
+	srv.AddTool(tools.PeeringGatewayAwsTgwAttachmentGetAll(), perCall(get, handlers.PeeringGatewayAwsTgwAttachmentGetAll))
+	srv.AddTool(tools.PeeringGatewayAwsTgwAttachmentGetById(), perCall(get, handlers.PeeringGatewayAwsTgwAttachmentGetById))
 
 	// Add Azure ExpressRoute connector tools
 	srv.AddTool(tools.ConnectorAzureExpressRouteGetAll(), perCall(get, handlers.ConnectorAzureExpressRouteGetAll))
@@ -343,16 +352,25 @@ var writeFamilies = []writeFamily{
 	family(writes.BillingTag),
 }
 
-// RegisterWrite adds the write tools of every family to srv, with one pipeline
-// configured by opts (see handlers.NewWritePipeline). It returns the option
-// error, and then registers nothing.
+// RegisterWrite adds the write tools of every family to srv, or of the
+// families handlers.WithWriteFamilies names, with one pipeline configured by
+// opts (see handlers.NewWritePipeline). It returns the option error, or the
+// error of an unknown family name, and then registers
+// nothing.
 func RegisterWrite(srv *server.MCPServer, get handlers.ClientProvider, opts ...handlers.WriteOption) error {
 	p, err := handlers.NewWritePipeline(opts...)
 	if err != nil {
 		return err
 	}
+	for _, name := range p.WriteFamilies() {
+		if !slices.ContainsFunc(writeFamilies, func(f writeFamily) bool { return f.Name == name }) {
+			return fmt.Errorf("unknown write family %q", name)
+		}
+	}
 	for _, f := range writeFamilies {
-		f.register(srv, get, p)
+		if p.Serves(f.Name) {
+			f.register(srv, get, p)
+		}
 	}
 	for _, add := range writeToolSets {
 		add(srv, get, p)
