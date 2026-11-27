@@ -118,7 +118,7 @@ var policySpecs = []familySpec{
 		previews: []previewCase{
 			{"PENDING", []string{`Delete preview for NAT policy "n7" (id 7).`, "Deployed: no, never deployed (state PENDING).",
 				"The delete now: removes it at once.", "The next provision: nothing to tear down."}},
-			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps its name and references until the next provision",
+			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal",
 				"The next provision: tears down the deployed object."}},
 		},
 	},
@@ -136,7 +136,7 @@ var policySpecs = []familySpec{
 		inUse:    []inUseCase{{fault{status: 409, body: `{"code":"AK000001","message":"Entity is still referred externally"}`}, "still referred externally"}},
 		previews: []previewCase{
 			{"SUCCESS", []string{`Delete preview for route policy "rp7" (id 7).`, "Deployed: yes (state SUCCESS).",
-				"marks it for deletion; it keeps its name and references until the next provision", "The next provision: tears down the deployed object."}},
+				"marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal", "The next provision: tears down the deployed object."}},
 		},
 	},
 }

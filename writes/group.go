@@ -14,5 +14,5 @@ var Group = handlers.WriteFamily[ak.GroupConfig]{
 	CreateNote: "Group names and connector names share one name space, so a name used by any connector is refused too.",
 	UpdateNote: "Only groups with type EXPLICIT can be changed; the groups the backend creates (connector groups, <segment>-ALL-Group) are refused with no request.",
 	DeleteNote: "Only groups with type EXPLICIT can be deleted; the groups the backend creates (connector groups, <segment>-ALL-Group) are refused with no request and no confirmation code. " +
-		"A group used by a connector, policy, segment resource or firewall zone is refused as in use. A deployed group stays live until a provision that includes the delete.",
+		"A group used by a connector, policy, segment resource or firewall zone is refused as in use.",
 }

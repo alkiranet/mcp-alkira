@@ -68,9 +68,15 @@ type SegmentResourceConfigGroupPrefix struct {
 // external reference (NetworkConfigEntityListener.java:83-97). A duplicate
 // name, or a name whose "-Group" group exists, is 400 constraint.exists
 // (:390-391, :416-419, :497-498, :545-550). The resource has no state, so
-// there is no state guard.
+// there is no state guard. The family check refuses a system-generated
+// <segment>-ALL resource before any PUT or DELETE, since the backend answers
+// those with the same 400 constraint.forbidden as an in-use resource (:488,
+// :1304). Every row created since the column exists carries systemGenerated
+// (:370, :402); an older row without it is still read, and its writes are
+// refused, as the backend fails them on unboxing the null (:487, :1303).
 var segmentResourceDescriptor = Descriptor{
 	Collection: "segment-resources",
+	FamilyType: FamilyCheck{Field: "systemGenerated", Value: "false", ReadMissing: true},
 	InUse: []Signature{
 		{Status: 409, Code: "AK000001"},
 		{Status: 400, Code: "AK000002", Message: "in use by an InterCXP route policy"},
