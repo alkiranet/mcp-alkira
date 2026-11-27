@@ -53,7 +53,7 @@ func (g Generator) object(rules []ak.FieldRule, v any, mode Mode, path string) [
 		// elements by it.
 		case r.ReadOnly && !nestedID(r, mode, path):
 			errs = append(errs, fmt.Errorf("%s is read-only", path+k))
-		case r.Secret:
+		case r.Secret && !(r.WriteOnly && mode == Create):
 			errs = append(errs, fmt.Errorf("%s is a secret field and is not accepted", path+k))
 		case g.expired(r) && val != nil:
 			errs = append(errs, fmt.Errorf("%s is no longer accepted by the backend", path+k))
@@ -68,7 +68,7 @@ func (g Generator) object(rules []ak.FieldRule, v any, mode Mode, path string) [
 	}
 	if mode == Create {
 		for _, r := range rules {
-			if r.Required && !r.ReadOnly && !r.Secret && !g.expired(r) && m[r.Name] == nil {
+			if r.Required && !r.ReadOnly && (!r.Secret || r.WriteOnly) && !g.expired(r) && m[r.Name] == nil {
 				errs = append(errs, fmt.Errorf("%s is required", path+r.Name))
 			}
 		}

@@ -17,6 +17,5 @@ var TrafficRule = handlers.WriteFamily[ak.TrafficPolicyRuleConfig]{
 		"for example {\"matchCondition\": {\"srcIp\": \"10.1.0.0/16\", \"srcPrefixListId\": null}}: the backend refuses a rule with two sources (rule.00000006) or two destinations (rule.00000007). " +
 		"While the tenant feature DEPRECATE-QOSMOS-APPLICATION-FAMILY is on, a create or patch that sets a non-empty applicationFamilyList is refused with no request, and an update sends a stored list empty, as the portal does, and the output says so. " +
 		"The backend returns srcPortList and dstPortList in its own order; a reordered list is not reported as a change.",
-	DeleteNote: "A rule held by a rule list is refused as in use; remove it from the rule list first. " +
-		"A deployed rule, or one without state, is marked for deletion and stays live until a provision that includes the delete.",
+	DeleteNote: "A rule held by a rule list is refused as in use; remove it from the rule list first.",
 }

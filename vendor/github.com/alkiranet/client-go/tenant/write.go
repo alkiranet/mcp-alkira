@@ -452,9 +452,35 @@ func (ac *AlkiraClient) doWrite(ctx context.Context, method, uri string, body []
 	return res, nil
 }
 
+// readerNo5xx is reader without retries on a 5xx answer, for a read whose
+// caller handles a 5xx itself.
+func (ac *AlkiraClient) readerNo5xx() *retryablehttp.Client {
+	rc := ac.reader()
+	check := rc.CheckRetry
+	if check == nil {
+		check = retryablehttp.DefaultRetryPolicy
+	}
+	rc.CheckRetry = func(ctx context.Context, resp *http.Response, err error) (bool, error) {
+		if err == nil && resp != nil && resp.StatusCode >= 500 {
+			return false, nil
+		}
+		return check(ctx, resp, err)
+	}
+	return rc
+}
+
 // doGet sends one GET on the write path (pre-GET, guard reads, confirming
 // GET) under ctx. A non-2xx returns *APIError.
 func (ac *AlkiraClient) doGet(ctx context.Context, uri string) ([]byte, error) {
+	return ac.doGetWith(ctx, uri, ac.reader)
+}
+
+// doGetNo5xxRetry is doGet that returns a 5xx at once instead of retrying it.
+func (ac *AlkiraClient) doGetNo5xxRetry(ctx context.Context, uri string) ([]byte, error) {
+	return ac.doGetWith(ctx, uri, ac.readerNo5xx)
+}
+
+func (ac *AlkiraClient) doGetWith(ctx context.Context, uri string, client func() *retryablehttp.Client) ([]byte, error) {
 	if err := ac.check(uri); err != nil {
 		return nil, err
 	}
@@ -467,7 +493,7 @@ func (ac *AlkiraClient) doGet(ctx context.Context, uri string) ([]byte, error) {
 	}
 	requestId := ac.setWriteHeaders(req)
 
-	resp, err := ac.reader().Do(req)
+	resp, err := client().Do(req)
 	if resp == nil {
 		if err == nil {
 			err = errors.New("no response")

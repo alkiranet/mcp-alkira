@@ -118,7 +118,7 @@ var policySpecs = []familySpec{
 		previews: []previewCase{
 			{"PENDING", []string{`Delete preview for NAT policy "n7" (id 7).`, "Deployed: no, never deployed (state PENDING).",
 				"The delete now: removes it at once.", "The next provision: nothing to tear down."}},
-			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps its name and references until the next provision",
+			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal",
 				"The next provision: tears down the deployed object."}},
 		},
 	},
@@ -136,7 +136,7 @@ var policySpecs = []familySpec{
 		inUse:    []inUseCase{{fault{status: 409, body: `{"code":"AK000001","message":"Entity is still referred externally"}`}, "still referred externally"}},
 		previews: []previewCase{
 			{"SUCCESS", []string{`Delete preview for route policy "rp7" (id 7).`, "Deployed: yes (state SUCCESS).",
-				"marks it for deletion; it keeps its name and references until the next provision", "The next provision: tears down the deployed object."}},
+				"marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal", "The next provision: tears down the deployed object."}},
 		},
 	},
 }
@@ -303,6 +303,24 @@ func TestPolicies_StateGuard(t *testing.T) {
 	}
 	if ak.NatPolicyDescriptor().StateGuard != 0 || ak.RoutePolicyDescriptor().StateGuard != ak.StateGuardD13 {
 		t.Fatal("state guards differ from TPS")
+	}
+}
+
+// A NAT rule body carries no state, but TPS hard-deletes a rule no live
+// policy holds, so its delete says it removes the rule at once.
+func TestPolicies_NatRuleDeleteRemovesAtOnce(t *testing.T) {
+	s := specNamed("policy_nat_rule")
+	e := newFamilyEnv(t, s)
+	s.put(e, 7, s.stored())
+	r := e.call("policy_nat_rule_delete", map[string]any{"id": "7"})
+	code := previewCode(t, r)
+	if !strings.Contains(r.Text, "The delete now: removes it at once.\n") || strings.Contains(r.Text, "marks it for deletion") {
+		t.Fatalf("preview = %s", r.Text)
+	}
+	r = e.call("policy_nat_rule_delete", map[string]any{"id": "7", "confirmCode": code})
+	mustOK(t, r)
+	if !strings.HasPrefix(r.Text, `Deleted NAT rule "r7" (id 7).`) || strings.Contains(r.Text, "marked for deletion") {
+		t.Fatalf("text = %s", r.Text)
 	}
 }
 

@@ -32,5 +32,5 @@ var InternetApplication = handlers.WriteFamily[ak.InternetApplicationConfig]{
 		"A target of type INTERNAL_DNS takes policyFqdnListId and no value; other targets take a value. " +
 		"The backend creates or reuses one inbound internet connector per segment and CXP for the application (<cxp>-<segment>-INB-INT); it is server-owned.",
 	UpdateNote: "The stored object is resent whole. byoipId, publicIps, inboundConnectorType and biDirectionalAvailabilityZone cannot change after the first provision, nor connectorId and connectorType of an application that uses BYOIP. A FAILED application is refused with no request.",
-	DeleteNote: "Deleting the last application of a segment and CXP also removes its INB-INT connector, and removing the network's last INB-INT connector removes the ALK-INB-INT-GROUP group. A deployed application is marked for deletion until the next provision.",
+	DeleteNote: "Deleting the last application of a segment and CXP also removes its INB-INT connector, and removing the network's last INB-INT connector removes the ALK-INB-INT-GROUP group.",
 }
