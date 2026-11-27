@@ -71,7 +71,7 @@ type InternetApplicationConfig struct {
 	// (InternetApplicationServiceImpl.java:749-751).
 	ConnectorType *string                     `json:"connectorType,omitempty"`
 	Size          *string                     `json:"size,omitempty" ak:"default=SMALL,enum=SMALL|MEDIUM|LARGE|2LARGE|4LARGE|5LARGE,src=InternetApplication.java:104-107|EntitySizeValidator.java:14-22"`
-	BillingTags   []int64                     `json:"billingTags,omitempty"`
+	BillingTags   []int64                     `json:"billingTags,omitempty" ak:"flag=BILLING-TAGS"`
 	Targets       []InternetApplicationTarget `json:"targets" ak:"required,src=InternetApplication.java:182-183|InternetApplicationValidator.java:32-38"`
 
 	InboundConnectorType          *string                    `json:"inboundConnectorType,omitempty" ak:"enum=DEFAULT|AKAMAI_PROLEXIC,flag=AKAMAI-PRO-PHASE-1,src=InternetApplication.java:185-187|:224-226"`
@@ -146,6 +146,7 @@ var internetApplicationDescriptor = Descriptor{
 	Service:            ServiceTPS,
 	CrossCheck:         checkInternetApplication,
 	Flags: []FlagRule{
+		{Flag: "BILLING-TAGS", Effect: FlagIncludeField, Field: "billingTags", UISource: "src/views/applications/internetApplications/AddInternetApplication.js:1411-1418"},
 		{Flag: "IFA-IPV6-SUPPORT", Effect: FlagIncludeField, Field: "internetProtocol", UISource: "src/views/applications/internetApplications/AddInternetApplication.js:68|:905-910"},
 		{Flag: "AKAMAI-PRO-PHASE-1", Effect: FlagIncludeField, Field: "inboundConnectorType", UISource: "src/views/applications/internetApplications/AddInternetApplication.js:881-895"},
 		{Flag: "AKAMAI-PRO-PHASE-1", Effect: FlagIncludeField, Field: "inboundConnectorId", UISource: "src/views/applications/internetApplications/AddInternetApplication.js:881-895"},

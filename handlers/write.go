@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"regexp"
 	"slices"
 	"sort"
@@ -46,6 +47,10 @@ type WriteFamily[T any] struct {
 	// StoredRefs lists references the stored object can keep after their
 	// target is deleted (BC-R11).
 	StoredRefs []StoredRef
+	// InUse names, for the delete preview, the objects that the stored object
+	// raw lists as using it; "" when it lists none. Nil means the stored
+	// object does not show its users.
+	InUse func(raw []byte) string
 }
 
 // StoredRef is a reference an update resends from the stored object. When
@@ -92,6 +97,8 @@ type WritePipeline struct {
 	key       []byte
 	noConfirm bool
 	now       func() time.Time
+	// families holds the WithWriteFamilies patterns; nil serves every family.
+	families []string
 
 	locks objectLocks
 }
@@ -256,7 +263,7 @@ func WriteCreate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			} else {
 				fmt.Fprintf(&out, "Created %s%s with id %s.", w.f.Noun, quoted(name), orUnknown(wr.ID))
 				if w.f.Descriptor.Provisionable {
-					out.WriteString(" It is saved, not provisioned: it takes effect after a provision.")
+					out.WriteString(" " + PendingCreate)
 				}
 				out.WriteString("\n")
 			}
@@ -339,9 +346,9 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			case wr.ValidationState == ak.ValidationFailed:
 				w.validationFailed(&out, fmt.Sprintf("Saved the update of %s id %s", w.f.Noun, id), wr, patch)
 			default:
-				fmt.Fprintf(&out, "Updated %s id %s.", w.f.Noun, id)
+				fmt.Fprintf(&out, "Updated %s%s (id %s).", w.f.Noun, quoted(w.nameOf(wr.Body)), id)
 				if w.f.Descriptor.Provisionable {
-					out.WriteString(" The change takes effect after a provision.")
+					out.WriteString(" " + PendingChange)
 				}
 				out.WriteString("\n")
 			}
@@ -355,6 +362,9 @@ func WriteUpdate[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			}
 			w.flagEffects(&out, wr)
 			w.writeTail(&out, wr, updated, patch, nullKeys(patch))
+			if re := rederivedChanges(w.rules, wr.Previous, wr.Body); len(re) > 0 {
+				fmt.Fprintf(&out, "Re-derived by the backend on save: %s.\n", strings.Join(re, "; "))
+			}
 			if diff := editsDiff(edits, wr.Body, wr.Absent, w.f.Descriptor.IDMatchedArrays); len(diff) > 0 {
 				fmt.Fprintf(&out, "The backend did not keep the list edits as sent: %s.\n", strings.Join(diff, "; "))
 			}
@@ -440,9 +450,9 @@ func WriteDelete[T any](p *WritePipeline, f WriteFamily[T]) func(*ak.AlkiraClien
 			if wr.Status >= 400 {
 				fmt.Fprintf(&out, "%s%s (id %s) was already deleted: the backend answered the DELETE with not found (status %d).\n", capital(w.f.Noun), quoted(w.nameOf(raw)), id, wr.Status)
 			} else if marked, _ := w.marksRow(raw); marked {
-				fmt.Fprintf(&out, "Marked %s%s (id %s) for deletion. It stays deployed and keeps its name and references until the next provision.\n", w.f.Noun, quoted(w.nameOf(raw)), id)
+				fmt.Fprintf(&out, "Marked %s%s (id %s) for deletion. It keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal.\n", w.f.Noun, quoted(w.nameOf(raw)), id)
 			} else {
-				fmt.Fprintf(&out, "Deleted %s%s (id %s).\n", w.f.Noun, quoted(w.nameOf(raw)), id)
+				fmt.Fprintf(&out, "Deleted %s%s (id %s).%s\n", w.f.Noun, quoted(w.nameOf(raw)), id, w.deletedPending(raw))
 			}
 			out.WriteString("Previous object:\n")
 			out.WriteString(w.render(wr.Previous))
@@ -477,7 +487,7 @@ func (w writeCall[T]) typeAvailable(ctx context.Context, client writeFeatures) *
 	}
 	flags, err := client.WriteFeatures(ctx)
 	if err != nil {
-		return w.errorResult("delete", "", "", err, redaction{})
+		return w.errorResult(verbPreview, "", "", err, redaction{})
 	}
 	for _, r := range gate {
 		needs := r.Flag
@@ -495,7 +505,7 @@ func (w writeCall[T]) typeAvailable(ctx context.Context, client writeFeatures) *
 func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id string) *mcp.CallToolResult {
 	_, raw, err := core.Get(ctx, id)
 	if err != nil {
-		return w.errorResult("delete", id, "", err, redaction{})
+		return w.errorResult(verbPreview, id, "", err, redaction{})
 	}
 	// Get returns rows the family's writes refuse (FamilyType.Value), such as
 	// implicit groups; the preview refuses them as the delete would.
@@ -525,7 +535,7 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 	case !w.f.Descriptor.Provisionable:
 		out.WriteString("Deployed: not applicable; this family is not provisioned.\n")
 	case stateless:
-		fmt.Fprintf(&out, "Deployed: unknown; %ss carry no state. If it was provisioned, it stays live until a provision that includes the delete.\n", w.f.Noun)
+		fmt.Fprintf(&out, "Deployed: unknown; %ss carry no state. If it was provisioned, it stays on the network until the deletion is provisioned from the Alkira portal.\n", w.f.Noun)
 	case deployed:
 		fmt.Fprintf(&out, "Deployed: yes (state %s).\n", entityState)
 	default:
@@ -542,9 +552,14 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 		}
 	}
 	if w.f.Descriptor.MarkedRowLifecycle && deployed {
-		out.WriteString("The delete now: marks it for deletion; it keeps its name and references until the next provision.\n")
+		out.WriteString("The delete now: marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal.\n")
 	} else {
 		out.WriteString("The delete now: removes it at once.\n")
+	}
+	if users := w.inUse(raw); users != "" {
+		fmt.Fprintf(&out, "In use by: %s. The backend refuses this delete while they use it; nothing is deleted then.\n", users)
+	} else {
+		out.WriteString("In use: only the confirmed delete checks whether another object uses it; if one does, the delete is refused and nothing is deleted.\n")
 	}
 	switch {
 	case w.f.ProvisionNote != "":
@@ -564,6 +579,29 @@ func (w writeCall[T]) preview(ctx context.Context, core *ak.Core[T], tenant, id 
 	out.WriteString("Object:\n")
 	out.WriteString(w.render(raw))
 	return mcp.NewToolResultText(out.String())
+}
+
+// deletedPending is what a delete result adds about the network: a removed
+// object that was deployed stays on it until the deletion is provisioned.
+func (w writeCall[T]) deletedPending(raw []byte) string {
+	if !w.f.Descriptor.Provisionable {
+		return ""
+	}
+	if !slices.ContainsFunc(w.rules, func(r ak.FieldRule) bool { return r.Name == "state" }) {
+		return " If it was deployed, it stays on the network until the deletion is provisioned from the Alkira portal."
+	}
+	if deployed, err := ak.Deployed(w.f.Descriptor, raw); err == nil && deployed {
+		return " Pending: the deployed " + w.f.Noun + " stays on the network until the deletion is provisioned from the Alkira portal."
+	}
+	return ""
+}
+
+// inUse names the users the stored object lists, or "".
+func (w writeCall[T]) inUse(raw []byte) string {
+	if w.f.InUse == nil {
+		return ""
+	}
+	return w.f.InUse(raw)
 }
 
 // marksRow reports whether a delete leaves a marked row until the next provision.
@@ -587,7 +625,7 @@ func (w writeCall[T]) confirmRefusal(err error, id string) *mcp.CallToolResult {
 	case errors.Is(err, confirm.ErrStale):
 		return refuse(RefusalConfirmStale, "the object changed since the preview; review the new preview: call "+w.f.Name+"_delete again with id "+id+" and no confirmCode")
 	}
-	return refuse(RefusalConfirmMismatch, "confirmation code does not match this object")
+	return refuse(RefusalConfirmMismatch, fmt.Sprintf("The confirmation code does not match this object. Call %s_delete with id %s and no confirmCode for a new preview and code; that call also says if the id does not exist.", w.f.Name, id))
 }
 
 // writeTail adds the config status, the echo diff and the stored object.
@@ -628,6 +666,13 @@ func (w writeCall[T]) render(raw []byte) string {
 	return string(b) + "\n"
 }
 
+// PendingCreate and PendingChange end the result of a create and of an
+// update of a provisionable family: no write tool provisions.
+const (
+	PendingCreate = "Pending: it is not on the network until it is provisioned from the Alkira portal; no tool here provisions."
+	PendingChange = "Pending: the change is not on the network until it is provisioned from the Alkira portal; no tool here provisions."
+)
+
 // Masked replaces a secret value in write tool output.
 const Masked = "***"
 
@@ -640,7 +685,7 @@ var secretKeys = []string{
 	"activationKey", "configData", "privateKey", "bindPassword", "authKey", "authCode",
 	"registrationKey", "masterKey", "registrationPinValue", "activationCode",
 	"bgpAuthenticationKey", "accountKey", "apiKey",
-	"presharedKeys", "preSharedKey", "localAuthValue", "remoteAuthValue",
+	"presharedKeys", "preSharedKey",
 	"bgpAuthKeyAlkira", "bgpAuthKey", "localPublicSharedKey", "remotePublicSharedKey",
 }
 
@@ -666,7 +711,7 @@ func isSecretKey(k string) bool { return secretKeySet[strings.ToLower(k)] }
 func secretField(rules []ak.FieldRule, k string) (secret bool, sub []ak.FieldRule) {
 	for i := range rules {
 		if rules[i].Name == k {
-			return rules[i].Secret || isSecretKey(k), rules[i].Fields
+			return rules[i].Secret || rules[i].Masked || isSecretKey(k), rules[i].Fields
 		}
 	}
 	return isSecretKey(k), nil
@@ -690,6 +735,26 @@ func mask(rules []ak.FieldRule, v any) any {
 		}
 	}
 	return v
+}
+
+// rederivedChanges names the top-level rederived fields whose value differs
+// between the previous and the saved body: the backend recomputes them on
+// every save, so the change is not one the request made.
+func rederivedChanges(rules []ak.FieldRule, previous, saved []byte) []string {
+	before, err1 := decodeNumbers(previous)
+	after, err2 := decodeNumbers(saved)
+	bm, ok1 := before.(map[string]any)
+	am, ok2 := after.(map[string]any)
+	if err1 != nil || err2 != nil || !ok1 || !ok2 {
+		return nil
+	}
+	var out []string
+	for _, r := range rules {
+		if r.Rederived && !reflect.DeepEqual(bm[r.Name], am[r.Name]) {
+			out = append(out, fmt.Sprintf("%s %s to %s", r.Name, jsonText(bm[r.Name]), jsonText(am[r.Name])))
+		}
+	}
+	return out
 }
 
 // echoDiff names the fields of the request the response does not carry as
@@ -875,6 +940,8 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		return refuse("flags_unavailable", capital(ak.ErrFlagsUnavailable.Error())+". Nothing was sent.")
 	case errors.Is(err, ak.ErrWritesDisabled):
 		return refuse("writes_disabled", "Changes through MCP are disabled for this tenant; nothing was sent. Make the change in the portal, or ask a tenant administrator to turn MCP changes back on.")
+	case errors.Is(err, ak.ErrChangedSinceRead):
+		return refuse("not_sent", fmt.Sprintf("The %s of %s was not sent, nothing changed: another change saved the object after this %s read it. Retry the %s; it reads the current object first, so check that the patch still fits it.", verb, subject, verb, verb))
 	case errors.Is(err, ak.ErrNotSent):
 		return refuse("not_sent", fmt.Sprintf("The %s of %s was not sent, nothing changed: %v", verb, subject, err))
 	case errors.As(err, &se):
@@ -891,7 +958,13 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		if de.Group {
 			return refuse("duplicate", fmt.Sprintf("a group named %q already exists (id %s); the backend creates a group of that name with the %s, so the name cannot be used.", de.Value, de.ID, w.f.Noun))
 		}
-		if de.Type != "" {
+		if de.Kind == ak.DuplicateKindGroup {
+			return refuse("duplicate", fmt.Sprintf("The name %q is taken by group id %s. Connector and group names share one name space; choose another name.", de.Value, de.ID))
+		}
+		if de.Service || de.Kind == ak.DuplicateKindService {
+			return refuse("duplicate", fmt.Sprintf("a service named %q already exists (id %s, type %s); service names are unique across every service type in the network.", de.Value, de.ID, de.Type))
+		}
+		if de.Type != "" || de.Kind == ak.DuplicateKindConnector {
 			return refuse("duplicate", fmt.Sprintf("%s connector named %q already exists (id %s); connector names are unique across every connector type and group.", Article(strings.ToLower(de.Type)), de.Value, de.ID))
 		}
 		return refuse("duplicate", fmt.Sprintf("%s already exists (id %s).", w.keyed(de.Value), de.ID))
@@ -905,7 +978,8 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 	case errors.Is(err, ak.ErrFamilyMismatch):
 		return refuse("family_mismatch", fmt.Sprintf("id %s belongs to another family, not %s; nothing was changed.", id, Article(noun)))
 	case errors.Is(err, ak.ErrInUse):
-		return refuse("in_use", fmt.Sprintf("%s is still referenced: %s. A referrer deleted without a provision keeps the reference until the next provision.", subject, backendText(ae, r)))
+		return refuse("in_use", fmt.Sprintf("%s%s (id %s) is still in use: %s. Remove it from the objects that use it, or delete them, then try the delete again. "+
+			"A user deleted moments ago still counts until its deletion is provisioned.", capital(noun), quoted(name), id, backendText(ae, r)))
 	case errors.Is(err, ak.ErrRateLimited):
 		if ae != nil && ae.RetryAfter > 0 {
 			return refuse("rate_limited", fmt.Sprintf("The backend is busy or rate limiting writes; retry after %d s.%s", int(ae.RetryAfter.Seconds()), ids(ae)))
@@ -927,7 +1001,7 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 	case errors.Is(err, context.DeadlineExceeded):
 		// client-go reports a deadline after the write went out as an
 		// OutcomeError, so a bare deadline came before the write was sent.
-		return refuse("timeout", fmt.Sprintf("The %s of %s timed out after %s before the write was sent; nothing changed. Retry the %s.", verb, subject, w.p.timeout, verb))
+		return w.timeoutResult(verb, subject)
 	case ae != nil && ae.Status == 403:
 		return refuse("permission_denied", fmt.Sprintf("Permission denied for %s %s: %s", verb, noun, backendText(ae, r)))
 	case ae != nil && ae.Status >= 500:
@@ -937,6 +1011,17 @@ func (w writeCall[T]) errorResult(verb, id, name string, err error, r redaction)
 		return refuse("backend_error", fmt.Sprintf("%s %s failed with status %d: %s", capital(verb), noun, ae.Status, backendText(ae, r)))
 	}
 	return refuse("error", fmt.Sprintf("%s %s failed: %v", capital(verb), noun, err))
+}
+
+// verbPreview is the errorResult verb of the delete preview, which sends no write.
+const verbPreview = "delete preview"
+
+// timeoutResult refuses a call whose deadline passed before any write was sent.
+func (w writeCall[T]) timeoutResult(verb, subject string) *mcp.CallToolResult {
+	if verb == verbPreview {
+		return refuse("timeout", fmt.Sprintf("The delete preview of %s timed out after %s; nothing was deleted. Retry the delete.", subject, w.p.timeout))
+	}
+	return refuse("timeout", fmt.Sprintf("The %s of %s timed out after %s before the write was sent; nothing changed. Retry the %s.", verb, subject, w.p.timeout, verb))
 }
 
 // outcomeResult reports a lost response with the flag effects of the
@@ -1332,11 +1417,20 @@ func backendText(ae *ak.APIError, r redaction) string {
 	if r.withheld {
 		return "(backend message withheld: the stored object could not be read to mask its secrets)" + ids(ae)
 	}
-	msg := ae.Message
-	for _, fe := range ae.Errors {
-		msg += fmt.Sprintf("; %s: %s", fe.Field, fe.Message)
+	var parts []string
+	// TPS heads every field error with "Validation failed", which says
+	// nothing the field messages do not.
+	if m := strings.TrimSpace(ae.Message); m != "" && (len(ae.Errors) == 0 || !strings.EqualFold(m, "Validation failed")) {
+		parts = append(parts, m)
 	}
-	return strconv.Quote(r.mask(strings.TrimSpace(msg))) + ids(ae)
+	for _, fe := range ae.Errors {
+		if fe.Field == "" {
+			parts = append(parts, fe.Message)
+			continue
+		}
+		parts = append(parts, fe.Field+": "+fe.Message)
+	}
+	return strconv.Quote(r.mask(strings.Join(parts, "; "))) + ids(ae)
 }
 
 // redaction holds the secret values that backend text of one call may echo.
@@ -1565,13 +1659,13 @@ func orNone(s string) string {
 // Article returns noun with its indefinite article: "an" when the noun
 // starts with a vowel letter, else "a". A first word that starts with a
 // vowel letter but is spoken with a consonant sound takes "a", as in
-// "a UDR list".
+// "a UDR list", and "F5", spoken with a vowel sound, takes "an".
 func Article(noun string) string {
 	first, _, _ := strings.Cut(noun, " ")
-	if noun == "" || first == "UDR" || !strings.ContainsRune("aeiouAEIOU", rune(noun[0])) {
-		return "a " + noun
+	if first == "F5" || noun != "" && first != "UDR" && strings.ContainsRune("aeiouAEIOU", rune(noun[0])) {
+		return "an " + noun
 	}
-	return "an " + noun
+	return "a " + noun
 }
 
 func capital(s string) string {

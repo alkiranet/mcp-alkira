@@ -73,7 +73,7 @@ var trafficSpecs = []familySpec{
 		previews: []previewCase{
 			{"PENDING", []string{`Delete preview for traffic policy rule "r7" (id 7).`, "Deployed: no, never deployed (state PENDING).",
 				"The delete now: removes it at once.", "The next provision: nothing to tear down."}},
-			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps its name and references until the next provision",
+			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal",
 				"The next provision: tears down the deployed object."}},
 		},
 	},
@@ -109,7 +109,7 @@ var trafficSpecs = []familySpec{
 		},
 		previews: []previewCase{
 			{"PENDING", []string{`Delete preview for traffic policy "p7" (id 7).`, "Deployed: no, never deployed (state PENDING).", "The delete now: removes it at once."}},
-			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps its name and references until the next provision"}},
+			{"SUCCESS", []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal"}},
 		},
 	},
 }
@@ -395,7 +395,7 @@ func TestTraffic_NoStateGuard(t *testing.T) {
 				o["state"] = state
 				e.portal.put(7, o)
 				mustOK(t, e.call(name+"_update", map[string]any{"id": "7", "patch": map[string]any{"description": "x"}}))
-				if e.portal.count("PUT") != 1 || e.portal.count("GET") != 1 {
+				if e.portal.count("PUT") != 1 || e.portal.count("GET") != 2 {
 					t.Fatalf("requests = %+v", e.portal.requests())
 				}
 			})

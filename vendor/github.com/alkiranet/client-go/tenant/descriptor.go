@@ -4,6 +4,7 @@ package tenant
 
 import (
 	"fmt"
+	"maps"
 	"net/url"
 	"slices"
 	"strings"
@@ -49,6 +50,9 @@ const (
 	ScopeConnectorsGroups
 	// ScopeGroupsConnectors reads the family's own paged collection and GET /connectors.
 	ScopeGroupsConnectors
+	// ScopeServices reads GET /services with marked rows: a service name is
+	// unique across every service type in the network.
+	ScopeServices
 )
 
 // Uniqueness is the field a create must not duplicate and where to look for it.
@@ -107,6 +111,9 @@ const (
 type FamilyCheck struct {
 	Field string
 	Value string
+	// ReadMissing lets a read return a body without Field; a write still
+	// refuses it. For a field the backend added later and older rows lack.
+	ReadMissing bool
 }
 
 // FamilyError refuses an id whose GET body fails the descriptor's FamilyCheck.
@@ -220,6 +227,13 @@ type Descriptor struct {
 	// previousState, which the family's own GET body does not carry, are
 	// added to the stored body for the state guard and the deployed check.
 	ConnectorType string
+	// ServiceType is the family's type in GET /services. When set, every
+	// pre-GET first reads GET /services/{id} with marked rows: an id of
+	// another type is refused (*FamilyError on field type) before the
+	// family path is read, since a family GET of another type's id can
+	// answer 500, and the row's state and previousState are added to the
+	// stored body for the state guard and the deployed check.
+	ServiceType string
 
 	// NotFound classifies GET and PUT; DeleteNotFound classifies DELETE.
 	// nil means 404 with code AK000003.
@@ -246,7 +260,14 @@ type Descriptor struct {
 	// IDMatchedArrays lists arrays whose elements the backend matches by id,
 	// as dotted JSON paths; "[]" steps into each element ("gateways[].tunnels").
 	IDMatchedArrays []string
-	StateGuard      StateGuard
+	// KeyMatchedArrays maps arrays of elements without an id, as dotted JSON
+	// paths, to the field that pairs a patch element with a stored one
+	// ("instances[].segmentOptions": "segmentName"). A paired element merges
+	// into the stored one, an unpaired one is new, and a stored element the
+	// patch leaves out is dropped. Nested id-matched or key-matched arrays
+	// below it then merge against the stored element.
+	KeyMatchedArrays map[string]string
+	StateGuard       StateGuard
 	// RoutingProvenance lists top-level fields left out of the PUT when every
 	// stored entry has defaultRouting=true and the patch does not set them.
 	RoutingProvenance []string
@@ -259,6 +280,9 @@ type Descriptor struct {
 	// before the request is sent; an error refuses the write as
 	// ErrInvalidInput.
 	CrossCheck func(body map[string]any) error
+	// PrepareStored, when set, removes server-generated content from the
+	// stored body before an update merges the patch into it.
+	PrepareStored func(stored map[string]any)
 	// AsyncCapable: with AsyncValidationFlag on, creates and updates send
 	// ?async=true and wait for the validation state.
 	AsyncCapable bool
@@ -272,6 +296,7 @@ func (d Descriptor) clone() Descriptor {
 	d.InUse = slices.Clone(d.InUse)
 	d.Duplicate = slices.Clone(d.Duplicate)
 	d.IDMatchedArrays = slices.Clone(d.IDMatchedArrays)
+	d.KeyMatchedArrays = maps.Clone(d.KeyMatchedArrays)
 	d.RoutingProvenance = slices.Clone(d.RoutingProvenance)
 	d.Flags = slices.Clone(d.Flags)
 	for i := range d.Flags {
@@ -289,19 +314,28 @@ func (d *Descriptor) validate() error {
 	if d.TenantLevel && d.V1Path {
 		return fmt.Errorf("descriptor %s: TenantLevel and V1Path are exclusive", d.Collection)
 	}
+	if d.ConnectorType != "" && d.ServiceType != "" {
+		return fmt.Errorf("descriptor %s: ConnectorType and ServiceType are exclusive", d.Collection)
+	}
 	if d.Uniqueness.Scope != ScopeNone && d.Uniqueness.Key == "" {
 		return fmt.Errorf("descriptor %s: uniqueness scope without key", d.Collection)
 	}
 	// mergeByID handles a nested path only inside a parent it already merges
-	// by id; without the parent, the patch array replaces the stored one and
-	// drops every field the patch leaves out, stored keys included.
+	// by id or key; without the parent, the patch array replaces the stored
+	// one and drops every field the patch leaves out, stored keys included.
 	listed := map[string]bool{}
 	for _, p := range d.IDMatchedArrays {
 		listed[p] = true
 	}
-	for _, p := range d.IDMatchedArrays {
+	for p, k := range d.KeyMatchedArrays {
+		if listed[p] || k == "" {
+			return fmt.Errorf("descriptor %s: key-matched path %q needs a key and cannot be id-matched too", d.Collection, p)
+		}
+		listed[p] = true
+	}
+	for p := range listed {
 		if i := strings.LastIndex(p, "[]."); i >= 0 && !listed[p[:i]] {
-			return fmt.Errorf("descriptor %s: id-matched path %q needs its parent %q listed", d.Collection, p, p[:i])
+			return fmt.Errorf("descriptor %s: matched path %q needs its parent %q listed", d.Collection, p, p[:i])
 		}
 	}
 	for _, f := range d.Flags {

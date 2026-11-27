@@ -17,6 +17,5 @@ var ConnectorInternet = handlers.WriteFamily[ak.ConnectorInternetConfig]{
 		"segments holds exactly one segment name. billingTags is sent only while the tenant feature BILLING-TAGS is on.",
 	UpdateNote: "Refused with no request while the connector is FAILED, SCHEDULED or IN_PROGRESS, or while the network is FAILED and the connector was provisioned before. " +
 		"An id of another connector type is refused.",
-	DeleteNote: "A connector used by internet applications, segment resources or NAT policies is refused as in use. The backend removes the connector's implicit group, named after the connector, with it. " +
-		"A deployed connector is marked for deletion and keeps its name until the next provision.",
+	DeleteNote: "A connector used by internet applications, segment resources or NAT policies is refused as in use. The backend removes the connector's implicit group, named after the connector, with it.",
 }
