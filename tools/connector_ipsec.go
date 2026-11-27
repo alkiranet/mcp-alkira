@@ -119,3 +119,27 @@ func ConnectorIPSecTunnelProfileGetAll() mcp.Tool {
 		mcp.WithDestructiveHintAnnotation(false),
 	)
 }
+
+func ConnectorIPSecTunnelProfileGetById() mcp.Tool {
+	return mcp.NewTool("connector_ipsec_tunnel_profile_get_by_id",
+		mcp.WithDescription("Get details of one IPSec Tunnel Profile by its ID."),
+		mcp.WithString("profileId",
+			mcp.Required(),
+			mcp.Description("IPSec Tunnel Profile ID."),
+		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+	)
+}
+
+func ConnectorIPSecTunnelProfileGetByName() mcp.Tool {
+	return mcp.NewTool("connector_ipsec_tunnel_profile_get_by_name",
+		mcp.WithDescription("Get every IPSec Tunnel Profile with the given name, as a JSON array."),
+		mcp.WithString("profileName",
+			mcp.Required(),
+			mcp.Description("IPSec Tunnel Profile name."),
+		),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+	)
+}

@@ -1,6 +1,6 @@
 // Package schemagen builds JSON Schemas for write tool input from the client-go
 // `ak` field rules (tenant.FieldRules). Read-only, secret and expired fields
-// are left out; a patch schema has no required fields (BC-R12) and no
+// are left out, apart from write-only secrets in a create; a patch schema has no required fields (BC-R12) and no
 // top-level `set` lists, which change only through list edits.
 package schemagen
 
@@ -51,7 +51,7 @@ func (g Generator) objectSchema(rules []ak.FieldRule, mode Mode, path string) ma
 	props := map[string]any{}
 	var required []string
 	for _, r := range rules {
-		if r.Secret || g.expired(r) || r.ReadOnly && !nestedID(r, mode, path) {
+		if r.Secret && !(r.WriteOnly && mode == Create) || g.expired(r) || r.ReadOnly && !nestedID(r, mode, path) {
 			continue
 		}
 		props[r.Name] = g.Field(r, mode)
@@ -113,6 +113,9 @@ func (g Generator) ListEdits(rules []ak.FieldRule, remove bool, idMatched []stri
 func (g Generator) Field(r ak.FieldRule, mode Mode) map[string]any {
 	s := g.typeSchema(r, r.Type, mode)
 	var notes []string
+	if r.WriteOnly {
+		notes = append(notes, "Write-only: sent with the create and never shown in any output; an update cannot change it.")
+	}
 	if r.Immutable {
 		notes = append(notes, "Cannot be changed after create.")
 	}

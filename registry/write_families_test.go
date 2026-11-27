@@ -35,6 +35,8 @@ type familySpec struct {
 	// connector is the GET /connectors row type of a connector family: each
 	// stored object gets a row there, which carries the object's state.
 	connector string
+	// service is the GET /services type of a service family's objects.
+	service string
 	// readOnly lists stored fields of the family an update must not resend.
 	readOnly []string
 	// updateGets is the number of GETs of the family path an update sends; 1 when zero.
@@ -162,7 +164,7 @@ var familySpecs = []familySpec{
 			{fault{status: 409, body: `{"code":"AK000001","message":"Group is used by a segment resource"}`}, "Group is used by a segment resource"},
 		},
 		previews: []previewCase{
-			{"", []string{`Delete preview for group "g7" (id 7).`, "Deployed: unknown; groups carry no state. If it was provisioned, it stays live until a provision that includes the delete.",
+			{"", []string{`Delete preview for group "g7" (id 7).`, "Deployed: unknown; groups carry no state. If it was provisioned, it stays on the network until the deletion is provisioned from the Alkira portal.",
 				"The delete now: removes it at once.", "The next provision: tears it down if it was deployed; otherwise nothing to tear down."}},
 		},
 	},
@@ -210,7 +212,7 @@ func jsonRoundTrip(v map[string]any) map[string]any {
 func newFamilyEnv(t *testing.T, s familySpec) *writeEnv {
 	t.Helper()
 	e := &writeEnv{t: t, portal: newWritePortal(t, s.coll), now: time.Date(2026, 11, 17, 12, 0, 0, 0, time.UTC), key: confirm.RandomKey()}
-	e.portal.path, e.portal.notFound, e.portal.flags = s.path, &s.notFound, s.flags
+	e.portal.path, e.portal.notFound, e.portal.flags, e.portal.serviceType = s.path, &s.notFound, s.flags, s.service
 	e.serve = func() *server.MCPServer {
 		srv := server.NewMCPServer("mcp-alkira", "test")
 		s.f.register(srv, providerFor(e.portal.client()), e.p)
@@ -274,7 +276,9 @@ func TestFamilies_CreateRequestShape(t *testing.T) {
 					if req.Method != "GET" && req.Path != e.portal.base() {
 						t.Fatalf("write outside the family path: %+v", req)
 					}
-					if strings.Contains(req.Query, "provision") || strings.Contains(req.Query, "async") || strings.Contains(req.Query, "name=") {
+					// A connector create looks its name up in GET /connectors?name=.
+					byName := req.Path == "/api/tenantnetworks/7/connectors" && strings.HasPrefix(req.Query, "name=")
+					if strings.Contains(req.Query, "provision") || strings.Contains(req.Query, "async") || strings.Contains(req.Query, "name=") && !byName {
 						t.Fatalf("unexpected query: %+v", req)
 					}
 				}
@@ -370,7 +374,8 @@ func TestFamilies_UpdateMerge(t *testing.T) {
 			s.put(e, 7, s.stored())
 			r := e.call(s.name+"_update", map[string]any{"id": "7", "patch": map[string]any{"description": ""}})
 			mustOK(t, r)
-			gets, want := 0, max(s.updateGets, 1)
+			// The update reads the object once more right before the PUT (D19).
+			gets, want := 0, max(s.updateGets, 1)+1
 			for _, req := range e.portal.requests() {
 				if req.Method == "GET" && strings.HasPrefix(req.Path, e.portal.base()) {
 					gets++
@@ -451,10 +456,12 @@ func TestFamilies_StateGuard(t *testing.T) {
 }
 
 // MA-W16: a row marked for deletion is refused before any write. A connector
-// family finds such a row through its GET /connectors row; its own tests cover it.
+// family finds such a row through its GET /connectors row, and a family whose
+// plain GET answers not found for such a row through its include-marked GET;
+// their own tests cover them.
 func TestFamilies_DocState(t *testing.T) {
 	for _, s := range familySpecs {
-		if s.connector != "" {
+		if s.connector != "" || s.f.Descriptor.DocState == ak.DocStatePlainGet {
 			continue
 		}
 		t.Run(s.name, func(t *testing.T) {
@@ -527,7 +534,7 @@ func TestFamilies_DeleteInUse(t *testing.T) {
 				e.portal.fail("DELETE", e.portal.base()+"/7", c.f)
 				r := e.call(s.name+"_delete", map[string]any{"id": "7", "confirmCode": code})
 				mustRefuse(t, r, "in_use", c.want)
-				mustRefuse(t, r, "in_use", "A referrer deleted without a provision keeps the reference until the next provision.")
+				mustRefuse(t, r, "in_use", "A user deleted moments ago still counts until its deletion is provisioned.")
 				if e.portal.count("DELETE") != 1 {
 					t.Fatal("want one DELETE, no retry")
 				}
@@ -538,10 +545,10 @@ func TestFamilies_DeleteInUse(t *testing.T) {
 
 // MA-W11: the duplicate guard pages the family list (hit on page 2) and sends
 // no POST. A connector family's guard reads GET /connectors and the groups
-// instead; its own tests cover it.
+// instead, and a service family's GET /services; their own tests cover them.
 func TestFamilies_DuplicateGuard(t *testing.T) {
 	for _, s := range familySpecs {
-		if s.connector != "" {
+		if s.connector != "" || s.service != "" {
 			continue
 		}
 		t.Run(s.name, func(t *testing.T) {

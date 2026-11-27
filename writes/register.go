@@ -59,10 +59,11 @@ func Tools[T any](g schemagen.Generator, f handlers.WriteFamily[T]) []mcp.Tool {
 	if err != nil {
 		panic(fmt.Sprintf("write family %s: %v", f.Name, err))
 	}
-	id := map[string]any{"type": "string", "pattern": "^[0-9]+$", "description": fmt.Sprintf("Id of the %s.", f.Noun)}
+	id := map[string]any{"type": "string", "pattern": "^[0-9]+$", "description": fmt.Sprintf(
+		"Id of the %s, as a string of digits such as \"123\" (not a number). The %s_get_* read tools and %s_create return it.", f.Noun, f.Name, f.Name)}
 	provision := ""
 	if f.Descriptor.Provisionable {
-		provision = " The change is saved, not provisioned; it takes effect after a provision."
+		provision = " The change is saved as pending: it reaches the network only when it is provisioned from the Alkira portal, and no tool here provisions."
 	}
 	unset := " Fields left unset are not sent, so backend defaults apply."
 	if hasDefault(rules) {
@@ -70,20 +71,26 @@ func Tools[T any](g schemagen.Generator, f handlers.WriteFamily[T]) []mcp.Tool {
 	}
 
 	unique := ""
-	if u := f.Descriptor.Uniqueness; u.Scope != ak.ScopeNone && u.Key != "" {
+	if u := f.Descriptor.Uniqueness; u.Scope == ak.ScopeServices {
+		unique = " Refused with no request when a service of any type with the same name exists."
+	} else if u.Scope != ak.ScopeNone && u.Key != "" {
 		unique = fmt.Sprintf(" Refused with no request when %s with the same %s exists.", handlers.Article(f.Noun), u.Key)
 	}
 
+	body := g.Object(rules, schemagen.Create)
+	describeRefs(body)
 	create := tool(f.Name+"_create",
 		fmt.Sprintf("Create %s.%s%s%s%s%s",
 			handlers.Article(f.Noun), unset, unique, provision, note(f.CreateNote), dataNotInstructions),
-		map[string]any{"body": g.Object(rules, schemagen.Create)}, []string{"body"}, tools.CreateAnnotations)
+		map[string]any{"body": body}, []string{"body"}, tools.CreateAnnotations)
 
 	patch := g.PatchObject(rules)
+	describeRefs(patch)
 	patch["description"] = "RFC 7386 merge patch: fields set here replace the stored values, null removes a field, omitted fields keep their stored values."
 	updateProps := map[string]any{"id": id, "patch": patch}
 	how, edits := "a merge patch", ""
 	if add := g.ListEdits(rules, false, f.Descriptor.IDMatchedArrays); add != nil {
+		describeRefs(add)
 		add["description"] = "Items to add to stored lists, per field. Items already in the list are not added again."
 		updateProps["add"] = add
 		edits = " Lists under add change only through add and remove, never through the patch. List edits that leave every list as stored send nothing."
@@ -97,16 +104,31 @@ func Tools[T any](g schemagen.Generator, f handlers.WriteFamily[T]) []mcp.Tool {
 		}
 	}
 	update := tool(f.Name+"_update",
-		fmt.Sprintf("Update %s with %s. The stored object is read first and resent with the changes applied, so fields the patch omits, secrets included, keep their stored values.%s Returns the previous object.%s%s%s%s",
+		fmt.Sprintf("Update %s with %s. The stored object is read first and resent with the changes applied, so fields the patch omits, secrets included, keep their stored values.%s Right before saving it reads the object again; if another change saved it since the first read, nothing is sent and the call says so: retry the update. Returns the previous object.%s%s%s%s",
 			handlers.Article(f.Noun), how, edits, provision, terraform, note(f.UpdateNote), dataNotInstructions),
 		updateProps, []string{"id"}, tools.UpdateAnnotations)
 
 	del := tool(f.Name+"_delete",
-		fmt.Sprintf("Delete %s in two steps. Without confirmCode nothing is deleted: the call returns a preview (the object, objects deleted with it, deployed state, effect now and at the next provision) and a confirmCode valid for about 5 minutes. Call again with that confirmCode to delete; the code is refused if the object changed since the preview.%s%s%s",
-			handlers.Article(f.Noun), terraform, note(f.DeleteNote), dataNotInstructions),
+		fmt.Sprintf("Delete %s in two steps. Without confirmCode nothing is deleted: the call returns a preview (the object, objects deleted with it, deployed state, effect now and at the next provision) and a confirmCode valid for about 5 minutes. Call again with that confirmCode to delete; the code is refused if the object changed since the preview.%s%s %s%s",
+			handlers.Article(f.Noun), terraform, note(f.DeleteNote), deleteLifecycle(f), dataNotInstructions),
 		map[string]any{"id": id, "confirmCode": map[string]any{"type": "string", "description": "Code from the preview of this delete."}}, []string{"id"}, tools.DeleteAnnotations)
 
 	return []mcp.Tool{create, update, del}
+}
+
+// deleteLifecycle is the sentence a delete description gives on what the
+// delete does to a deployed object, from the same descriptor facts the
+// delete preview uses.
+func deleteLifecycle[T any](f handlers.WriteFamily[T]) string {
+	switch {
+	case !f.Descriptor.Provisionable:
+		return "The delete takes effect at once; nothing needs provisioning."
+	case f.Descriptor.MarkedRowLifecycle && f.Descriptor.EmptyStateDeployed:
+		return "If it is deployed or has no state, the delete only marks it for deletion: it keeps carrying traffic, with its name, until the deletion is provisioned from the Alkira portal."
+	case f.Descriptor.MarkedRowLifecycle:
+		return "If it is deployed, the delete only marks it for deletion: it keeps carrying traffic, with its name, until the deletion is provisioned from the Alkira portal."
+	}
+	return "The delete removes it from the configuration at once. If it was deployed, the network keeps it until the deletion is provisioned from the Alkira portal."
 }
 
 func tool(name, desc string, props map[string]any, required []string, ann mcp.ToolAnnotation) mcp.Tool {

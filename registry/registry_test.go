@@ -611,6 +611,8 @@ var wantToolNames = []string{
 	"connector_ipsec_get_by_name",
 	"connector_ipsec_get_total",
 	"connector_ipsec_tunnel_profile_get_all",
+	"connector_ipsec_tunnel_profile_get_by_id",
+	"connector_ipsec_tunnel_profile_get_by_name",
 	"connector_oci_vcn_get_all",
 	"connector_oci_vcn_get_by_id",
 	"connector_oci_vcn_get_by_name",

@@ -30,8 +30,8 @@ const SelectiveProvFlag = "SELECTIVE-PROV"
 var ErrNotEnabled = errors.New("not enabled for this tenant")
 
 // ErrFlagsUnavailable refuses a write when the tenant's flags cannot be read
-// and no earlier read for the tenant network is cached. The returned error
-// also wraps the cause of the failed read.
+// and the flags cached for the tenant network are older than the 60 s cache
+// TTL or absent. The returned error also wraps the cause of the failed read.
 var ErrFlagsUnavailable = errors.New("cannot check whether changes through MCP are allowed for this tenant; try again")
 
 // featureCacheTTL bounds how long a flag change takes to reach writes.
@@ -86,25 +86,26 @@ func (ac *AlkiraClient) EnabledFeatures(ctx context.Context) ([]string, error) {
 }
 
 // CheckWritesAllowed returns ErrWritesDisabled when WriteDisabledFlag is on,
-// and ErrFlagsUnavailable when the flags cannot be read and none are cached.
+// and ErrFlagsUnavailable when the flags cannot be read and the cache holds
+// none younger than the 60 s TTL.
 func (ac *AlkiraClient) CheckWritesAllowed(ctx context.Context) error {
 	_, err := ac.WriteFeatures(ctx)
 	return err
 }
 
-// WriteFeatures returns the enabled feature flags that writes use: a failed
-// read falls back to the last flags read for the tenant network, whatever
-// their age. It returns ErrFlagsUnavailable when none are cached and
-// ErrWritesDisabled while WriteDisabledFlag is on.
+// WriteFeatures returns the enabled feature flags that writes use. A write
+// never runs on flags older than the cache TTL: when the read fails, it
+// returns ErrFlagsUnavailable, so the kill switch cannot be bypassed by a
+// failing flag endpoint. When ctx ends during the read, the error wraps
+// ctx.Err() and not ErrFlagsUnavailable, since the cause is the caller's
+// deadline. It returns ErrWritesDisabled while WriteDisabledFlag is on.
 func (ac *AlkiraClient) WriteFeatures(ctx context.Context) ([]string, error) {
 	flags, err := ac.EnabledFeatures(ctx)
 	if err != nil {
-		e, ok := featureCache.Load(ac.featureKey())
-		if !ok {
-			return nil, fmt.Errorf("%w: %w", ErrFlagsUnavailable, err)
+		if cerr := ctx.Err(); cerr != nil {
+			return nil, fmt.Errorf("enabled features: %w", cerr)
 		}
-		logf("DEBUG", "enabled features unavailable, write uses the flags read at %s: %v", e.(featureEntry).at.Format(time.RFC3339), err)
-		flags = slices.Clone(e.(featureEntry).flags)
+		return nil, fmt.Errorf("%w: %w", ErrFlagsUnavailable, err)
 	}
 	if contains(flags, WriteDisabledFlag) {
 		return nil, ErrWritesDisabled
