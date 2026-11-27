@@ -110,6 +110,29 @@ Once you launch `claude`, check MCP status to make sure that it's up:
 
 That's it.
 
+## WRITE TOOLS
+
+By default the server serves read tools only. Start it with
+`-allowWrite` (or set `AK_MCP_ALLOW_WRITE=true`) to also serve the
+create, update and delete tools. Write tools need `-mode stdio`.
+
+Every change a write tool makes is saved as pending. It reaches the
+network only when it is provisioned from the Alkira portal; no tool
+provisions.
+
+The write tools add more than 130 tools to the tool list. Many clients
+cap or truncate long tool lists, so serve only the families you need
+with `-writeFamilies` (or `AK_MCP_WRITE_FAMILIES`), a comma-separated
+list of family names. A family name is the tool name without the
+`_create`, `_update` or `_delete` suffix:
+
+```
+mcp-alkira -mode stdio -allowWrite -writeFamilies segment,group,connector_aws_vpc --portal "YOUR PORTAL URL" --key "YOUR KEY"
+```
+
+An unknown family name stops the server at start. Without the setting
+every family is served. Read tools are always served.
+
 ## BUILD
 
 You will need Golang to build and you could easily build `mcp-alkira` by:

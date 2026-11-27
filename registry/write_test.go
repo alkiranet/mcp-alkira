@@ -222,10 +222,11 @@ func TestWrite_UpdateMerge(t *testing.T) {
 
 	r = e.call("widget_update", map[string]any{"id": "7", "patch": map[string]any{"description": "new", "tags": []any{}}})
 	mustOK(t, r)
-	if e.portal.count("GET") != 1 || e.portal.count("PUT") != 1 {
+	// The second GET is the re-read right before the PUT (D19).
+	if e.portal.count("GET") != 2 || e.portal.count("PUT") != 1 {
 		t.Fatalf("requests = %+v", e.portal.requests())
 	}
-	put := e.portal.requests()[1]
+	put := e.portal.requests()[2]
 	var body map[string]any
 	json.Unmarshal([]byte(put.Body), &body)
 	if body["description"] != "new" || body["psk"] != "s3cr3t-psk" || body["serverOnly"] != "kept" || body["name"] != "w7" {
@@ -253,7 +254,7 @@ func TestWrite_UpdateNullKeptByBackend(t *testing.T) {
 	r := e.call("widget_update", map[string]any{"id": "7", "patch": map[string]any{"description": nil}})
 	mustOK(t, r)
 	var body map[string]any
-	json.Unmarshal([]byte(e.portal.requests()[1].Body), &body)
+	json.Unmarshal([]byte(e.portal.requests()[2].Body), &body)
 	if _, ok := body["description"]; ok {
 		t.Fatalf("null did not remove the key: %v", body)
 	}
@@ -347,7 +348,7 @@ func TestWrite_DeletePreview(t *testing.T) {
 
 	e.portal.put(8, map[string]any{"name": "w8", "state": "SUCCESS"})
 	r = e.call("widget_delete", map[string]any{"id": "8"})
-	for _, want := range []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps its name and references until the next provision", "tears down the deployed object"} {
+	for _, want := range []string{"Deployed: yes (state SUCCESS).", "marks it for deletion; it keeps carrying traffic, with its name and references, until the deletion is provisioned from the Alkira portal", "tears down the deployed object"} {
 		if !strings.Contains(r.Text, want) {
 			t.Errorf("deployed preview lacks %q:\n%s", want, r.Text)
 		}
@@ -619,7 +620,7 @@ func TestWrite_SameObjectSerialized(t *testing.T) {
 	for _, r := range e.portal.requests() {
 		methods = append(methods, r.Method)
 	}
-	if got := strings.Join(methods, " "); got != "GET PUT GET PUT" {
+	if got := strings.Join(methods, " "); got != "GET GET PUT GET GET PUT" {
 		t.Fatalf("requests = %s", got)
 	}
 	members, _ := e.portal.object(7)["members"].([]any)
@@ -673,7 +674,7 @@ func TestWrite_DeleteInUse(t *testing.T) {
 	stored(e)
 	code := previewCode(t, e.call("widget_delete", map[string]any{"id": "7"}))
 	e.portal.fail("DELETE", e.portal.base()+"/7", fault{status: 409, body: `{"code":"AK000409","message":"Widget is in use","errors":[{"field":"widget","code":"widget.00000010","message":"used by policy 3"}]}`})
-	mustRefuse(t, e.call("widget_delete", map[string]any{"id": "7", "confirmCode": code}), "in_use", `widget id 7 is still referenced: "Widget is in use; widget: used by policy 3" (code AK000409`)
+	mustRefuse(t, e.call("widget_delete", map[string]any{"id": "7", "confirmCode": code}), "in_use", `Widget "w7" (id 7) is still in use: "Widget is in use; widget: used by policy 3" (code AK000409`)
 	if e.portal.count("DELETE") != 1 {
 		t.Fatal("want one DELETE, no retry")
 	}
@@ -797,11 +798,11 @@ func TestWrite_ListEdits(t *testing.T) {
 
 	r := e.call("widget_update", map[string]any{"id": "7", "add": map[string]any{"members": []any{"c"}}, "remove": map[string]any{"members": []any{"a", "zz"}}})
 	mustOK(t, r)
-	if e.portal.count("GET") != 1 || e.portal.count("PUT") != 1 {
+	if e.portal.count("GET") != 2 || e.portal.count("PUT") != 1 {
 		t.Fatalf("requests = %+v", e.portal.requests())
 	}
 	var body map[string]any
-	json.Unmarshal([]byte(e.portal.requests()[1].Body), &body)
+	json.Unmarshal([]byte(e.portal.requests()[2].Body), &body)
 	if got := mustJSON(body["members"]); got != `["b","c"]` {
 		t.Fatalf("PUT members = %s", got)
 	}
@@ -940,7 +941,7 @@ func TestWrite_NotSent(t *testing.T) {
 	client.Client.HTTPClient.Transport = dialFailure{http.DefaultTransport}
 	mustRefuse(t, callWrite(t, e.server(client), "widget_update", map[string]any{"id": "7", "patch": map[string]any{"description": "x"}}), "not_sent",
 		"The update of widget id 7 was not sent, nothing changed")
-	if reqs := e.portal.requests(); len(reqs) != 1 || reqs[0].Method != "GET" {
+	if reqs := e.portal.requests(); len(reqs) != 2 || reqs[0].Method != "GET" || reqs[1].Method != "GET" {
 		t.Fatalf("requests = %+v", reqs)
 	}
 }
@@ -1025,7 +1026,7 @@ func TestWrite_RemoveOnlyDescription(t *testing.T) {
 
 // MA-W6: write annotations by verb, every hint set.
 func TestWrite_Annotations(t *testing.T) {
-	want := map[string][3]bool{"create": {false, false, false}, "update": {false, true, true}, "delete": {false, true, true}}
+	hints := map[string][3]bool{"create": {false, false, false}, "update": {false, true, true}, "delete": {false, true, true}}
 	var res struct {
 		Tools []struct {
 			Name        string `json:"name"`
@@ -1045,7 +1046,7 @@ func TestWrite_Annotations(t *testing.T) {
 		if a.ReadOnlyHint == nil || a.DestructiveHint == nil || a.IdempotentHint == nil || a.OpenWorldHint == nil {
 			t.Fatalf("%s: nil hint", tool.Name)
 		}
-		w := want[tool.Name[strings.LastIndex(tool.Name, "_")+1:]]
+		w := hints[tool.Name[strings.LastIndex(tool.Name, "_")+1:]]
 		if *a.ReadOnlyHint != w[0] || *a.DestructiveHint != w[1] || *a.IdempotentHint != w[2] || !*a.OpenWorldHint {
 			t.Errorf("%s: hints %v %v %v %v", tool.Name, *a.ReadOnlyHint, *a.DestructiveHint, *a.IdempotentHint, *a.OpenWorldHint)
 		}
@@ -1078,7 +1079,8 @@ type errorString string
 
 func (e errorString) Error() string { return string(e) }
 
-// MA-W3: no generated schema holds a secret field; the scan catches a seeded one.
+// MA-W3: no generated schema holds a secret field apart from the write-only
+// keys of a create; the scan catches a seeded one.
 func TestWrite_NoSecretInSchemas(t *testing.T) {
 	var res struct {
 		Tools []struct {
@@ -1090,18 +1092,20 @@ func TestWrite_NoSecretInSchemas(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tool := range res.Tools {
-		if found := secretProperties(tool.InputSchema); found != nil {
+		if found := secretProperties(tool.InputSchema, strings.HasSuffix(tool.Name, "_create")); found != nil {
 			t.Errorf("%s: secret properties %v", tool.Name, found)
 		}
 	}
 	seeded := `{"type":"object","properties":{"body":{"type":"object","properties":{"sites":{"type":"array","items":{"type":"object","properties":{"preSharedKey":{"type":"string"}}}}}}}}`
-	if found := secretProperties([]byte(seeded)); !slices.Equal(found, []string{"preSharedKey"}) {
+	if found := secretProperties([]byte(seeded), true); !slices.Equal(found, []string{"preSharedKey"}) {
 		t.Fatalf("seeded nested secret not found: %v", found)
 	}
 }
 
-// secretProperties lists every property name in schema that is a known secret key or "psk"/"key" of the test family.
-func secretProperties(schema []byte) []string {
+// secretProperties lists every property name in schema that is a known
+// secret key or "psk"/"key" of the test family. With writeOnly set, a
+// property described as write-only is allowed: a create takes such keys.
+func secretProperties(schema []byte, writeOnly bool) []string {
 	var v any
 	json.Unmarshal(schema, &v)
 	var found []string
@@ -1110,7 +1114,11 @@ func secretProperties(schema []byte) []string {
 		switch t := v.(type) {
 		case map[string]any:
 			if props, ok := t["properties"].(map[string]any); ok {
-				for k := range props {
+				for k, p := range props {
+					d, _ := p.(map[string]any)["description"].(string)
+					if writeOnly && strings.HasPrefix(d, "Write-only:") {
+						continue
+					}
 					if slices.Contains(handlers.SecretKeys(), k) || k == "psk" {
 						found = append(found, k)
 					}
@@ -1259,7 +1267,7 @@ func TestWrite_AsyncValidating(t *testing.T) {
 	}
 	r = e.call("widget_update", map[string]any{"id": "7", "patch": map[string]any{"description": "x"}})
 	mustOK(t, r)
-	if !strings.Contains(r.Text, "Updated widget id 7.") || !strings.Contains(r.Text, "state id WIDGET:DEFAULT:7") {
+	if !strings.Contains(r.Text, `Updated widget "w7" (id 7).`) || !strings.Contains(r.Text, "state id WIDGET:DEFAULT:7") {
 		t.Fatalf("update text = %s", r.Text)
 	}
 }
@@ -1277,7 +1285,7 @@ func TestWrite_AsyncFailed(t *testing.T) {
 		e.portal.validation = map[string]string{"WIDGET:DEFAULT:101": failed("101")}
 		r := e.call("widget_create", map[string]any{"body": map[string]any{"name": "w1"}})
 		mustOK(t, r)
-		want := `Saved widget "w1" as id 101 (validation state id WIDGET:DEFAULT:101), but validation FAILED: "Validation failed; cidr: overlaps 10.0.0.0/8" (code AK000400, error id ALK-5); fix it with widget_update or remove it with widget_delete.`
+		want := `Saved widget "w1" as id 101 (validation state id WIDGET:DEFAULT:101), but validation FAILED: "cidr: overlaps 10.0.0.0/8" (code AK000400, error id ALK-5); fix it with widget_update or remove it with widget_delete.`
 		if !strings.Contains(r.Text, want) || strings.Contains(r.Text, "not saved") || strings.Contains(r.Text, "Created widget") {
 			t.Fatalf("text = %s", r.Text)
 		}

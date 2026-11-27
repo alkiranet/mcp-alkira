@@ -130,16 +130,18 @@ var connectorInternetDescriptor = Descriptor{
 	Uniqueness:         Uniqueness{Key: "name", Scope: ScopeConnectorsGroups},
 	StateGuard:         StateGuardD13,
 	Service:            ServiceTPS,
-	CrossCheck:         checkConnectorInternet,
+	CrossCheck:         checkConnector,
 	Flags: []FlagRule{
 		{Flag: "BILLING-TAGS", Effect: FlagIncludeField, Field: "billingTags", UISource: "src/views/network/provision/objectConfig/internetConfig/AddInternet/index.js:369|:279"},
 	},
 }
 
-// checkConnectorInternet refuses a name starting with ALK- in any case
+// checkConnector refuses a connector name starting with ALK- in any case
 // (GroupServiceImpl.java:1205-1207; ConnectorServiceImpl.java:949-952) and
-// more or fewer than one segment (InternetConnector.java:86-92).
-func checkConnectorInternet(m map[string]any) error {
+// more or fewer than one segment, the limit of the internet, IPsec, AWS VPC
+// and Azure VNet connectors (InternetConnector.java:86-92;
+// IPsecConnector.java:75; AWSVPCConnector.java:79; AzureVNETConnector.java:183).
+func checkConnector(m map[string]any) error {
 	var errs []error
 	if name, _ := m["name"].(string); strings.HasPrefix(strings.ToUpper(name), "ALK-") {
 		errs = append(errs, errors.New("name must not start with ALK-"))
